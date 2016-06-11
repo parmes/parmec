@@ -1,0 +1,998 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass book
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4paper
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 4cm
+\rightmargin 2cm
+\bottommargin 4cm
+\headheight 2cm
+\headsep 1cm
+\footskip 2cm
+\secnumdepth 2
+\tocdepth 2
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+PARMEC MANUAL
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:Running"
+
+\end_inset
+
+Running
+\end_layout
+
+\begin_layout Standard
+PARMEC is a command line program.
+ Typical usage:
+\end_layout
+
+\begin_layout Enumerate
+Place PARMEC in a globally accessible path (e.g.
+ suitably extend the PATH variable on a unix system).
+\end_layout
+
+\begin_layout Enumerate
+Create a directory where your input file and output files will be stored
+ (e.g.
+ 
+\emph on
+mkdir test
+\emph default
+).
+\end_layout
+
+\begin_layout Enumerate
+Edit your 
+\begin_inset CommandInset href
+LatexCommand href
+name "Python"
+target "http://www.python.org/"
+
+\end_inset
+
+ input file in this directory (e.g.
+ 
+\emph on
+test.py;
+\emph default
+ see also Chapter 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Input"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Enumerate
+Run PARMEC (e.g.
+ 
+\emph on
+PARMEC path/to/test/test.py
+\emph default
+).
+\end_layout
+
+\begin_layout Enumerate
+Time histories can be generated during analysis using 
+\begin_inset CommandInset href
+LatexCommand href
+name "Python"
+target "http://www.python.org/"
+
+\end_inset
+
+ commands documented in Chapter 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Output"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Upon termination a *.dump file is created in the same directory (e.g.
+ 
+\emph on
+path/to/test/test.dump
+\emph default
+), which can be viewed with 
+\begin_inset CommandInset href
+LatexCommand href
+name "OVITO"
+target "http://www.ovito.org"
+
+\end_inset
+
+, see also Chapter 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Viewer"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+A tutorial, where we go through all these steps, is provided in Chapter
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Tutorial"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:Input"
+
+\end_inset
+
+Input
+\end_layout
+
+\begin_layout Standard
+PARMEC input language extends 
+\begin_inset CommandInset href
+LatexCommand href
+name "Python"
+target "http://www.python.org/"
+
+\end_inset
+
+.
+ Subroutines related to input processing are listed below.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:RESET"
+
+\end_inset
+
+RESET
+\end_layout
+
+\begin_layout Standard
+Erase all data.
+\end_layout
+
+\begin_layout Subsection*
+RESET ()
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:MATERIAL"
+
+\end_inset
+
+MATERIAL
+\end_layout
+
+\begin_layout Standard
+Create material.
+\end_layout
+
+\begin_layout Subsection*
+matnum = MATERIAL (density, young, poisson)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+matnum
+\series default
+ - material number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+density
+\series default
+ - mass density
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+young
+\series default
+ - Young modulus
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+poisson
+\series default
+ - Poisson ratio
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:SPHERE"
+
+\end_inset
+
+SPHERE
+\end_layout
+
+\begin_layout Standard
+Create a spherical particle.
+\end_layout
+
+\begin_layout Subsection*
+parnum = SPHERE (center, radius, material, color)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+parnum
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+center
+\series default
+ - tuple 
+\emph on
+
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+
+\emph default
+ defining the center
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+radius
+\series default
+ - radius
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+material
+\series default
+ - material number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color
+\series default
+ - positive integer surface color
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:OBSTACLE"
+
+\end_inset
+
+OBSTACLE
+\end_layout
+
+\begin_layout Standard
+Create an obstacle.
+\end_layout
+
+\begin_layout Subsection*
+OBSTACLE (triangles, color | point, linear, angular)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+triangles
+\series default
+ - list of triangle tuples [(t1x1, t1y1, t1z1, t1x2, t1y2, t1z2, t1x3, t1y3,
+ t1z3), 
+\color blue
+(t2x1, t2y1, t2z1, t2x2, t2y2, t2z2, t2x3, t2y3, t2z3)
+\color inherit
+, ...] defining the obstacle
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color
+\series default
+ - positive integer surface color or a list [color1, 
+\color blue
+color2
+\color inherit
+, ...] of colors for each individual triangle
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point
+\series default
+ - spatial reference point
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+linear
+\series default
+ - linear velocity history callback: 
+\begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)=$
+\end_inset
+
+ 
+\series bold
+linear
+\series default
+ 
+\begin_inset Formula $\left(t\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+angular
+\series default
+ - spatial angular velocity history callback: 
+\begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)=$
+\end_inset
+
+ 
+\series bold
+angular
+\series default
+ 
+\begin_inset Formula $\left(t\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:GRANULAR"
+
+\end_inset
+
+GRANULAR
+\end_layout
+
+\begin_layout Standard
+Define surface pairing for the granular interaction model.
+\end_layout
+
+\begin_layout Subsection*
+GRANULAR (color1, color2, spring | damper, friction, rolling, drilling,
+ kskn)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color1
+\series default
+ - first color (positive, or color1 = 0 and color2 = 0 to redefine default
+ parameters)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color2
+\series default
+ - second color (positive, or color1 = 0 and color2 = 0 to redefine default
+ parameters)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+spring
+\series default
+ - normal spring constant
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+damper
+\series default
+ - normal damping ratio (default: 1.0)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+friction
+\series default
+ - Coulomb's friction coefficient (default: 0); tuple 
+\begin_inset Formula $\left(\mu_{s},\mu_{d}\right)$
+\end_inset
+
+ can be used to specify static and dynamic friction coefficients, respectively
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+rolling
+\series default
+ - rolling friction coefficient (default: 0)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+drilling
+\series default
+ - drilling friction coefficient (default: 0)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ksns
+\series default
+ - ratio of normal to tangential spring (default: 0.5)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:BONDED"
+
+\end_inset
+
+BONDED
+\end_layout
+
+\begin_layout Plain Layout
+Define surface pairing for the bonded interaction model.
+\end_layout
+
+\begin_layout Subsection*
+BONDED (color1, color2, spring | damper, friction, kskn, lambda, young2,
+ kskn2, sigc, tauc, alpha)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color1
+\series default
+ - first color (positive, or color1 = 0 and color2 = 0 to redefine default
+ parameters)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color2
+\series default
+ - second color (positive, or color1 = 0 and color2 = 0 to redefine default
+ parameters)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+spring
+\series default
+ - normal spring constant (default: 1E6)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+damper
+\series default
+ - normal damping ratio (default: 1.0)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+friction
+\series default
+ - Coulomb's friction coefficient (default: 0); tuple 
+\begin_inset Formula $\left(\mu_{s},\mu_{d}\right)$
+\end_inset
+
+ can be used to specify static and dynamic friction coefficients, respectively
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ksns
+\series default
+ - ratio of normal to tangential spring (default: 0.5)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+lambda
+\series default
+ - ...
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+young2
+\series default
+ - ...
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+kskn2
+\series default
+ - ...
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+sigc
+\series default
+ - ...
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+tauc
+\series default
+ - ...
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+alpha
+\series default
+ - ...
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:UFORCE"
+
+\end_inset
+
+UFORCE
+\end_layout
+
+\begin_layout Plain Layout
+Define surface pairing for the user interaction model.
+\end_layout
+
+\begin_layout Subsection*
+UFORCE (color1, color2, uforce)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color1
+\series default
+ - first color (positive, or color1 = 0 and color2 = 0 to redefine default
+ parameters)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+color2
+\series default
+ - second color (positive, or color1 = 0 and color2 = 0 to redefine default
+ parameters)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+uforce
+\series default
+ - user force callback; the callback format is: 
+\begin_inset Formula $\left(f_{x},f_{y},f_{z},s_{1},s_{2},...,s_{9}\right)=\mbox{\textbf{uforce}}\left(\left(n_{x},n_{y},n_{z}\right),\left(v_{x},v_{y},v_{z}\right),\left(\omega_{x},\omega_{y},\omega_{z}\right),\left(s_{1},s_{2},...,s_{9}\right),d,h\right)$
+\end_inset
+
+, where 
+\begin_inset Formula $f_{x}$
+\end_inset
+
+, 
+\begin_inset Formula $f_{y}$
+\end_inset
+
+, 
+\begin_inset Formula $f_{z}$
+\end_inset
+
+ are the components of the contact force, 
+\begin_inset Formula $s_{1}$
+\end_inset
+
+, 
+\begin_inset Formula $s_{2}$
+\end_inset
+
+, ..., 
+\begin_inset Formula $s_{9}$
+\end_inset
+
+ are the state variables (initially all zero), 
+\begin_inset Formula $\left(n_{x},n_{y},n_{z}\right)$
+\end_inset
+
+ is the contact normal, 
+\begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)$
+\end_inset
+
+ is the relative linear velocity between particles, 
+\begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)$
+\end_inset
+
+ is the relative angular spatial velocity between particles, 
+\begin_inset Formula $d$
+\end_inset
+
+ is the penetration depth, and 
+\begin_inset Formula $h$
+\end_inset
+
+ is the time step.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:VELOCITY"
+
+\end_inset
+
+VELOCITY
+\end_layout
+
+\begin_layout Standard
+Set particle velocity.
+\end_layout
+
+\begin_layout Subsection*
+VELOCITY (parnum, linear | angular)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+parnum
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+linear
+\series default
+ - initial linear velocity tuple 
+\begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+angular
+\series default
+ - initial angular velocity tuple 
+\begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:GRAVITY"
+
+\end_inset
+
+GRAVITY
+\end_layout
+
+\begin_layout Standard
+Set gravity.
+\end_layout
+
+\begin_layout Subsection*
+GRAVITY (gx, gy, gz)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+gx
+\series default
+ - constant x component
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+gy
+\series default
+ - constant y component
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+gz
+\series default
+ - constant z component
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:CRITICAL"
+
+\end_inset
+
+CRITICAL
+\end_layout
+
+\begin_layout Standard
+Estimate critical time step.
+\end_layout
+
+\begin_layout Subsection*
+h = CRITICAL ()
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+h
+\series default
+ - critical time step
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:DEM"
+
+\end_inset
+
+DEM
+\end_layout
+
+\begin_layout Standard
+Run DEM simulation.
+\end_layout
+
+\begin_layout Subsection*
+t = DEM (duration, step | interval, prefix)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+t
+\series default
+ - simulation runtime in seconds
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+duration
+\series default
+ - simulation duration
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+step
+\series default
+ - time step
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+interval
+\series default
+ - output interval (default: time step)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+prefix
+\series default
+ - output file name prefix (default: input file name without the 
+\begin_inset Quotes eld
+\end_inset
+
+.py
+\begin_inset Quotes erd
+\end_inset
+
+ extension)
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:Output"
+
+\end_inset
+
+Output
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:Viewer"
+
+\end_inset
+
+Viewer
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:Tutorial"
+
+\end_inset
+
+Tutorial
+\end_layout
+
+\end_body
+\end_document
