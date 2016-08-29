@@ -1,7 +1,9 @@
-#LyX 2.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 474
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass book
 \use_default_options true
 \maintain_unincluded_children false
@@ -9,16 +11,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
-\font_sans default
-\font_typewriter default
-\font_math auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -237,7 +239,7 @@ target "http://www.python.org/"
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:RESET"
+name "subsec:RESET"
 
 \end_inset
 
@@ -255,7 +257,7 @@ RESET ()
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:MATERIAL"
+name "subsec:MATERIAL"
 
 \end_inset
 
@@ -305,7 +307,7 @@ poisson
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:SPHERE"
+name "subsec:SPHERE"
 
 \end_inset
 
@@ -368,10 +370,249 @@ color
  - positive integer surface color
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:OBSTACLE"
+name "subsec:MESH"
+
+\end_inset
+
+MESH
+\end_layout
+
+\begin_layout Plain Layout
+Create a meshed particle.
+\end_layout
+
+\begin_layout Subsection*
+parnum = MESH (nodes, elements, material, colors)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+parnum
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+nodes
+\series default
+ - list of nodes: [
+\emph on
+x0, y0, z0, x1, y1, z1, ...
+\emph default
+]
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+elements
+\series default
+ - list of elements: [
+\emph on
+e1, n1, n2, ..., ne1, e2, n1, n2, ..., ne2, ...
+\emph default
+], where 
+\emph on
+e1
+\emph default
+ is the number of nodes of the first element,
+\emph on
+ n1, n2, ..., ne1
+\emph default
+ enumerate the element nodes.
+ Similarly for the second and all remaining elements.
+ Supported numbers of nodes per element are 
+\emph on
+4, 5, 6, and 8
+\emph default
+ for respectively 
+\emph on
+tetrahedron, pyramid, wedge, and hexahedron
+\emph default
+.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+material
+\series default
+ - material number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+colors
+\series default
+ - list of positive integer face colors: [
+\emph on
+gcolor, f1, n1, n2, ..., nf1, c1, f2, n1, n2, ..., nf2, c2, ...
+\emph default
+], where 
+\emph on
+gcolor
+\emph default
+ is the global color for all not specified faces, 
+\emph on
+f1
+\emph default
+ is the number of nodes in the first specified face, 
+\emph on
+n1, n2, ..., nf1
+\emph default
+ enumerate the face nodes, and 
+\emph on
+c1
+\emph default
+ is the surface color of that face.
+ Similarly for the second and all remaining faces.
+ If only the global color is required, it can be passed as [
+\emph on
+gcolor
+\emph default
+] or as 
+\emph on
+gcolor
+\emph default
+ alone.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:ANALYTICAL"
+
+\end_inset
+
+ANALYTICAL
+\end_layout
+
+\begin_layout Plain Layout
+Create an analytical particle.
+ Analytical particles have no shapes and are not involved in contact.
+\end_layout
+
+\begin_layout Subsection*
+parnum = ANALYTICAL ( | inertia, mass, rotation, position, particle)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+parnum
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+inertia
+\series default
+ - inertia tensor passed as a list [
+\emph on
+Ixx, Iyy, Izz, Ixy, Ixz, Iyz
+\emph default
+]; optional, if 
+\series bold
+particle
+\series default
+ parameter is used
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+mass
+\series default
+ - scalar mass; optional, if 
+\series bold
+particle
+\series default
+ parameter is used
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+orientation
+\series default
+ - optional orientation matrix passed as a list [
+\emph on
+e1x, e1y, e1z, e2x, e2y, e2z, e3x, e3y, e3z
+\emph default
+]; default [
+\emph on
+1, 0, 0, 0, 1, 0, 0, 0, 1
+\emph default
+]
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+position
+\series default
+ - optional position vector passed as a tuple (
+\emph on
+x, y, z
+\emph default
+); default (
+\emph on
+0, 0, 0
+\emph default
+)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+particle
+\series default
+ - optional; if specified, an existing particle is converted into an analytical
+ particle; its properties are inherited or overwritten, depending on whether
+ 
+\series bold
+inertia
+\series default
+ and/or 
+\series bold
+mass
+\series default
+ parameters are used; if initially specified, particle shape is inherited
+ and its animated motion is included in the results
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:OBSTACLE"
 
 \end_inset
 
@@ -391,12 +632,15 @@ OBSTACLE (triangles, color | point, linear, angular)
 \series bold
 triangles
 \series default
- - list of triangle tuples [(t1x1, t1y1, t1z1, t1x2, t1y2, t1z2, t1x3, t1y3,
- t1z3), 
+ - list of triangle tuples [(
+\emph on
+t1x1, t1y1, t1z1, t1x2, t1y2, t1z2, t1x3, t1y3, t1z3), 
 \color blue
 (t2x1, t2y1, t2z1, t2x2, t2y2, t2z2, t2x3, t2y3, t2z3)
 \color inherit
-, ...] defining the obstacle
+, ...
+\emph default
+] defining the obstacle
 \end_layout
 
 \begin_layout Itemize
@@ -404,11 +648,15 @@ triangles
 \series bold
 color
 \series default
- - positive integer surface color or a list [color1, 
+ - positive integer surface color or a list [
+\emph on
+color1, 
 \color blue
 color2
 \color inherit
-, ...] of colors for each individual triangle
+, ...
+\emph default
+] of colors for each individual triangle
 \end_layout
 
 \begin_layout Itemize
@@ -459,10 +707,233 @@ angular
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:GRANULAR"
+name "subsec:BSPRING"
+
+\end_inset
+
+BSPRING
+\end_layout
+
+\begin_layout Plain Layout
+Create a bilateral spring constraint.
+\end_layout
+
+\begin_layout Subsection*
+BSPRING (par1, point1, par2, point2, spring, dashpot | direction, update,
+ power)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:USPRING"
+
+\end_inset
+
+USPRING
+\end_layout
+
+\begin_layout Plain Layout
+Create a unilateral spring constraint.
+\end_layout
+
+\begin_layout Subsection*
+USPRING (par1, point1, par2, point2, spring, dashpot, gap | direction, update,
+ power)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:USER_SPRING"
+
+\end_inset
+
+USER_SPRING
+\end_layout
+
+\begin_layout Plain Layout
+Create a user defined spring constraint.
+\end_layout
+
+\begin_layout Subsection*
+USER_SPRING (par1, point1, par2, point2, spring)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+par1
+\series default
+ - particle one number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point1
+\series default
+ - particle one point
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+par2
+\series default
+ - particle two number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point2
+\series default
+ - particle two point
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+spring
+\series default
+ - user spring callback 
+\begin_inset Formula 
+\[
+\left(f_{x},f_{y},f_{z}\right)\text{ or }\left(f_{x},f_{y},f_{z},t_{x},t_{y},t_{z}\right)=\text{\textbf{spring}}\left(i,j,\mathbf{p}_{i}^{0},\mathbf{p}_{j}^{0},\mathbf{p}_{i}^{t},\mathbf{p}_{j}^{t},\mathbf{x}_{i},\mathbf{x}_{j},\mathbf{\Lambda}_{i},\mathbf{\Lambda}_{j},\mathbf{v}_{i},\mathbf{v}_{j},\mathbf{\omega}_{i},\mathbf{\omega}_{j}\right)
+\]
+
+\end_inset
+
+where if 
+\begin_inset Formula $\mathbf{f=}\left(f_{x},f_{y},f_{z}\right)$
+\end_inset
+
+ is returned then it is interpreted as a spatial point force applied as
+ 
+\begin_inset Formula $\mathbf{f}$
+\end_inset
+
+ at 
+\begin_inset Formula $\mathbf{p}_{i}^{t}$
+\end_inset
+
+ and as 
+\begin_inset Formula $-\mathbf{f}$
+\end_inset
+
+ at 
+\begin_inset Formula $\mathbf{p}_{j}^{t}$
+\end_inset
+
+; if 
+\begin_inset Formula $\mathbf{f}=\left(f_{x},f_{y},f_{z},t_{x},t_{y},t_{z}\right)$
+\end_inset
+
+ is returned then it is interpreted as a body space force/torque applied
+ as 
+\begin_inset Formula $\mathbf{f}$
+\end_inset
+
+ to body 
+\begin_inset Formula $i$
+\end_inset
+
+ and as 
+\begin_inset Formula $-\mathbf{f}$
+\end_inset
+
+ to body 
+\begin_inset Formula $j$
+\end_inset
+
+; 
+\begin_inset Formula $i$
+\end_inset
+
+= 
+\series bold
+par1
+\series default
+ and 
+\begin_inset Formula $j$
+\end_inset
+
+ = 
+\series bold
+par2
+\series default
+; 
+\begin_inset Formula $\mathbf{p}_{i}^{0}$
+\end_inset
+
+ = 
+\series bold
+point1
+\series default
+ and 
+\begin_inset Formula $\mathbf{p}_{j}^{0}$
+\end_inset
+
+ = 
+\series bold
+point2
+\series default
+; 
+\begin_inset Formula $\mathbf{p}_{i}^{t}$
+\end_inset
+
+ is the current position of 
+\begin_inset Formula $\mathbf{p}_{i}^{0}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathbf{p}_{j}^{t}$
+\end_inset
+
+ is the current position of 
+\begin_inset Formula $\mathbf{p}_{j}^{0}$
+\end_inset
+
+;
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:GRANULAR"
 
 \end_inset
 
@@ -555,7 +1026,7 @@ status open
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:BONDED"
+name "subsec:BONDED"
 
 \end_inset
 
@@ -686,11 +1157,11 @@ status open
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:UFORCE"
+name "subsec:USER_FORCE"
 
 \end_inset
 
-UFORCE
+USER_FORCE
 \end_layout
 
 \begin_layout Plain Layout
@@ -698,7 +1169,7 @@ Define surface pairing for the user interaction model.
 \end_layout
 
 \begin_layout Subsection*
-UFORCE (color1, color2, uforce)
+USER_FORCE (color1, color2, force)
 \end_layout
 
 \begin_layout Itemize
@@ -722,10 +1193,10 @@ color2
 \begin_layout Itemize
 
 \series bold
-uforce
+force
 \series default
  - user force callback; the callback format is: 
-\begin_inset Formula $\left(f_{x},f_{y},f_{z},s_{1},s_{2},...,s_{9}\right)=\mbox{\textbf{uforce}}\left(\left(n_{x},n_{y},n_{z}\right),\left(v_{x},v_{y},v_{z}\right),\left(\omega_{x},\omega_{y},\omega_{z}\right),\left(s_{1},s_{2},...,s_{9}\right),d,h\right)$
+\begin_inset Formula $\left(f_{x},f_{y},f_{z},s_{1},s_{2},...,s_{9}\right)=\mbox{\textbf{force}}\left(\left(n_{x},n_{y},n_{z}\right),\left(v_{x},v_{y},v_{z}\right),\left(\omega_{x},\omega_{y},\omega_{z}\right),\left(s_{1},s_{2},...,s_{9}\right),d,h\right)$
 \end_inset
 
 , where 
@@ -780,10 +1251,102 @@ uforce
 
 \end_layout
 
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:VELOCITY"
+name "subsec:MOTION"
+
+\end_inset
+
+MOTION
+\end_layout
+
+\begin_layout Plain Layout
+Prescribe particle motion.
+\end_layout
+
+\begin_layout Subsection*
+MOTION (parnum, | linear, angular)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+parnum
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+linear
+\series default
+ - linear velocity history callback: 
+\begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)=$
+\end_inset
+
+ 
+\series bold
+linear
+\series default
+ 
+\begin_inset Formula $\left(t\right)$
+\end_inset
+
+; default 
+\begin_inset Formula $\left(0,0,0\right)$
+\end_inset
+
+ for all 
+\begin_inset Formula $t$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+angular
+\series default
+ - spatial angular velocity history callback: 
+\begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)=$
+\end_inset
+
+ 
+\series bold
+angular
+\series default
+ 
+\begin_inset Formula $\left(t\right)$
+\end_inset
+
+; default 
+\begin_inset Formula $\left(0,0,0\right)$
+\end_inset
+
+ for all 
+\begin_inset Formula $t$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:VELOCITY"
 
 \end_inset
 
@@ -833,7 +1396,7 @@ angular
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:GRAVITY"
+name "subsec:GRAVITY"
 
 \end_inset
 
@@ -875,7 +1438,7 @@ gz
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:CRITICAL"
+name "subsec:CRITICAL"
 
 \end_inset
 
@@ -901,7 +1464,7 @@ h
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:DEM"
+name "subsec:DEM"
 
 \end_inset
 
