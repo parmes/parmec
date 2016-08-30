@@ -419,7 +419,7 @@ elements
 \series default
  - list of elements: [
 \emph on
-e1, n1, n2, ..., ne1, e2, n1, n2, ..., ne2, ...
+e1, n1, n2, ..., ne1, me1, e2, n1, n2, ..., ne2, me2, ...
 \emph default
 ], where 
 \emph on
@@ -429,7 +429,11 @@ e1
 \emph on
  n1, n2, ..., ne1
 \emph default
- enumerate the element nodes.
+ enumerate the element nodes, and 
+\emph on
+me1
+\emph default
+ is the material number.
  Similarly for the second and all remaining elements.
  Supported numbers of nodes per element are 
 \emph on
