@@ -493,9 +493,6 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
 
   ellcol[j] = color;
 
-  ellrng[0][i] = j;
-  ellrng[1][i] = j+1;
-
   double volume = (4./3.)*M_PI*rad*rad*rad;
 
   mass[i] = volume*mparam[DENSITY][material];
@@ -850,8 +847,17 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
       ASSERT (partitioning_store (threads, tree, ellnum, ellcol, part, center, radii, orient) == 0, "Repartitioning failed");
     }
 
-    condet (threads, tree, master, parnum, ellnum, ellcol, part,
-            center, radii, orient, trinum, tricol, triobs, tri);
+    REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
+    REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
+    REAL *iorient[18] = {orient[0]+ellcon, orient[1]+ellcon, orient[2]+ellcon, orient[3]+ellcon, orient[4]+ellcon, orient[5]+ellcon,
+                         orient[6]+ellcon, orient[7]+ellcon, orient[8]+ellcon, orient[9]+ellcon, orient[10]+ellcon, orient[11]+ellcon,
+			 orient[12]+ellcon, orient[13]+ellcon, orient[14]+ellcon, orient[15]+ellcon, orient[16]+ellcon, orient[17]+ellcon};
+    REAL *itri[3][3] = {{tri[0][0]+tricon, tri[0][1]+tricon, tri[0][2]+tricon},
+                        {tri[1][0]+tricon, tri[1][1]+tricon, tri[1][2]+tricon},
+			{tri[2][0]+tricon, tri[2][1]+tricon, tri[2][2]+tricon}};
+
+    condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
+            icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);

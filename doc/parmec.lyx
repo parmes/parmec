@@ -556,13 +556,25 @@ particle
 \begin_layout Itemize
 
 \series bold
-orientation
+rotation
 \series default
  - optional orientation matrix passed as a list [
 \emph on
 e1x, e1y, e1z, e2x, e2y, e2z, e3x, e3y, e3z
 \emph default
-]; default [
+], where vectors 
+\emph on
+e1
+\emph default
+, 
+\emph on
+e2
+\emph default
+, 
+\emph on
+e3
+\emph default
+ are orthonormal; default [
 \emph on
 1, 0, 0, 0, 1, 0, 0, 0, 1
 \emph default

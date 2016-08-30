@@ -55,6 +55,7 @@ extern int pair_buffer_grow (); /* grow buffer */
 extern void pair_reset (); /* reset pairing defaults */
 
 extern int ellnum; /* number of ellipsoids */
+extern int ellcon; /* index of the first ellipsoid used in contact detection */
 extern int *ellcol; /* ellipsoid color */
 extern int *part; /* ellipsoid to particle map */
 extern REAL *center[6]; /* ellipsoid current and reference centers */
@@ -65,7 +66,6 @@ extern int ellipsoid_buffer_grow (); /* grow buffer */
 
 extern int parnum; /* particle count */
 extern int *parmat; /* particle material */
-extern int *ellrng[2]; /* ellipsoids range */
 extern REAL *angular[6]; /* angular velocities (referencial, spatial) */
 extern REAL *linear[3]; /* linear velocities */
 extern REAL *rotation[9]; /* rotation operators */
@@ -82,6 +82,7 @@ extern int particle_buffer_size; /* size of the buffer */
 extern int particle_buffer_grow (); /* grow buffer */
 
 extern int trinum; /* number of triangles */
+extern int tricon; /* index of the first triangle used in contact detection */
 extern int *tricol; /* triangle color */
 extern int *triobs; /* triangle obstacle */
 extern REAL *tri[3][3]; /* triangle vertices */

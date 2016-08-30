@@ -50,6 +50,7 @@ callback_t *uforce; /* user force callbacks */
 int pair_buffer_size; /* size of the buffer */
 
 int ellnum; /* number of ellipsoids */
+int ellcon; /* index of the first ellipsoid used in contact detection */
 int *ellcol; /* ellipsoid color */
 int *part; /* ellipsoid to particle map */
 REAL *center[6]; /* ellipsoid current and reference centers */
@@ -59,7 +60,6 @@ int ellipsoid_buffer_size; /* size of the buffer */
 
 int parnum; /* particle count */
 int *parmat; /* particle material */
-int *ellrng[2]; /* ellipsoids range */
 REAL *angular[6]; /* angular velocities (referential, spatial) */
 REAL *linear[3]; /* linear velocities */
 REAL *rotation[9]; /* rotation operators */
@@ -75,10 +75,22 @@ ispc::slave_conpnt *slave; /* slave contact points */
 int particle_buffer_size; /* size of the buffer */
 
 int trinum; /* number of triangles */
+int tricon; /* index of the first triangle used in contact detection */
 int *tricol; /* triangle color */
 int *triobs; /* triangle obstacle */
 REAL *tri[3][3]; /* triangle vertices */
 int triangle_buffer_size; /* size of the buffer */
+
+int nodnum; /* number of nodes */
+REAL *nodes[6]; /* current and reference nodes */
+int *nodpart; /* node particle index */
+int elenum; /* number of elements */
+int *elenod; /* element nodes */
+int *eleidx; /* element nodes index */
+int *elepart; /* element particle index */
+int numfac; /* number of faces (triangulated) */
+int *facnod; /* face nodes */
+int *factri; /* face to triangle mapping */
 
 int obsnum; /* number of obstacles */
 int *trirng; /* triangles range */
@@ -275,8 +287,6 @@ void particle_buffer_init ()
   particle_buffer_size = 256;
 
   parmat = aligned_int_alloc (particle_buffer_size);
-  ellrng[0] = aligned_int_alloc (particle_buffer_size);
-  ellrng[1] = aligned_int_alloc (particle_buffer_size);
   angular[0] = aligned_real_alloc (particle_buffer_size);
   angular[1] = aligned_real_alloc (particle_buffer_size);
   angular[2] = aligned_real_alloc (particle_buffer_size);
@@ -339,8 +349,6 @@ int particle_buffer_grow ()
   particle_buffer_size *= 2;
 
   integer_buffer_grow (parmat, parnum, particle_buffer_size);
-  integer_buffer_grow (ellrng[0], parnum, particle_buffer_size);
-  integer_buffer_grow (ellrng[1], parnum, particle_buffer_size);
   real_buffer_grow (angular[0], parnum, particle_buffer_size);
   real_buffer_grow (angular[1], parnum, particle_buffer_size);
   real_buffer_grow (angular[2], parnum, particle_buffer_size);
@@ -415,6 +423,7 @@ int triangle_buffer_init ()
   tri[2][2] = aligned_real_alloc (triangle_buffer_size);
 
   trinum = 0;
+  tricon = 0;
 }
 
 /* grow triangle buffer */
@@ -475,8 +484,12 @@ void reset_all_data ()
   matnum = 0;
   pairnum = 0;
   ellnum = 0;
+  ellcon = 0;
   parnum = 0;
   trinum = 0;
+  tricon = 0;
+  nodnum = 0;
+  elenum = 0;
   obsnum = 0;
 
   pair_reset();
