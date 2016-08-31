@@ -36,12 +36,15 @@ SOFTWARE.
 #include "macros.h"
 #include "parmec.h"
 #include "timer.h"
+#include "mesh.h"
 #include "parmec_ispc.h"
 #include "partition_ispc.h"
 #include "forces_ispc.h"
 #include "dynamics_ispc.h"
 #include "shapes_ispc.h"
 #include "obstacles_ispc.h"
+
+using namespace parmec;
 
 #ifndef Py_RETURN_FALSE
 #define Py_RETURN_FALSE return Py_INCREF(Py_False), Py_False
@@ -337,6 +340,34 @@ static int is_callable (PyObject *obj, const char *var)
   return 1;
 }
 
+/* test whether an object is a list (details as above) or a number */
+static int is_list_or_number (PyObject *obj, const char *var, int len)
+{
+  if (obj)
+  {
+    if (!(PyList_Check (obj) || PyNumber_Check (obj)))
+    {
+      char buf [BUFLEN];
+      sprintf (buf, "'%s' must be a list or a number object", var);
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+
+    if (PyList_Check (obj))
+    {
+      if (!(len > 0 && PyList_Size (obj) != len))
+      {
+	char buf [BUFLEN];
+	sprintf (buf, "'%s' must have %d items", var, len);
+	PyErr_SetString (PyExc_ValueError, buf);
+	return 0;
+      }
+    }
+  }
+
+  return 1;
+}
+
 /* define keywords */
 #define KEYWORDS(...) const char *kwl [] = {__VA_ARGS__, NULL}
 
@@ -504,6 +535,302 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   inertia[0][i] = inertia[4][i] = inertia[8][i] = 0.4*mass[i]*radii[0][j]*radii[0][j];
   inertia[1][i] = inertia[2][i] = inertia[3][i] =
   inertia[5][i] = inertia[6][i] = inertia[7][i] = 0.0;
+
+  return PyInt_FromLong (i);
+}
+
+/* create mesh */
+static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("nodes", "elements", "material", "colors");
+  int material, *lele, *lsur, i, j, k, l, n, m, nn, o;
+  PyObject *nodes, *elements, *colors;
+  REAL (*lnod) [3], mi, ci[3], ii[9];
+  MESH_DATA *msh;
+
+  PARSEKEYS ("OOdO", &nodes, &elements, &material, &colors);
+
+  TYPETEST (is_list (nodes, kwl[0], 0) && is_list (elements, kwl[1], 0) && is_list_or_number (colors, kwl[3], 0));
+
+  /* test element definitions */
+  l = PyList_Size (elements);
+  for (i = 0; i < l; i ++)
+  {
+    k = PyInt_AsLong (PyList_GetItem (elements, i));
+
+    if (!(k == 4 || k == 5 || k == 6 || k == 8))
+    {
+      PyErr_SetString (PyExc_ValueError, "An element must have 4, 5, 6, or 8 nodes");
+      return NULL;
+    }
+
+    /* add one more for the
+     * material definition */
+    i += (k + 1);
+
+    if (i >= l) /* incomplete */
+    {
+      PyErr_SetString (PyExc_ValueError, "The last element definition is incomplete");
+      return NULL;
+    }
+  }
+
+  /* test nodes list */
+  if (PyList_Size(nodes) % 3)
+  {
+    PyErr_SetString (PyExc_ValueError, "Nodes list length must be a multiple of 3");
+    return NULL;
+  }
+
+  /* read elements */
+  ERRMEM (lele = (int*)malloc ((l + 1) * sizeof (int)));
+  nn = PyList_Size (nodes) / 3; /* nodes count */
+
+  for (m = n = i = 0; i < l; m ++)
+  {
+    lele [n ++] = k = PyInt_AsLong (PyList_GetItem (elements, i ++));
+
+    for (j = 0; j < k; j ++)
+    {
+      lele [n ++] = PyInt_AsLong (PyList_GetItem (elements, i ++));
+
+      if (lele  [n-1] < 0 || lele [n-1] >= nn) /* must be within the right range */
+      {
+	char buf [BUFLEN];
+	sprintf (buf, "Node %d in element %d is outside of range [0, %d]",j , m, nn-1);
+	PyErr_SetString (PyExc_ValueError, buf);
+	return NULL;
+      }
+    }
+
+    /* test for repeated nodes in element definition */
+    for (j = 1; j <= k; j ++)
+    {
+      for (o = j + 1; o <= k; o ++)
+      {
+	if (lele [n-j] == lele [n-o])
+	{
+	  char buf [BUFLEN];
+	  sprintf (buf, "Nodes %d and %d in element %d are the same", k-j, k-o, m);
+	  PyErr_SetString (PyExc_ValueError, buf);
+	  return NULL;
+	}
+      }
+    }
+
+    lele [n ++] = PyInt_AsLong (PyList_GetItem (elements, i ++)); /* volid */
+  }
+  lele [n] = 0; /* end of list */
+
+ if (PyList_Check (colors))
+ {
+    /* test color definitions */
+    l = PyList_Size (colors);
+    for (i = 1; i < l; i ++)
+    {
+      k = PyInt_AsLong (PyList_GetItem (colors, i));
+
+      if (!(k == 3 || k == 4))
+      {
+	PyErr_SetString (PyExc_ValueError, "A face must have 3 or 4 nodes");
+	return NULL;
+      }
+
+      /* add one more for the
+       * color definition */
+      i += (k + 1);
+
+      if (i >= l) /* incomplete */
+      {
+	PyErr_SetString (PyExc_ValueError, "The last face definition is incomplete");
+	return NULL;
+      }
+    }
+
+    /* read colors */
+    ERRMEM (lsur = (int*)malloc ((l + 1) * sizeof (int)));
+    lsur [0] = PyInt_AsLong (PyList_GetItem (colors, 0)); /* gcolor */
+
+    for (m = 0, n = i = 1; i < l; m ++)
+    {
+      lsur [n ++] = k = PyInt_AsLong (PyList_GetItem (colors, i ++));
+
+      for (j = 0; j < k; j ++)
+      {
+	lsur [n ++] = PyInt_AsLong (PyList_GetItem (colors, i ++));
+
+	if (lsur [n-1] < 0 || lsur [n-1] >= nn) /* must be within the right range */
+	{
+	  char buf [BUFLEN];
+	  sprintf (buf, "Node %d in face %d is outside of range [0, %d]", j, m, nn-1);
+	  PyErr_SetString (PyExc_ValueError, buf);
+	  return NULL;
+	}
+      }
+
+      /* test for repeated nodes in face definition */
+      for (j = 1; j <= k; j ++)
+      {
+	for (o = j + 1; o <= k; o ++)
+	{
+	  if (lsur [n-j] == lsur [n-o])
+	  {
+	    char buf [BUFLEN];
+	    sprintf (buf, "Nodes %d and %d in face %d are the same", k-j, k-o, m);
+	    PyErr_SetString (PyExc_ValueError, buf);
+	    return NULL;
+	  }
+	}
+      }
+
+      lsur [n ++] = PyInt_AsLong (PyList_GetItem (colors, i ++)); /* surfid */
+    }
+    lsur [n] = 0; /* end of list */
+ }
+ else
+ {
+    ERRMEM (lsur = (int*)malloc (2 * sizeof (int)));
+    lsur [0] = PyInt_AsLong (colors);
+    lsur [1] = 0; /* end of list */
+ }
+
+  /* nodes */
+  ERRMEM (lnod = (REAL(*)[3])malloc (nn * sizeof (REAL [3])));
+  for (i = 0; i < nn; i ++) 
+    for (j = 0; j < 3; j ++)
+      lnod [i][j] = PyFloat_AsDouble (PyList_GetItem (nodes, 3*i + j));
+
+  /* create temporary mesh */
+  msh = MESH_Create (lnod, lele, lsur);
+
+  /* insert mesh data */
+
+  int node_count = msh->nodes_count;
+  int element_node_count = 0;
+  ELEMENT *ele;
+  for (ele = msh->surfeles; ele; ele = ele->next) element_node_count += ele->type;
+  int element_count = msh->surfeles_count;
+  int triangle_count = 0;
+  FACE *fac;
+  for (fac = msh->faces; fac; fac = fac->n) triangle_count += fac->type == 3 ? 1 : 2;
+  element_buffer_grow (node_count, element_node_count, element_count, triangle_count);
+
+  for (ele = msh->surfeles, k = elenum, j = eleidx[k]; ele; ele = ele->next, k ++)
+  {
+    eletype[k] = ele->type;
+    for (i = 0; i < ele->type; i ++)
+    {
+      elenod[j++] = nodnum + ele->nodes[i];
+    }
+    eleidx[k+1] = eleidx[k]+ele->type;
+    elepart[k] = parnum;
+    elemat[k] = ele->material;
+  }
+  elenum += element_count;
+
+  for (k = facnum, fac = msh->faces; fac; fac = fac->n)
+  {
+    /* insert triangle */
+    if (trinum >= triangle_buffer_size) triangle_buffer_grow ();
+    l = trinum ++;
+    tri[0][0][l] = msh->nodes[fac->nodes[0]][0];
+    tri[0][1][l] = msh->nodes[fac->nodes[0]][1];
+    tri[0][2][l] = msh->nodes[fac->nodes[0]][2];
+    tri[1][0][l] = msh->nodes[fac->nodes[1]][0];
+    tri[1][1][l] = msh->nodes[fac->nodes[1]][1];
+    tri[1][2][l] = msh->nodes[fac->nodes[1]][2];
+    tri[2][0][l] = msh->nodes[fac->nodes[2]][0];
+    tri[2][1][l] = msh->nodes[fac->nodes[2]][1];
+    tri[2][2][l] = msh->nodes[fac->nodes[2]][2];
+    tricol[l] = fac->color;
+    triobs[l] = parnum;
+
+    /* insert face */
+    facnod[3*k] = nodnum + fac->nodes[0];
+    facnod[3*k+1] = nodnum + fac->nodes[1];
+    facnod[3*k+2] = nodnum + fac->nodes[2];
+    factri[k] = l;
+    k ++;
+
+    if (fac->type == 4) /* insert second triangle and face */
+    {
+      if (trinum >= triangle_buffer_size) triangle_buffer_grow ();
+      l = trinum ++;
+      tri[0][0][l] = msh->nodes[fac->nodes[0]][0];
+      tri[0][1][l] = msh->nodes[fac->nodes[0]][1];
+      tri[0][2][l] = msh->nodes[fac->nodes[0]][2];
+      tri[1][0][l] = msh->nodes[fac->nodes[2]][0];
+      tri[1][1][l] = msh->nodes[fac->nodes[2]][1];
+      tri[1][2][l] = msh->nodes[fac->nodes[2]][2];
+      tri[2][0][l] = msh->nodes[fac->nodes[3]][0];
+      tri[2][1][l] = msh->nodes[fac->nodes[3]][1];
+      tri[2][2][l] = msh->nodes[fac->nodes[3]][2];
+      tricol[l] = fac->color;
+      triobs[l] = parnum;
+
+      facnod[3*k] = nodnum + fac->nodes[0];
+      facnod[3*k+1] = nodnum + fac->nodes[2];
+      facnod[3*k+2] = nodnum + fac->nodes[3];
+      factri[k] = l;
+      k ++;
+    }
+  }
+  facnum += triangle_count;
+
+  for (j = 0; j < node_count; j ++)
+  {
+    k = nodnum+j;
+    parmec::nodes[0][k] = parmec::nodes[3][k] = msh->nodes[j][0];
+    parmec::nodes[1][k] = parmec::nodes[4][k] = msh->nodes[j][1];
+    parmec::nodes[2][k] = parmec::nodes[5][k] = msh->nodes[j][2];
+  }
+  nodnum += node_count;
+
+  /* insert particle data */
+
+  i = parnum ++;
+
+  parmat[i] = material;
+
+  angular[0][i] = 0.0;
+  angular[1][i] = 0.0;
+  angular[2][i] = 0.0;
+
+  linear[0][i] = 0.0;
+  linear[1][i] = 0.0;
+  linear[2][i] = 0.0;
+
+  MESH_Char (msh, &mi, ci, ii);
+
+  position[0][i] = ci[0];
+  position[1][i] = ci[1];
+  position[2][i] = ci[2];
+
+  position[3][i] = position[0][i];
+  position[4][i] = position[1][i];
+  position[5][i] = position[2][i];
+
+  mass[i] = mi;
+
+  rotation[0][i] = rotation[4][i] = rotation[8][i] = 1.0;
+  rotation[1][i] = rotation[2][i] = rotation[3][i] =
+  rotation[5][i] = rotation[6][i] = rotation[7][i] = 0.0;
+
+  inertia[0][i] = ii[0];
+  inertia[1][i] = ii[1];
+  inertia[2][i] = ii[2];
+  inertia[3][i] = ii[3];
+  inertia[4][i] = ii[4];
+  inertia[5][i] = ii[5];
+  inertia[6][i] = ii[6];
+  inertia[7][i] = ii[7];
+  inertia[8][i] = ii[8];
+
+  /* clean up */
+  MESH_Destroy (msh);
+  free (lnod);
+  free (lele);
+  free (lsur);
 
   return PyInt_FromLong (i);
 }
@@ -897,6 +1224,7 @@ static PyMethodDef methods [] =
   {"RESET", (PyCFunction)RESET, METH_NOARGS, "Reset simulation"},
   {"MATERIAL", (PyCFunction)MATERIAL, METH_VARARGS|METH_KEYWORDS, "Create material"},
   {"SPHERE", (PyCFunction)SPHERE, METH_VARARGS|METH_KEYWORDS, "Create spherical particle"},
+  {"MESH", (PyCFunction)MESH, METH_VARARGS|METH_KEYWORDS, "Create meshed particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},

@@ -30,6 +30,11 @@ SOFTWARE.
 #include "parmec_ispc.h"
 #include "condet_ispc.h"
 
+using namespace parmec;
+using namespace ispc; /* ISPC calls are used below */
+
+namespace parmec
+{
 char *outpath; /* output path */
 
 int threads; /* number of hardware threads */
@@ -85,12 +90,18 @@ int nodnum; /* number of nodes */
 REAL *nodes[6]; /* current and reference nodes */
 int *nodpart; /* node particle index */
 int elenum; /* number of elements */
+int *eletype; /* element type (4, 5, 6, 8) */
 int *elenod; /* element nodes */
-int *eleidx; /* element nodes index */
+int *eleidx; /* element nodes start index */
 int *elepart; /* element particle index */
-int numfac; /* number of faces (triangulated) */
+int *elemat; /* element material index */
+int facnum; /* number of faces (triangulated) */
 int *facnod; /* face nodes */
 int *factri; /* face to triangle mapping */
+int node_buffer_size; /* size of the nodes buffer */
+int element_node_buffer_size; /* size of the element nodes buffer */
+int element_buffer_size; /* size of the element buffers */
+int face_buffer_size; /* size of the face buffer */
 
 int obsnum; /* number of obstacles */
 int *trirng; /* triangles range */
@@ -99,10 +110,7 @@ REAL *obsang; /* obstacle angular velocities at t and t+h */
 REAL *obslin; /* obstacle linear velocities at t and t+h */
 callback_t *anghis; /* angular velocity history */
 callback_t *linhis; /* linear velocity history */
-int obstacle_buffer_size; /* size of the obstacle buffer */
-
-/* ISPC calls are used below */
-using namespace ispc;
+int obstacle_buffer_size; /* size of the buffer */
 
 /* grow integer buffer */
 void integer_buffer_grow (int* &src, int num, int size)
@@ -446,6 +454,73 @@ int triangle_buffer_grow ()
   return triangle_buffer_size;
 }
 
+/* init element buffer */
+int element_buffer_init ()
+{
+  node_buffer_size = 256;
+  element_node_buffer_size = 1024;
+  element_buffer_size = 256;
+  face_buffer_size = 512;
+  
+  nodes[0] = aligned_real_alloc (node_buffer_size);
+  nodes[1] = aligned_real_alloc (node_buffer_size); 
+  nodes[2] = aligned_real_alloc (node_buffer_size); 
+  nodes[3] = aligned_real_alloc (node_buffer_size); 
+  nodes[4] = aligned_real_alloc (node_buffer_size); 
+  nodes[5] = aligned_real_alloc (node_buffer_size); 
+  nodpart = aligned_int_alloc (node_buffer_size); 
+  eletype = aligned_int_alloc (element_buffer_size); 
+  elenod = aligned_int_alloc (element_node_buffer_size); 
+  eleidx = aligned_int_alloc (element_buffer_size); 
+  elepart = aligned_int_alloc (element_buffer_size); 
+  elemat = aligned_int_alloc (element_buffer_size); 
+  facnod = aligned_int_alloc (3*face_buffer_size); 
+  factri = aligned_int_alloc (face_buffer_size); 
+
+  nodnum = 0;
+  elenum = 0;
+  facnum = 0;
+  eleidx[elenum] = 0;
+}
+
+/* grow element buffer */
+void element_buffer_grow (int node_count, int element_node_count, int element_count, int triangle_count)
+{
+  if (node_buffer_size < nodnum + node_count)
+  {
+    node_buffer_size = 2 * (node_buffer_size + node_count);
+    real_buffer_grow (nodes[0], nodnum, node_buffer_size);
+    real_buffer_grow (nodes[1], nodnum, node_buffer_size);
+    real_buffer_grow (nodes[2], nodnum, node_buffer_size);
+    real_buffer_grow (nodes[3], nodnum, node_buffer_size);
+    real_buffer_grow (nodes[4], nodnum, node_buffer_size);
+    real_buffer_grow (nodes[5], nodnum, node_buffer_size);
+    integer_buffer_grow (nodpart, nodnum, node_buffer_size);
+  }
+
+  if (element_node_buffer_size < eleidx[elenum] + element_node_count)
+  {
+    element_node_buffer_size = 2 * (element_node_buffer_size + element_node_count);
+    integer_buffer_grow (elenod, eleidx[elenum], element_node_buffer_size);
+  }
+
+  if (element_buffer_size < elenum + element_count)
+  {
+    element_buffer_size = 2 * (element_buffer_size + element_count);
+    integer_buffer_grow (eletype, elenum, element_buffer_size);
+    integer_buffer_grow (eleidx, elenum+1, element_buffer_size+1);
+    integer_buffer_grow (elepart, elenum, element_buffer_size);
+    integer_buffer_grow (elemat, elenum, element_buffer_size);
+  }
+
+  if (face_buffer_size < facnum + triangle_count)
+  {
+    face_buffer_size = 2 * (face_buffer_size + triangle_count);
+    integer_buffer_grow (facnod, facnum, 3*face_buffer_size);
+    integer_buffer_grow (factri, facnum, face_buffer_size);
+  }
+}
+
 /* init obstacle buffer */
 int obstacle_buffer_init ()
 {
@@ -461,7 +536,7 @@ int obstacle_buffer_init ()
   obsnum = 0;
 }
 
-/* grow triangle buffer */
+/* grow obstacle buffer */
 int obstacle_buffer_grow ()
 {
   obstacle_buffer_size *= 2;
@@ -490,10 +565,12 @@ void reset_all_data ()
   tricon = 0;
   nodnum = 0;
   elenum = 0;
+  facnum = 0;
   obsnum = 0;
 
   pair_reset();
 }
+} /* namespace */
 
 int main (int argc, char *argv[])
 {
@@ -510,6 +587,7 @@ int main (int argc, char *argv[])
     ellipsoid_buffer_init ();
     particle_buffer_init ();
     triangle_buffer_init ();
+    element_buffer_init ();
     obstacle_buffer_init ();
     reset_all_data ();
 

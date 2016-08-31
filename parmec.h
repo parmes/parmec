@@ -28,8 +28,10 @@ SOFTWARE.
 #ifndef __parmec__
 #define __parmec__
 
-/* === parmec === */
+/* === parmec.cpp === */
 
+namespace parmec
+{
 typedef void* callback_t; /* generall Python callback */
 
 extern int threads; /* number of hardware threads */
@@ -89,6 +91,24 @@ extern REAL *tri[3][3]; /* triangle vertices */
 extern int triangle_buffer_size; /* size of the buffer */
 extern int triangle_buffer_grow (); /* grow buffer */
 
+extern int nodnum; /* number of nodes */
+extern REAL *nodes[6]; /* current and reference nodes */
+extern int *nodpart; /* node particle index */
+extern int elenum; /* number of elements */
+extern int *eletype; /* element type (4, 5, 6, 8) */
+extern int *elenod; /* element nodes */
+extern int *eleidx; /* element nodes start index */
+extern int *elepart; /* element particle index */
+extern int *elemat; /* element material index */
+extern int facnum; /* number of faces (triangulated) */
+extern int *facnod; /* face nodes */
+extern int *factri; /* face to triangle mapping */
+extern int node_buffer_size; /* size of the nodes buffer */
+extern int element_node_buffer_size; /* size of the element nodes buffer */
+extern int element_buffer_size; /* size of the element buffers */
+extern int face_buffer_size; /* size of the face buffer */
+extern void element_buffer_grow (int node_count, int element_node_count, int element_count, int triangle_count); /* grow buffer */
+
 extern int obsnum; /* number of obstacles */
 extern int *trirng; /* triangles range */
 extern REAL *obspnt; /* obstacle spatial points */
@@ -96,16 +116,17 @@ extern REAL *obslin; /* obstacle linear velocities at t and t+h */
 extern REAL *obsang; /* obstacle angular velocities at t and t+h */
 extern callback_t *linhis; /* linear velocity history */
 extern callback_t *anghis; /* angular velocity history */
-extern int obstacle_buffer_size; /* size of the obstacle buffer */
-extern int obstacle_buffer_grow (); /* grow obstacle buffer */
+extern int obstacle_buffer_size; /* size of the buffer */
+extern int obstacle_buffer_grow (); /* grow buffer */
 
 extern void reset_all_data (); /* reset all simulation data */
+}
 
-/* === input === */
+/* === input.cpp === */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-/* === output === */
+/* === output.cpp === */
 
 void output (); /* output current state */
 

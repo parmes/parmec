@@ -29,6 +29,8 @@ SOFTWARE.
 #include "macros.h"
 #include "parmec.h"
 
+using namespace parmec;
+
 /* output current state */
 void output ()
 {

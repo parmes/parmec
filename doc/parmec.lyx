@@ -370,10 +370,6 @@ color
  - positive integer surface color
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
@@ -384,7 +380,7 @@ name "subsec:MESH"
 MESH
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Create a meshed particle.
 \end_layout
 
@@ -443,6 +439,14 @@ me1
 \emph on
 tetrahedron, pyramid, wedge, and hexahedron
 \emph default
+, cf.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:eletype"
+
+\end_inset
+
 .
 \end_layout
 
@@ -490,6 +494,67 @@ gcolor
 gcolor
 \emph default
  alone.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figures/tet.eps
+	lyxscale 15
+	width 15col%
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename figures/pyr.eps
+	lyxscale 15
+	width 15col%
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename figures/wed.eps
+	lyxscale 15
+	width 15col%
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename figures/hex.eps
+	lyxscale 15
+	width 15col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:eletype"
+
+\end_inset
+
+Element types.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset

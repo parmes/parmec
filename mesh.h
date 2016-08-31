@@ -29,7 +29,7 @@ SOFTWARE.
 
 typedef struct element ELEMENT;
 typedef struct face FACE;
-typedef struct mesh MESH;
+typedef struct mesh_data MESH_DATA;
 
 /* triangular or quadrilateral face */
 struct face
@@ -39,7 +39,7 @@ struct face
   int type, /* 3, 4 => triangle, quadrilateral */
       nodes [4], /* node numbers */
       index, /* index within the element */
-      surface; /* surface identifier */
+      color; /* surface color */
 
   ELEMENT *ele;
 
@@ -64,7 +64,7 @@ struct element
 };
 
 /* general mesh */
-struct mesh
+struct mesh_data
 {
   MEM facmem,
       elemem,
@@ -85,12 +85,12 @@ struct mesh
 /* create mesh from a vector of nodes, element list in format =>
  * {nuber of nodes, node0, node1, ..., material}, {REPEAT}, ..., 0 (end of list); and surface colors in format =>
  * global surface, {number of nodes, node0, node1, ..., color}, {REPEAT}, ..., 0 (end of list); */
-MESH* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces);
+MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces);
 
 /* calculate mass characteristics: scalar mass, mass center, inertia tensor */
-void MESH_Char (MESH *msh, REAL *mass, REAL *center, REAL *inertia);
+void MESH_Char (MESH_DATA *msh, REAL *mass, REAL *center, REAL *inertia);
 
 /* free mesh memory */
-void MESH_Destroy (MESH *msh);
+void MESH_Destroy (MESH_DATA *msh);
   
 #endif
