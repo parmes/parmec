@@ -1373,9 +1373,18 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
       position, inertia, inverse, mass, invm, force, torque, gravity, step);
 
-    shapes (threads, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
-            nodnum, nodes, nodpart, analytical, facnum-faccon, ifacnod,
-	    factri+faccon, tri, rotation, position);
+    if (time >= t0 + interval) /* full update, due to output */
+    {
+      shapes (threads, ellnum, part, center, radii, orient,
+	      nodnum, nodes, nodpart, NULL, facnum, facnod,
+	      factri, tri, rotation, position);
+    }
+    else /* partial update, skipping analytical particles */
+    {
+      shapes (threads, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
+	      nodnum, nodes, nodpart, analytical, facnum-faccon, ifacnod,
+	      factri+faccon, tri, rotation, position);
+    }
 
     obstaclev (obsnum, obsang, obslin, anghis, linhis, time+step);
 
