@@ -75,6 +75,7 @@ REAL *mass; /* scalar mass */
 REAL *invm; /* inverse scalar mass */
 REAL *force[3]; /* total spatial force */
 REAL *torque[3]; /* total spatial torque */
+int *analytical; /* analytical flag */
 ispc::master_conpnt *master; /* master contact points */
 ispc::slave_conpnt *slave; /* slave contact points */
 int particle_buffer_size; /* size of the buffer */
@@ -96,7 +97,9 @@ int *eleidx; /* element nodes start index */
 int *elepart; /* element particle index */
 int *elemat; /* element material index */
 int facnum; /* number of faces (triangulated) */
-int *facnod; /* face nodes */
+int faccon; /* index of the first face used in contact detection */
+int *facnod[3]; /* face nodes */
+int *facpart; /* face particle index */
 int *factri; /* face to triangle mapping */
 int node_buffer_size; /* size of the nodes buffer */
 int element_node_buffer_size; /* size of the element nodes buffer */
@@ -345,6 +348,7 @@ void particle_buffer_init ()
   torque[0] = aligned_real_alloc (particle_buffer_size);
   torque[1] = aligned_real_alloc (particle_buffer_size);
   torque[2] = aligned_real_alloc (particle_buffer_size);
+  analytical = aligned_int_alloc (particle_buffer_size);
   master = master_alloc (NULL, 0, particle_buffer_size);
   slave = slave_alloc (NULL, 0, particle_buffer_size);
 
@@ -407,6 +411,7 @@ int particle_buffer_grow ()
   real_buffer_grow (torque[0], parnum, particle_buffer_size);
   real_buffer_grow (torque[1], parnum, particle_buffer_size);
   real_buffer_grow (torque[2], parnum, particle_buffer_size);
+  integer_buffer_grow (analytical, parnum, particle_buffer_size);
   master = master_alloc (master, parnum, particle_buffer_size);
   slave = slave_alloc (slave, parnum, particle_buffer_size);
 
@@ -474,12 +479,16 @@ int element_buffer_init ()
   eleidx = aligned_int_alloc (element_buffer_size); 
   elepart = aligned_int_alloc (element_buffer_size); 
   elemat = aligned_int_alloc (element_buffer_size); 
-  facnod = aligned_int_alloc (3*face_buffer_size); 
+  facnod[0] = aligned_int_alloc (face_buffer_size); 
+  facnod[1] = aligned_int_alloc (face_buffer_size); 
+  facnod[2] = aligned_int_alloc (face_buffer_size); 
+  facpart = aligned_int_alloc (face_buffer_size); 
   factri = aligned_int_alloc (face_buffer_size); 
 
   nodnum = 0;
   elenum = 0;
   facnum = 0;
+  faccon = 0;
   eleidx[elenum] = 0;
 }
 
@@ -516,7 +525,10 @@ void element_buffer_grow (int node_count, int element_node_count, int element_co
   if (face_buffer_size < facnum + triangle_count)
   {
     face_buffer_size = 2 * (face_buffer_size + triangle_count);
-    integer_buffer_grow (facnod, facnum, 3*face_buffer_size);
+    integer_buffer_grow (facnod[0], facnum, face_buffer_size);
+    integer_buffer_grow (facnod[1], facnum, face_buffer_size);
+    integer_buffer_grow (facnod[2], facnum, face_buffer_size);
+    integer_buffer_grow (facpart, facnum, face_buffer_size);
     integer_buffer_grow (factri, facnum, face_buffer_size);
   }
 }
@@ -566,11 +578,200 @@ void reset_all_data ()
   nodnum = 0;
   elenum = 0;
   facnum = 0;
+  faccon = 0;
   obsnum = 0;
 
   pair_reset();
 }
-} /* namespace */
+
+/* try shuffle ellipsoids */
+static int shuffle_ellipsoids (int k)
+{
+  int start = ellcon, mid, end = ellnum, i, j;
+
+  /* particles are inserted in ascending index order
+   * therefore we can apply binary search */
+  while (start < end)
+  {
+    mid = (start+end)/2;
+    if (part[mid] < k) start = mid;
+    else end = mid;
+  }
+
+  if (part[mid] != k) return 0; /* not found */
+
+  /* find the range of ellipsoids used by this particle */
+  for (start = mid; start > 0 && part[start] == k; start--);
+  for (end = mid; end < ellnum && part[end] == k; end++);
+
+  /* swap initial ellipsoids with those from the found range */
+  for (i = ellcon, j = start; i < start; i ++)
+  {
+    int co = ellcol[i];
+    int pa = part[i];
+    REAL c[6] = {center[0][i], center[1][i], center[2][i], center[3][i], center[4][i], center[5][i]};
+    REAL r[3] = {radii[0][i], radii[1][i], radii[2][i]};
+    REAL o[18] = {orient[0][i], orient[1][i], orient[2][i], orient[3][i], orient[4][i], orient[5][i],
+                  orient[6][i], orient[7][i], orient[8][i], orient[9][i], orient[10][i], orient[11][i],
+	          orient[12][i], orient[13][i], orient[14][i], orient[15][i], orient[16][i], orient[17][i]};
+
+    ellcol[i] = ellcol[j];
+    part[i] = part[j];
+    center[0][i] = center[0][j];
+    center[1][i] = center[1][j];
+    center[2][i] = center[2][j];
+    center[3][i] = center[3][j];
+    center[4][i] = center[4][j];
+    center[5][i] = center[5][j];
+    radii[0][i] = radii[0][j];
+    radii[1][i] = radii[1][j];
+    radii[2][i] = radii[2][j];
+    orient[0][i] = orient[0][j];
+    orient[1][i] = orient[1][j];
+    orient[2][i] = orient[2][j];
+    orient[3][i] = orient[3][j];
+    orient[4][i] = orient[4][j];
+    orient[5][i] = orient[5][j];
+    orient[6][i] = orient[6][j];
+    orient[7][i] = orient[7][j];
+    orient[8][i] = orient[8][j];
+    orient[9][i] = orient[9][j];
+    orient[10][i] = orient[10][j];
+    orient[11][i] = orient[11][j];
+    orient[12][i] = orient[12][j];
+    orient[13][i] = orient[13][j];
+    orient[14][i] = orient[14][j];
+    orient[15][i] = orient[15][j];
+    orient[16][i] = orient[16][j];
+    orient[17][i] = orient[17][j];
+
+    ellcol[j] = co;
+    part[j] = pa;
+    center[0][j] = c[0];
+    center[1][j] = c[1];
+    center[2][j] = c[2];
+    center[3][j] = c[3];
+    center[4][j] = c[4];
+    center[5][j] = c[5];
+    radii[0][j] = r[0];
+    radii[1][j] = r[1];
+    radii[2][j] = r[2];
+    orient[0][j] = o[0];
+    orient[1][j] = o[1];
+    orient[2][j] = o[2];
+    orient[3][j] = o[3];
+    orient[4][j] = o[4];
+    orient[5][j] = o[5];
+    orient[6][j] = o[6];
+    orient[7][j] = o[7];
+    orient[8][j] = o[8];
+    orient[9][j] = o[9];
+    orient[10][j] = o[10];
+    orient[11][j] = o[11];
+    orient[12][j] = o[12];
+    orient[13][j] = o[13];
+    orient[14][j] = o[14];
+    orient[15][j] = o[15];
+    orient[16][j] = o[16];
+    orient[17][j] = o[17];
+  }
+
+  ellcon += end-start; /* update start index of ellipsoids used in contact detection */
+
+  return 1;
+}
+
+/* try shuffle faces */
+static void shuffle_faces (int k)
+{
+  int start = faccon, mid, end = facnum, i, j, l;
+
+  /* particles are inserted in ascending index order
+   * therefore we can apply binary search */
+  while (start < end)
+  {
+    mid = (start+end)/2;
+    if (facpart[mid] < k) start = mid;
+    else end = mid;
+  }
+
+  /* find the range of faces used by this particle */
+  for (start = mid; start > 0 && facpart[start] == k; start--);
+  for (end = mid; end < facnum && facpart[end] == k; end++);
+
+  /* swap initial faces with those from the found range */
+  for (i = faccon, j = start; i < start; i ++)
+  {
+    int no[3] = {facnod[0][i], facnod[1][i], facnod[2][i]};
+    int pa = facpart[i];
+    int tr = factri[i];
+
+    facnod[0][i] = facnod[0][j];
+    facnod[1][i] = facnod[1][j];
+    facnod[2][i] = facnod[2][j];
+    facpart[i] = facpart[j];
+    factri[i] = factri[j];
+
+    facnod[0][j] = no[0];
+    facnod[1][j] = no[1];
+    facnod[2][j] = no[2];
+    facpart[j] = pa;
+    factri[j] = tr;
+  }
+
+  /* shuffle triangles */
+  for (i = faccon, j = i+end-start; i < j; i ++)
+  {
+    k = tricon++; /* shift start index of triangles used in contact */
+    l = factri[i];
+
+    if (k != l)
+    {
+      int co = tricol[k];
+      int ob = triobs[k];
+      REAL t[3][3] = {{tri[0][0][k], tri[0][1][k], tri[0][2][k]},
+                      {tri[1][0][k], tri[1][1][k], tri[1][2][k]},
+		      {tri[2][0][k], tri[2][1][k], tri[2][2][k]}};
+
+      tricol[k] = tricol[l];
+      triobs[k] = triobs[l];
+      tri[0][0][k] = tri[0][0][l];
+      tri[0][1][k] = tri[0][1][l];
+      tri[0][2][k] = tri[0][2][l];
+      tri[1][0][k] = tri[1][0][l];
+      tri[1][1][k] = tri[1][1][l];
+      tri[1][2][k] = tri[1][2][l];
+      tri[2][0][k] = tri[2][0][l];
+      tri[2][1][k] = tri[2][1][l];
+      tri[2][2][k] = tri[2][2][l];
+
+      tricol[l] = co;
+      triobs[l] = ob;
+      tri[0][0][l] = t[0][0];
+      tri[0][1][l] = t[0][1];
+      tri[0][2][l] = t[0][2];
+      tri[1][0][l] = t[1][0];
+      tri[1][1][l] = t[1][1];
+      tri[1][2][l] = t[1][2];
+      tri[2][0][l] = t[2][0];
+      tri[2][1][l] = t[2][1];
+      tri[2][2][l] = t[2][2];
+    }
+  }
+
+  faccon += end-start; /* update start index of faces used in contact detection */
+}
+
+/* declare particle 'k' analytical */
+void declare_analytical (int k)
+{
+  /* try shuffle ellipsoids */
+  int ok = shuffle_ellipsoids (k);
+
+  /* if no ellipsoids use this particle, try shuffle faces (and triangles) */
+  if (!ok) shuffle_faces (k);
+}
+} /* end of namespace */
 
 int main (int argc, char *argv[])
 {

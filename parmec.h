@@ -78,6 +78,7 @@ extern REAL *mass; /* scalar mass */
 extern REAL *invm; /* inverse scalar mass */
 extern REAL *force[3]; /* total spatial force */
 extern REAL *torque[3]; /* total spatial torque */
+extern int *analytical; /* analytical flag */
 extern ispc::master_conpnt *master; /* master contact points */
 extern ispc::slave_conpnt *slave; /* slave contact points */
 extern int particle_buffer_size; /* size of the buffer */
@@ -101,7 +102,9 @@ extern int *eleidx; /* element nodes start index */
 extern int *elepart; /* element particle index */
 extern int *elemat; /* element material index */
 extern int facnum; /* number of faces (triangulated) */
-extern int *facnod; /* face nodes */
+extern int faccon; /* index of the first face used in contact detection */
+extern int *facnod[3]; /* face nodes */
+extern int *facpart; /* face particle index */
 extern int *factri; /* face to triangle mapping */
 extern int node_buffer_size; /* size of the nodes buffer */
 extern int element_node_buffer_size; /* size of the element nodes buffer */
@@ -120,6 +123,8 @@ extern int obstacle_buffer_size; /* size of the buffer */
 extern int obstacle_buffer_grow (); /* grow buffer */
 
 extern void reset_all_data (); /* reset all simulation data */
+
+extern void declare_analytical (int k); /* declare particle 'k' analytical */
 }
 
 /* === input.cpp === */

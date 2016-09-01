@@ -25,9 +25,9 @@ SOFTWARE.
 #include "macros.h"
 
 /* update obstacles */
-export void obstacles (uniform int threads, uniform int obsnum, uniform int trirng[],
+export void obstacles (uniform int obsnum, uniform int trirng[],
   uniform REAL point[], uniform REAL angular[], uniform REAL linear[],
-  uniform int trinum, uniform REAL * uniform tri[3][3], uniform REAL step)
+  uniform REAL * uniform tri[3][3], uniform REAL step)
 {
   uniform REAL DL[9], y[3];
   uniform REAL * uniform x = point,

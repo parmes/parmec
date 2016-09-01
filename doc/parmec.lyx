@@ -562,11 +562,6 @@ Element types.
 
 \end_layout
 
-\begin_layout Standard
-\noindent
-\begin_inset Note Note
-status open
-
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
@@ -577,13 +572,17 @@ name "subsec:ANALYTICAL"
 ANALYTICAL
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Create an analytical particle.
  Analytical particles have no shapes and are not involved in contact.
 \end_layout
 
 \begin_layout Subsection*
-parnum = ANALYTICAL ( | inertia, mass, rotation, position, particle)
+parnum = ANALYTICAL ( | inertia, mass, rotation, position, material, particle)
+\end_layout
+
+\begin_layout Standard
+Note, that all parameters are optional.
 \end_layout
 
 \begin_layout Itemize
@@ -607,7 +606,11 @@ Ixx, Iyy, Izz, Ixy, Ixz, Iyz
 \series bold
 particle
 \series default
- parameter is used
+ parameter is used; default [
+\emph on
+1, 1, 1, 0, 0, 0
+\emph default
+]
 \end_layout
 
 \begin_layout Itemize
@@ -619,7 +622,9 @@ mass
 \series bold
 particle
 \series default
- parameter is used
+ parameter is used; default 
+\emph on
+0
 \end_layout
 
 \begin_layout Itemize
@@ -669,25 +674,38 @@ x, y, z
 \begin_layout Itemize
 
 \series bold
+material
+\series default
+ - material number; default 
+\emph on
+0
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
 particle
 \series default
  - optional; if specified, an existing particle is converted into an analytical
  particle; its properties are inherited or overwritten, depending on whether
- 
+ any of the 
 \series bold
 inertia
 \series default
- and/or 
+, 
 \series bold
 mass
 \series default
+, 
+\series bold
+rotation
+\series default
+, 
+\series bold
+position
+\series default
  parameters are used; if initially specified, particle shape is inherited
- and its animated motion is included in the results
-\end_layout
-
-\end_inset
-
-
+ and its animated motion is included into the results
 \end_layout
 
 \begin_layout Section
@@ -837,6 +855,35 @@ Create a unilateral spring constraint.
 
 \begin_layout Subsection*
 USPRING (par1, point1, par2, point2, spring, dashpot, gap | direction, update,
+ power)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:CSPRING"
+
+\end_inset
+
+CSPRING
+\end_layout
+
+\begin_layout Plain Layout
+Create a contact spring constraint.
+\end_layout
+
+\begin_layout Subsection*
+CSPRING (master, mpoint, normal, slave, spoint, spring, dashpot | friction,
  power)
 \end_layout
 

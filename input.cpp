@@ -466,7 +466,7 @@ static PyObject* MATERIAL (PyObject *self, PyObject *args, PyObject *kwds)
   return PyInt_FromLong (i);
 }
 
-/* create sphere */
+/* create spherical particle */
 static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
 {
   KEYWORDS ("center", "radius", "material", "color");
@@ -536,10 +536,13 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   inertia[1][i] = inertia[2][i] = inertia[3][i] =
   inertia[5][i] = inertia[6][i] = inertia[7][i] = 0.0;
 
+  /* return regular particle */
+  analytical[i] = 0;
+
   return PyInt_FromLong (i);
 }
 
-/* create mesh */
+/* create meshed particle */
 static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 {
   KEYWORDS ("nodes", "elements", "material", "colors");
@@ -746,9 +749,10 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
     triobs[l] = parnum;
 
     /* insert face */
-    facnod[3*k] = nodnum + fac->nodes[0];
-    facnod[3*k+1] = nodnum + fac->nodes[1];
-    facnod[3*k+2] = nodnum + fac->nodes[2];
+    facnod[0][k] = nodnum + fac->nodes[0];
+    facnod[1][k] = nodnum + fac->nodes[1];
+    facnod[2][k] = nodnum + fac->nodes[2];
+    facpart[k] = parnum;
     factri[k] = l;
     k ++;
 
@@ -768,9 +772,10 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
       tricol[l] = fac->color;
       triobs[l] = parnum;
 
-      facnod[3*k] = nodnum + fac->nodes[0];
-      facnod[3*k+1] = nodnum + fac->nodes[2];
-      facnod[3*k+2] = nodnum + fac->nodes[3];
+      facnod[0][k] = nodnum + fac->nodes[0];
+      facnod[1][k] = nodnum + fac->nodes[2];
+      facnod[2][k] = nodnum + fac->nodes[3];
+      facpart[k] = parnum;
       factri[k] = l;
       k ++;
     }
@@ -832,7 +837,181 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   free (lele);
   free (lsur);
 
+  /* return regular particle */
+  analytical[i] = 0;
+
   return PyInt_FromLong (i);
+}
+
+/* create analytical particle */
+static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("inertia", "mass", "rotation", "position", "material", "particle");
+  PyObject *inertia, *rotation, *position;
+  int material, particle, i;
+  REAL vinertia[6], vrotation[9], vposition[3];
+  double mass;
+
+  inertia = NULL;
+  mass = 0.0;
+  rotation = NULL;
+  position = NULL;
+  material = 0;
+  particle = -1;
+
+  PARSEKEYS ("|OdOOi", &inertia, &mass, &rotation, &position, &particle);
+
+  TYPETEST (is_list (inertia, kwl[0], 6) && is_positive (mass, kwl[1]) &&
+            is_list (rotation, kwl[2], 9) && is_tuple (position, kwl[3], 3) &&
+	    is_non_negative (material, kwl[4]) && is_non_negative (particle, kwl[4]));
+
+  if (inertia)
+  {
+    vinertia[0] = PyFloat_AsDouble (PyList_GetItem (inertia, 0));
+    vinertia[1] = PyFloat_AsDouble (PyList_GetItem (inertia, 1));
+    vinertia[2] = PyFloat_AsDouble (PyList_GetItem (inertia, 2));
+    vinertia[3] = PyFloat_AsDouble (PyList_GetItem (inertia, 3));
+    vinertia[4] = PyFloat_AsDouble (PyList_GetItem (inertia, 4));
+    vinertia[5] = PyFloat_AsDouble (PyList_GetItem (inertia, 5));
+  }
+  else
+  {
+    vinertia[0] = 1.0;
+    vinertia[1] = 1.0;
+    vinertia[2] = 1.0;
+    vinertia[3] = 0.0;
+    vinertia[4] = 0.0;
+    vinertia[5] = 0.0;
+  }
+
+  if (rotation)
+  {
+    vrotation[0] = PyFloat_AsDouble (PyList_GetItem (rotation, 0));
+    vrotation[1] = PyFloat_AsDouble (PyList_GetItem (rotation, 1));
+    vrotation[2] = PyFloat_AsDouble (PyList_GetItem (rotation, 2));
+    vrotation[3] = PyFloat_AsDouble (PyList_GetItem (rotation, 3));
+    vrotation[4] = PyFloat_AsDouble (PyList_GetItem (rotation, 4));
+    vrotation[5] = PyFloat_AsDouble (PyList_GetItem (rotation, 5));
+    vrotation[6] = PyFloat_AsDouble (PyList_GetItem (rotation, 6));
+    vrotation[7] = PyFloat_AsDouble (PyList_GetItem (rotation, 7));
+    vrotation[8] = PyFloat_AsDouble (PyList_GetItem (rotation, 8));
+  }
+  else
+  {
+    vrotation[0] = 1.0;
+    vrotation[1] = 0.0;
+    vrotation[2] = 0.0;
+    vrotation[3] = 0.0;
+    vrotation[4] = 1.0;
+    vrotation[5] = 0.0;
+    vrotation[6] = 0.0;
+    vrotation[7] = 0.0;
+    vrotation[8] = 1.0;
+  }
+
+  if (position)
+  {
+    vposition[0] = PyFloat_AsDouble (PyTuple_GetItem (position, 0));
+    vposition[1] = PyFloat_AsDouble (PyTuple_GetItem (position, 1));
+    vposition[2] = PyFloat_AsDouble (PyTuple_GetItem (position, 2));
+  }
+  else
+  {
+    vposition[0] = 0.0;
+    vposition[1] = 0.0;
+    vposition[2] = 0.0;
+  }
+
+  if (particle < 0) /* create new analytical particle */
+  {
+    i = particle = parnum ++;
+
+    parmat[i] = material;
+
+    angular[0][i] = 0.0;
+    angular[1][i] = 0.0;
+    angular[2][i] = 0.0;
+
+    linear[0][i] = 0.0;
+    linear[1][i] = 0.0;
+    linear[2][i] = 0.0;
+
+    parmec::position[0][i] = vposition[0];
+    parmec::position[1][i] = vposition[1];
+    parmec::position[2][i] = vposition[2];
+    parmec::position[3][i] = vposition[0];
+    parmec::position[4][i] = vposition[1];
+    parmec::position[5][i] = vposition[2];
+
+    if (mass > 0.0) parmec::mass[i] = mass;
+
+    parmec::rotation[0][i] = vrotation[0];
+    parmec::rotation[1][i] = vrotation[1];
+    parmec::rotation[2][i] = vrotation[2]; 
+    parmec::rotation[3][i] = vrotation[3];
+    parmec::rotation[4][i] = vrotation[4];
+    parmec::rotation[5][i] = vrotation[5];
+    parmec::rotation[6][i] = vrotation[6];
+    parmec::rotation[7][i] = vrotation[7];
+    parmec::rotation[8][i] = vrotation[8];
+
+    parmec::inertia[0][i] = vinertia[0];
+    parmec::inertia[4][i] = vinertia[1];
+    parmec::inertia[8][i] = vinertia[2];
+    parmec::inertia[1][i] = parmec::inertia[3][i] = vinertia[3];
+    parmec::inertia[2][i] = parmec::inertia[6][i] = vinertia[4];
+    parmec::inertia[5][i] = parmec::inertia[7][i] = vinertia[5];
+  }
+  else /* redefine an existing particle as analytical */
+  {
+    if (particle >= parnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Particle index is out of range");
+      return NULL;
+    }
+
+    declare_analytical (particle);
+
+    if (position)
+    {
+      parmec::position[0][i] = vposition[0];
+      parmec::position[1][i] = vposition[1];
+      parmec::position[2][i] = vposition[2];
+      parmec::position[3][i] = vposition[0];
+      parmec::position[4][i] = vposition[1];
+      parmec::position[5][i] = vposition[2];
+    }
+
+    if (mass > 0.0) parmec::mass[i] = mass;
+
+    if (rotation)
+    {
+      parmec::rotation[0][i] = vrotation[0];
+      parmec::rotation[1][i] = vrotation[1];
+      parmec::rotation[2][i] = vrotation[2]; 
+      parmec::rotation[3][i] = vrotation[3];
+      parmec::rotation[4][i] = vrotation[4];
+      parmec::rotation[5][i] = vrotation[5];
+      parmec::rotation[6][i] = vrotation[6];
+      parmec::rotation[7][i] = vrotation[7];
+      parmec::rotation[8][i] = vrotation[8];
+    }
+
+    if (inertia)
+    {
+      parmec::inertia[0][i] = vinertia[0];
+      parmec::inertia[4][i] = vinertia[1];
+      parmec::inertia[8][i] = vinertia[2];
+      parmec::inertia[1][i] = parmec::inertia[3][i] = vinertia[3];
+      parmec::inertia[2][i] = parmec::inertia[6][i] = vinertia[4];
+      parmec::inertia[5][i] = parmec::inertia[7][i] = vinertia[5];
+    }
+  }
+
+  /* return analytical particle */
+  analytical[particle] = 1;
+
+  return PyInt_FromLong (particle);
 }
 
 /* create obstacle */
@@ -1151,11 +1330,12 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
     euler (threads, parnum, angular, linear, rotation, position, 0.5*step);
 
-    shapes (threads, ellnum, part, center, radii, orient, rotation, position);
+    shapes (threads, ellnum, part, center, radii, orient, nodnum, nodes,
+            nodpart, NULL, facnum, facnod, factri, tri, rotation, position);
 
     obstaclev (obsnum, obsang, obslin, anghis, linhis, 0.5*step);
 
-    obstacles (threads, obsnum, trirng, obspnt, obsang, obslin, trinum, tri, step);
+    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
   }
 
   invert_inertia (threads, parnum, inertia, inverse, mass, invm);
@@ -1165,15 +1345,6 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   /* time stepping */
   for (t0 = time = 0.0; time < duration; time += step)
   {
-    if (partitioning_store (threads, tree, ellnum, ellcol, part, center, radii, orient) > 0)
-    {
-      partitioning_destroy (tree);
-
-      tree = partitioning_create (threads, ellnum, center);
-
-      ASSERT (partitioning_store (threads, tree, ellnum, ellcol, part, center, radii, orient) == 0, "Repartitioning failed");
-    }
-
     REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
     REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
     REAL *iorient[18] = {orient[0]+ellcon, orient[1]+ellcon, orient[2]+ellcon, orient[3]+ellcon, orient[4]+ellcon, orient[5]+ellcon,
@@ -1182,6 +1353,16 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     REAL *itri[3][3] = {{tri[0][0]+tricon, tri[0][1]+tricon, tri[0][2]+tricon},
                         {tri[1][0]+tricon, tri[1][1]+tricon, tri[1][2]+tricon},
 			{tri[2][0]+tricon, tri[2][1]+tricon, tri[2][2]+tricon}};
+    int *ifacnod[3] = {facnod[0]+faccon, facnod[1]+faccon, facnod[2]+faccon};
+
+    if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
+    {
+      partitioning_destroy (tree);
+
+      tree = partitioning_create (threads, ellnum-ellcon, icenter);
+
+      ASSERT (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) == 0, "Repartitioning failed");
+    }
 
     condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
@@ -1192,11 +1373,13 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
       position, inertia, inverse, mass, invm, force, torque, gravity, step);
 
-    shapes (threads, ellnum, part, center, radii, orient, rotation, position);
+    shapes (threads, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
+            nodnum, nodes, nodpart, analytical, facnum-faccon, ifacnod,
+	    factri+faccon, tri, rotation, position);
 
     obstaclev (obsnum, obsang, obslin, anghis, linhis, time+step);
 
-    obstacles (threads, obsnum, trirng, obspnt, obsang, obslin, trinum, tri, step);
+    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
 
     if (time >= t0 + interval)
     {
@@ -1225,6 +1408,7 @@ static PyMethodDef methods [] =
   {"MATERIAL", (PyCFunction)MATERIAL, METH_VARARGS|METH_KEYWORDS, "Create material"},
   {"SPHERE", (PyCFunction)SPHERE, METH_VARARGS|METH_KEYWORDS, "Create spherical particle"},
   {"MESH", (PyCFunction)MESH, METH_VARARGS|METH_KEYWORDS, "Create meshed particle"},
+  {"ANALYTICAL", (PyCFunction)ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},
