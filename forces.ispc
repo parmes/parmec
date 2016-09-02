@@ -276,10 +276,6 @@ task void forces_task (uniform int span, uniform master_conpnt master[], uniform
 	case GRANULAR_FORCE:
 	  gone[k] = granural_force (n, vij, oij, con->depth[k], i, j, mass, invm, iparam, ij, state, step, f);
 	break;
-	case BONDED_FORCE:
-	  assert (0);
-	  /* TODO */
-	break;
 	case USER_FORCE:
 	  assert (0);
 	  /* TODO */

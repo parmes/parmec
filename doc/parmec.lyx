@@ -813,114 +813,42 @@ status open
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "subsec:BSPRING"
+name "subsec:SPRING"
 
 \end_inset
 
-BSPRING
+SPRING
 \end_layout
 
 \begin_layout Plain Layout
-Create a bilateral spring constraint.
+Translational spring constraint.
+ The spring force is 
+\begin_inset Formula $\text{force}=\text{direction}\cdot\left[\text{spring}\cdot\text{stroke}^{\text{power}}+\text{dashpot}\cdot\text{velocity}\right]$
+\end_inset
+
+.
+ Zero force is used if 
+\series bold
+gap
+\series default
+ parameter is specified and 
+\begin_inset Formula $\text{stroke}$
+\end_inset
+
+ is positive.
 \end_layout
 
 \begin_layout Subsection*
-BSPRING (par1, point1, par2, point2, spring, dashpot | direction, update,
+SPRING (part1, point1, part2, point2, spring, dashpot | direction, gap,
  power)
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset Note Note
-status open
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:USPRING"
-
-\end_inset
-
-USPRING
-\end_layout
-
-\begin_layout Plain Layout
-Create a unilateral spring constraint.
-\end_layout
-
-\begin_layout Subsection*
-USPRING (par1, point1, par2, point2, spring, dashpot, gap | direction, update,
- power)
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset Note Note
-status open
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:CSPRING"
-
-\end_inset
-
-CSPRING
-\end_layout
-
-\begin_layout Plain Layout
-Create a contact spring constraint.
-\end_layout
-
-\begin_layout Subsection*
-CSPRING (master, mpoint, normal, slave, spoint, spring, dashpot | friction,
- power)
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset Note Note
-status open
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:USER_SPRING"
-
-\end_inset
-
-USER_SPRING
-\end_layout
-
-\begin_layout Plain Layout
-Create a user defined spring constraint.
-\end_layout
-
-\begin_layout Subsection*
-USER_SPRING (par1, point1, par2, point2, spring)
 \end_layout
 
 \begin_layout Itemize
 
 \series bold
-par1
+part1
 \series default
- - particle one number
+ - first particle number
 \end_layout
 
 \begin_layout Itemize
@@ -928,15 +856,23 @@ par1
 \series bold
 point1
 \series default
- - particle one point
+ - tuple 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+ defining a point moving with the first particle
 \end_layout
 
 \begin_layout Itemize
 
 \series bold
-par2
+part2
 \series default
- - particle two number
+ - second particle number; 
+\begin_inset Formula $-1$
+\end_inset
+
+ can be used to indicate a single-particle constraint
 \end_layout
 
 \begin_layout Itemize
@@ -944,7 +880,12 @@ par2
 \series bold
 point2
 \series default
- - particle two point
+ - tuple 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+ defining the second point, either moving with the second particle, or a
+ spatial point
 \end_layout
 
 \begin_layout Itemize
@@ -952,110 +893,69 @@ point2
 \series bold
 spring
 \series default
- - user spring callback 
-\begin_inset Formula 
-\[
-\left(f_{x},f_{y},f_{z}\right)\text{ or }\left(f_{x},f_{y},f_{z},t_{x},t_{y},t_{z}\right)=\text{\textbf{spring}}\left(i,j,\mathbf{p}_{i}^{0},\mathbf{p}_{j}^{0},\mathbf{p}_{i}^{t},\mathbf{p}_{j}^{t},\mathbf{x}_{i},\mathbf{x}_{j},\mathbf{\Lambda}_{i},\mathbf{\Lambda}_{j},\mathbf{v}_{i},\mathbf{v}_{j},\mathbf{\omega}_{i},\mathbf{\omega}_{j}\right)
-\]
-
+ - spring constant, scaling 
+\begin_inset Formula $\text{stroke}\left(t\right)=\text{direction\left(t\right)}\cdot\left[\text{point2}\left(t\right)-\text{point1}\left(t\right)-\text{point2}\left(0\right)+\text{point1}\left(0\right)\right]+\text{gap}$
 \end_inset
 
-where if 
-\begin_inset Formula $\mathbf{f=}\left(f_{x},f_{y},f_{z}\right)$
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+dashpot
+\series default
+ - linear dashpot constant, scaling 
+\begin_inset Formula $\text{velocity}\left(t\right)=\text{direction}\left(t\right)\cdot\frac{d}{dt}\left[\text{point2}\left(t\right)-\text{point1}\left(t\right)\right]$
 \end_inset
 
- is returned then it is interpreted as a spatial point force applied as
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+direction
+\series default
+ - optional constant direction 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+; default: 
+\begin_inset Formula $\text{direction}\left(t\right)=\left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+gap
+\series default
+ - optional gap; if specified the spring becomes a unilateral constraint:
+ force is applied when stroke is negative and zero otherwise; default: 
+\begin_inset Formula $0.0$
+\end_inset
+
  
-\begin_inset Formula $\mathbf{f}$
-\end_inset
+\end_layout
 
- at 
-\begin_inset Formula $\mathbf{p}_{i}^{t}$
-\end_inset
+\begin_layout Itemize
 
- and as 
-\begin_inset Formula $-\mathbf{f}$
-\end_inset
-
- at 
-\begin_inset Formula $\mathbf{p}_{j}^{t}$
-\end_inset
-
-; if 
-\begin_inset Formula $\mathbf{f}=\left(f_{x},f_{y},f_{z},t_{x},t_{y},t_{z}\right)$
-\end_inset
-
- is returned then it is interpreted as a body space force/torque applied
- as 
-\begin_inset Formula $\mathbf{f}$
-\end_inset
-
- to body 
-\begin_inset Formula $i$
-\end_inset
-
- and as 
-\begin_inset Formula $-\mathbf{f}$
-\end_inset
-
- to body 
-\begin_inset Formula $j$
-\end_inset
-
-; 
-\begin_inset Formula $i$
-\end_inset
-
-= 
 \series bold
-par1
+power
 \series default
- and 
-\begin_inset Formula $j$
+ - optional stroke exponent in the force formula; default: 
+\begin_inset Formula $0.0$
 \end_inset
 
- = 
-\series bold
-par2
-\series default
-; 
-\begin_inset Formula $\mathbf{p}_{i}^{0}$
-\end_inset
-
- = 
-\series bold
-point1
-\series default
- and 
-\begin_inset Formula $\mathbf{p}_{j}^{0}$
-\end_inset
-
- = 
-\series bold
-point2
-\series default
-; 
-\begin_inset Formula $\mathbf{p}_{i}^{t}$
-\end_inset
-
- is the current position of 
-\begin_inset Formula $\mathbf{p}_{i}^{0}$
-\end_inset
-
- and 
-\begin_inset Formula $\mathbf{p}_{j}^{t}$
-\end_inset
-
- is the current position of 
-\begin_inset Formula $\mathbf{p}_{j}^{0}$
-\end_inset
-
-;
+ (linear spring)
 \end_layout
 
 \end_inset
 
- 
+
 \end_layout
 
 \begin_layout Section
@@ -1148,136 +1048,6 @@ ksns
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:BONDED"
-
-\end_inset
-
-BONDED
-\end_layout
-
-\begin_layout Plain Layout
-Define surface pairing for the bonded interaction model.
-\end_layout
-
-\begin_layout Subsection*
-BONDED (color1, color2, spring | damper, friction, kskn, lambda, young2,
- kskn2, sigc, tauc, alpha)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-color1
-\series default
- - first color (positive, or color1 = 0 and color2 = 0 to redefine default
- parameters)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-color2
-\series default
- - second color (positive, or color1 = 0 and color2 = 0 to redefine default
- parameters)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-spring
-\series default
- - normal spring constant (default: 1E6)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-damper
-\series default
- - normal damping ratio (default: 1.0)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-friction
-\series default
- - Coulomb's friction coefficient (default: 0); tuple 
-\begin_inset Formula $\left(\mu_{s},\mu_{d}\right)$
-\end_inset
-
- can be used to specify static and dynamic friction coefficients, respectively
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-ksns
-\series default
- - ratio of normal to tangential spring (default: 0.5)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-lambda
-\series default
- - ...
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-young2
-\series default
- - ...
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-kskn2
-\series default
- - ...
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-sigc
-\series default
- - ...
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-tauc
-\series default
- - ...
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-alpha
-\series default
- - ...
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \noindent
 \begin_inset Note Note
 status open
@@ -1293,7 +1063,7 @@ USER_FORCE
 \end_layout
 
 \begin_layout Plain Layout
-Define surface pairing for the user interaction model.
+Define surface pairing for a user interaction model.
 \end_layout
 
 \begin_layout Subsection*
@@ -1339,7 +1109,11 @@ force
 \begin_inset Formula $f_{z}$
 \end_inset
 
- are the components of the contact force, 
+ are the global 
+\begin_inset Formula $x,y,z$
+\end_inset
+
+ components of the contact force, 
 \begin_inset Formula $s_{1}$
 \end_inset
 
@@ -1355,23 +1129,24 @@ force
 \begin_inset Formula $\left(n_{x},n_{y},n_{z}\right)$
 \end_inset
 
- is the contact normal, 
+ is the normal direction along which contact opens, 
 \begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)$
 \end_inset
 
- is the relative linear velocity between particles, 
+ is the relative linear velocity at the contact point, 
 \begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)$
 \end_inset
 
- is the relative angular spatial velocity between particles, 
+ is the relative body-space spatial angular velocity of contacting particles,
+ 
 \begin_inset Formula $d$
 \end_inset
 
- is the penetration depth, and 
+ is the positive penetration depth, and 
 \begin_inset Formula $h$
 \end_inset
 
- is the time step.
+ is the time integration step.
 \end_layout
 
 \end_inset
@@ -1387,11 +1162,79 @@ status open
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "subsec:MOTION"
+name "subsec:CONSTRAIN"
 
 \end_inset
 
-MOTION
+CONSTRAIN
+\end_layout
+
+\begin_layout Plain Layout
+Constrain particle motion.
+\end_layout
+
+\begin_layout Subsection*
+CONSTRAIN (parnum, | linear, angular)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+parnum
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+linear
+\series default
+ - tuple 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+ defining constrained linear motion direction; default 
+\begin_inset Formula $\left(0,0,0\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+angular
+\series default
+ - tuple 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+ defining constrained spatial rotation direction; default 
+\begin_inset Formula $\left(0,0,0\right)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:PRESCRIBE"
+
+\end_inset
+
+PRESCRIBE
 \end_layout
 
 \begin_layout Plain Layout
@@ -1399,7 +1242,7 @@ Prescribe particle motion.
 \end_layout
 
 \begin_layout Subsection*
-MOTION (parnum, | linear, angular)
+PRESCRIBE (parnum, | linear, angular)
 \end_layout
 
 \begin_layout Itemize
