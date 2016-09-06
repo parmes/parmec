@@ -122,6 +122,18 @@ extern callback_t *anghis; /* angular velocity history */
 extern int obstacle_buffer_size; /* size of the buffer */
 extern int obstacle_buffer_grow (); /* grow buffer */
 
+extern int sprnum; /* number of spring constraints */
+extern int *sprpart[2]; /* spring constraint particle numbers */
+extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
+extern REAL *spring[2]; /* spring force lookup tables */
+extern int *spridx; /* spring force lookup start index */
+extern REAL *dashpot[2]; /* dashpot force lookup tables */
+extern int *dashidx; /* dashpot force lookup start index */
+extern int spring_buffer_size; /* size of the spring constraint buffer */
+extern int spring_lookup_size; /* size of the spring force lookup tables */
+extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */
+extern void spring_buffer_grow (int spring_lookup, int dashpot_lookup); /* grow buffer */
+
 extern void reset_all_data (); /* reset all simulation data */
 
 extern void declare_analytical (int k); /* declare particle 'k' analytical */

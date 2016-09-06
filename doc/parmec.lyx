@@ -806,10 +806,6 @@ angular
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
@@ -820,27 +816,75 @@ name "subsec:SPRING"
 SPRING
 \end_layout
 
-\begin_layout Plain Layout
-Translational spring constraint.
- The spring force is 
-\begin_inset Formula $\text{force}=\text{direction}\cdot\left[\text{spring}\cdot\text{stroke}^{\text{power}}+\text{dashpot}\cdot\text{velocity}\right]$
+\begin_layout Standard
+Create a translational spring constraint.
+ The applied force formula reads
+\begin_inset Formula 
+\[
+\text{force}\left(t\right)=\text{direction}\left(t\right)\cdot\left[\text{spring}\left(\text{stroke}\left(t\right)\right)+\text{dashpot}\left(\text{velocity}\left(t\right)\right)\right]
+\]
+
+\end_inset
+
+where
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{direction}\left(t\right)=\left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|\text{ \textbf{or} constant}\left(d_{x},d_{y},d_{z}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{stroke}\left(t\right)=\text{direction\left(t\right)}\cdot\left[\text{point2}\left(t\right)-\text{point1}\left(t\right)\right]-\text{direction}\left(0\right)\cdot\left[\text{point2}\left(0\right)-\text{point1}\left(0\right)\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\text{velocity}\left(t\right)=\text{direction}\left(t\right)\cdot\frac{d}{dt}\left[\text{point2}\left(t\right)-\text{point1}\left(t\right)\right]
+\]
+
+\end_inset
+
+The 
+\begin_inset Formula $\text{spring}\left(\text{stroke}\right)$
+\end_inset
+
+ and 
+\begin_inset Formula $\text{dashpot}\left(\text{velocity}\right)$
+\end_inset
+
+ relationships are defined by means of lookup tables; 
+\begin_inset Formula $\text{force}\left(t\right)$
+\end_inset
+
+ is applied at 
+\begin_inset Formula $\text{point2}\left(t\right)$
+\end_inset
+
+, and 
+\begin_inset Formula $-\text{force}\left(t\right)$
+\end_inset
+
+ is applied at 
+\begin_inset Formula $\text{point1}\left(t\right)$
 \end_inset
 
 .
- Zero force is used if 
-\series bold
-gap
-\series default
- parameter is specified and 
-\begin_inset Formula $\text{stroke}$
-\end_inset
-
- is positive.
 \end_layout
 
 \begin_layout Subsection*
-SPRING (part1, point1, part2, point2, spring, dashpot | direction, gap,
- power)
+SPRING (part1, point1, part2, point2, spring, dashpot | direction)
 \end_layout
 
 \begin_layout Itemize
@@ -884,8 +928,8 @@ point2
 \begin_inset Formula $\left(x,y,z\right)$
 \end_inset
 
- defining the second point, either moving with the second particle, or a
- spatial point
+ defining a second point, either moving with the second particle, or a spatial
+ point
 \end_layout
 
 \begin_layout Itemize
@@ -893,8 +937,8 @@ point2
 \series bold
 spring
 \series default
- - spring constant, scaling 
-\begin_inset Formula $\text{stroke}\left(t\right)=\text{direction\left(t\right)}\cdot\left[\text{point2}\left(t\right)-\text{point1}\left(t\right)-\text{point2}\left(0\right)+\text{point1}\left(0\right)\right]+\text{gap}$
+ - spring force lookup table 
+\begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
 \end_inset
 
 
@@ -905,8 +949,8 @@ spring
 \series bold
 dashpot
 \series default
- - linear dashpot constant, scaling 
-\begin_inset Formula $\text{velocity}\left(t\right)=\text{direction}\left(t\right)\cdot\frac{d}{dt}\left[\text{point2}\left(t\right)-\text{point1}\left(t\right)\right]$
+ - dashpot force lookup table 
+\begin_inset Formula $\left[\text{velocity}_{1},\text{force}_{1},\text{velocity}_{2},\text{force}_{2},...,\text{velocity}_{m},\text{force}_{m}\right]$
 \end_inset
 
 
@@ -918,41 +962,7 @@ dashpot
 direction
 \series default
  - optional constant direction 
-\begin_inset Formula $\left(x,y,z\right)$
-\end_inset
-
-; default: 
-\begin_inset Formula $\text{direction}\left(t\right)=\left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-gap
-\series default
- - optional gap; if specified the spring becomes a unilateral constraint:
- force is applied when stroke is negative and zero otherwise; default: 
-\begin_inset Formula $0.0$
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-power
-\series default
- - optional stroke exponent in the force formula; default: 
-\begin_inset Formula $0.0$
-\end_inset
-
- (linear spring)
-\end_layout
-
+\begin_inset Formula $\left(d_{x},d_{y},d_{z}\right)$
 \end_inset
 
 
@@ -969,7 +979,7 @@ GRANULAR
 \end_layout
 
 \begin_layout Standard
-Define surface pairing for the granular interaction model.
+Define surface pairing for the granular contact interaction model.
 \end_layout
 
 \begin_layout Subsection*
@@ -1008,7 +1018,7 @@ spring
 \series bold
 damper
 \series default
- - normal damping ratio (default: 1.0)
+ - optional normal damping ratio; default: 1.0
 \end_layout
 
 \begin_layout Itemize
@@ -1016,11 +1026,11 @@ damper
 \series bold
 friction
 \series default
- - Coulomb's friction coefficient (default: 0); tuple 
+ - optional Coulomb's friction coefficient; default: 0.0; tuple 
 \begin_inset Formula $\left(\mu_{s},\mu_{d}\right)$
 \end_inset
 
- can be used to specify static and dynamic friction coefficients, respectively
+ can be used to specify respectively static and dynamic friction coefficients
 \end_layout
 
 \begin_layout Itemize
@@ -1028,7 +1038,7 @@ friction
 \series bold
 rolling
 \series default
- - rolling friction coefficient (default: 0)
+ - optional rolling friction coefficient; default: 0.0
 \end_layout
 
 \begin_layout Itemize
@@ -1036,15 +1046,16 @@ rolling
 \series bold
 drilling
 \series default
- - drilling friction coefficient (default: 0)
+ - optional drilling friction coefficient; default: 0.0
 \end_layout
 
 \begin_layout Itemize
 
 \series bold
-ksns
+kskn
 \series default
- - ratio of normal to tangential spring (default: 0.5)
+ - optional ratio of normal to tangential spring and dashpot parameters;
+ default: 0.5
 \end_layout
 
 \begin_layout Standard
@@ -1063,7 +1074,7 @@ USER_FORCE
 \end_layout
 
 \begin_layout Plain Layout
-Define surface pairing for a user interaction model.
+Define surface pairing for a user contact interaction model.
 \end_layout
 
 \begin_layout Subsection*

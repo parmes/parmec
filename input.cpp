@@ -1087,6 +1087,86 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
+/* create translational spring constraint */
+static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction");
+  PyObject *point1, *point2, *spring, *dashpot, *direction;
+  int part1, part2;
+
+  direction = NULL;
+
+  PARSEKEYS ("dOdOOO|O", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction);
+
+  TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
+            is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
+	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3));
+
+  if (part2 < -1)
+  {
+    PyErr_SetString (PyExc_ValueError, "Particle two index is out of range [-1, 0, ...]");
+    return NULL;
+  }
+
+  if (PyList_Size (spring) < 4 || PyList_Size (spring) % 2)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid spring lookup table list length");
+    return NULL;
+  }
+
+  if (PyList_Size (dashpot) < 4 || PyList_Size (dashpot) % 2)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid dashpot lookup table list length");
+    return NULL;
+  }
+
+  int spring_lookup = PyList_Size (spring);
+
+  int dashpot_lookup = PyList_Size (dashpot);
+
+  spring_buffer_grow (spring_lookup, dashpot_lookup);
+
+  int i = sprnum ++;
+
+  sprpart[0][i] = part1;
+  sprpart[1][i] = part2;
+
+  sprpnt[0][0][i] = PyFloat_AsDouble (PyTuple_GetItem (point1,0));
+  sprpnt[0][1][i] = PyFloat_AsDouble (PyTuple_GetItem (point1,1));
+  sprpnt[0][2][i] = PyFloat_AsDouble (PyTuple_GetItem (point1,2));
+  sprpnt[0][3][i] = sprpnt[0][0][i];
+  sprpnt[0][4][i] = sprpnt[0][1][i];
+  sprpnt[0][5][i] = sprpnt[0][2][i];
+  sprpnt[1][0][i] = PyFloat_AsDouble (PyTuple_GetItem (point2,0));
+  sprpnt[1][1][i] = PyFloat_AsDouble (PyTuple_GetItem (point2,1));
+  sprpnt[1][2][i] = PyFloat_AsDouble (PyTuple_GetItem (point2,2));
+  sprpnt[1][3][i] = sprpnt[1][0][i];
+  sprpnt[1][4][i] = sprpnt[1][1][i];
+  sprpnt[1][5][i] = sprpnt[1][2][i];
+
+  int j = 0, k = spridx[i];
+
+  for (; j < spring_lookup/2; j ++, k ++)
+  {
+    REAL stroke = PyFloat_AsDouble(PyList_GetItem(spring,2*j));
+    REAL force = PyFloat_AsDouble(PyList_GetItem(spring,2*j+1));
+    parmec::spring[0][k] = stroke;
+    parmec::spring[1][k] = force;
+  }
+  spridx[sprnum] = k;
+
+  for (j = 0, k = dashidx[i]; j < dashpot_lookup/2; j ++, k ++)
+  {
+    REAL velocity = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j));
+    REAL force = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j+1));
+    parmec::dashpot[0][k] = velocity;
+    parmec::dashpot[1][k] = force;
+  }
+  dashidx[sprnum] = k;
+
+  Py_RETURN_NONE;
+}
+
 /* define surface pairing for the granular interaction model */
 static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -1150,7 +1230,7 @@ static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
   }
 
   ikind[i] = GRANULAR_FORCE;
-  iparam[SPRING][i] = spring;
+  iparam[parmec::SPRING][i] = spring;
   iparam[DAMPER][i] = damper;
   iparam[FRISTAT][i] = fri[0];
   iparam[FRIDYN][i] = fri[1];
@@ -1419,6 +1499,7 @@ static PyMethodDef methods [] =
   {"MESH", (PyCFunction)MESH, METH_VARARGS|METH_KEYWORDS, "Create meshed particle"},
   {"ANALYTICAL", (PyCFunction)ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
+  {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
@@ -1441,6 +1522,7 @@ int input (const char *path)
                       "from parmec import MATERIAL\n"
                       "from parmec import SPHERE\n"
                       "from parmec import OBSTACLE\n"
+                      "from parmec import SPRING\n"
                       "from parmec import GRANULAR\n"
                       "from parmec import VELOCITY\n"
                       "from parmec import GRAVITY\n"

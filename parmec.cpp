@@ -115,6 +115,17 @@ callback_t *anghis; /* angular velocity history */
 callback_t *linhis; /* linear velocity history */
 int obstacle_buffer_size; /* size of the buffer */
 
+int sprnum; /* number of spring constraints */
+int *sprpart[2]; /* spring constraint particle numbers */
+REAL *sprpnt[2][6]; /* spring constraint current and reference points */
+REAL *spring[2]; /* spring force lookup tables */
+int *spridx; /* spring force lookup start index */
+REAL *dashpot[2]; /* dashpot force lookup tables */
+int *dashidx; /* dashpot force lookup start index */
+int spring_buffer_size; /* size of the spring constraint buffer */
+int spring_lookup_size; /* size of the spring force lookup tables */
+int dashpot_lookup_size; /* size of the dashpot force lookup tables */
+
 /* grow integer buffer */
 void integer_buffer_grow (int* &src, int num, int size)
 {
@@ -509,13 +520,13 @@ void element_buffer_grow (int node_count, int element_node_count, int element_co
 
   if (element_node_buffer_size < eleidx[elenum] + element_node_count)
   {
-    element_node_buffer_size = 2 * (element_node_buffer_size + element_node_count);
+    element_node_buffer_size = 2 * (eleidx[elenum] + element_node_count);
     integer_buffer_grow (elenod, eleidx[elenum], element_node_buffer_size);
   }
 
   if (element_buffer_size < elenum + element_count)
   {
-    element_buffer_size = 2 * (element_buffer_size + element_count);
+    element_buffer_size = 2 * (elenum + element_count);
     integer_buffer_grow (eletype, elenum, element_buffer_size);
     integer_buffer_grow (eleidx, elenum+1, element_buffer_size+1);
     integer_buffer_grow (elepart, elenum, element_buffer_size);
@@ -524,7 +535,7 @@ void element_buffer_grow (int node_count, int element_node_count, int element_co
 
   if (face_buffer_size < facnum + triangle_count)
   {
-    face_buffer_size = 2 * (face_buffer_size + triangle_count);
+    face_buffer_size = 2 * (facnum + triangle_count);
     integer_buffer_grow (facnod[0], facnum, face_buffer_size);
     integer_buffer_grow (facnod[1], facnum, face_buffer_size);
     integer_buffer_grow (facnod[2], facnum, face_buffer_size);
@@ -563,6 +574,79 @@ int obstacle_buffer_grow ()
   return obstacle_buffer_size;
 }
 
+/* init spring buffer */
+int spring_buffer_init ()
+{
+  spring_buffer_size = 256;
+  spring_lookup_size = 1024;
+  dashpot_lookup_size = 1024;
+
+  sprpart[0] = aligned_int_alloc (spring_buffer_size);
+  sprpart[1] = aligned_int_alloc (spring_buffer_size);
+  sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][1] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][2] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][3] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][4] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][5] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][0] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][1] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][2] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][3] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][4] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][5] = aligned_real_alloc (spring_buffer_size);
+  spring[0] = aligned_real_alloc (spring_lookup_size);
+  spring[1] = aligned_real_alloc (spring_lookup_size);
+  spridx = aligned_int_alloc (spring_buffer_size+1);
+  dashpot[0] = aligned_real_alloc (dashpot_lookup_size);
+  dashpot[1] = aligned_real_alloc (dashpot_lookup_size);
+  dashidx = aligned_int_alloc (spring_buffer_size+1);
+
+  sprnum = 0;
+  spridx[sprnum] = 0;
+  dashidx[sprnum] = 0;
+}
+
+/* grow spring buffer */
+void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
+{
+  if (sprnum+1 >= spring_buffer_size)
+  {
+    spring_buffer_size *= 2;
+
+    integer_buffer_grow(sprpart[0], sprnum, spring_buffer_size);
+    integer_buffer_grow(sprpart[1], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[0][0], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[0][1], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[0][2], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[0][3], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[0][4], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[0][5], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[1][0], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[1][1], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[1][2], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[1][3], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[1][4], sprnum, spring_buffer_size);
+    real_buffer_grow(sprpnt[1][5], sprnum, spring_buffer_size);
+    integer_buffer_grow(spridx, sprnum+1, spring_buffer_size+1);
+    integer_buffer_grow(dashidx, sprnum+1, spring_buffer_size+1);
+  }
+
+  if (spring_lookup_size < spridx[sprnum] + spring_lookup)
+  {
+    spring_lookup_size = 2 * (spridx[sprnum] + spring_lookup);
+    real_buffer_grow (spring[0], spridx[sprnum], spring_lookup_size);
+    real_buffer_grow (spring[1], spridx[sprnum], spring_lookup_size);
+  }
+
+  if (dashpot_lookup_size < dashidx[sprnum] + dashpot_lookup)
+  {
+    dashpot_lookup_size = 2 * (dashidx[sprnum] + dashpot_lookup);
+    real_buffer_grow (dashpot[0], dashidx[sprnum], dashpot_lookup_size);
+    real_buffer_grow (dashpot[1], dashidx[sprnum], dashpot_lookup_size);
+  }
+}
+
 /* reset all data */
 void reset_all_data ()
 {
@@ -580,6 +664,7 @@ void reset_all_data ()
   facnum = 0;
   faccon = 0;
   obsnum = 0;
+  sprnum = 0;
 
   pair_reset();
 }
@@ -790,6 +875,7 @@ int main (int argc, char *argv[])
     triangle_buffer_init ();
     element_buffer_init ();
     obstacle_buffer_init ();
+    spring_buffer_init ();
     reset_all_data ();
 
     if (strcmp (argv[1], "-threads") == 0 && argc > 2)

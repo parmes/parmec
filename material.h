@@ -25,10 +25,19 @@ SOFTWARE.
 #ifndef __material__
 #define __material__
 
+#ifdef __cplusplus
+namespace parmec
+{
+#endif
+
 enum {DENSITY = 0, YOUNG, POISSON, NMAT};
 
 enum {GRANULAR_FORCE, USER_FORCE};
 
 enum {SPRING = 0, DAMPER, FRISTAT, FRIDYN, FRIROL, FRIDRIL, KSKN, NIPARAM};
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
