@@ -884,7 +884,7 @@ The
 \end_layout
 
 \begin_layout Subsection*
-SPRING (part1, point1, part2, point2, spring, dashpot | direction)
+SPRING (part1, point1, part2, point2, spring | dashpot, direction)
 \end_layout
 
 \begin_layout Itemize
@@ -949,8 +949,12 @@ spring
 \series bold
 dashpot
 \series default
- - dashpot force lookup table 
+ - optional dashpot force lookup table 
 \begin_inset Formula $\left[\text{velocity}_{1},\text{force}_{1},\text{velocity}_{2},\text{force}_{2},...,\text{velocity}_{m},\text{force}_{m}\right]$
+\end_inset
+
+; default: 
+\begin_inset Formula $\left[-\infty,0,+\infty,0\right]$
 \end_inset
 
 

@@ -129,6 +129,9 @@ extern REAL *spring[2]; /* spring force lookup tables */
 extern int *spridx; /* spring force lookup start index */
 extern REAL *dashpot[2]; /* dashpot force lookup tables */
 extern int *dashidx; /* dashpot force lookup start index */
+extern REAL *sprdir[3]; /* spring direction */
+extern int *sprdirup; /* spring direction update flag */
+extern REAL *stroke0; /* initial spring stroke */
 extern int spring_buffer_size; /* size of the spring constraint buffer */
 extern int spring_lookup_size; /* size of the spring force lookup tables */
 extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */

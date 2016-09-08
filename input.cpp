@@ -1095,8 +1095,9 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   int part1, part2;
 
   direction = NULL;
+  dashpot = NULL;
 
-  PARSEKEYS ("dOdOOO|O", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction);
+  PARSEKEYS ("dOdOO|OO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
@@ -1122,7 +1123,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   int spring_lookup = PyList_Size (spring);
 
-  int dashpot_lookup = PyList_Size (dashpot);
+  int dashpot_lookup = dashpot ? PyList_Size (dashpot) : 4;
 
   spring_buffer_grow (spring_lookup, dashpot_lookup);
 
@@ -1155,14 +1156,71 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   spridx[sprnum] = k;
 
-  for (j = 0, k = dashidx[i]; j < dashpot_lookup/2; j ++, k ++)
+  if (dashpot)
   {
-    REAL velocity = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j));
-    REAL force = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j+1));
-    parmec::dashpot[0][k] = velocity;
-    parmec::dashpot[1][k] = force;
+    for (j = 0, k = dashidx[i]; j < dashpot_lookup/2; j ++, k ++)
+    {
+      REAL velocity = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j));
+      REAL force = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j+1));
+      parmec::dashpot[0][k] = velocity;
+      parmec::dashpot[1][k] = force;
+    }
+    dashidx[sprnum] = k;
   }
-  dashidx[sprnum] = k;
+  else /* default zero force */
+  {
+    k = dashidx[i];
+    parmec::dashpot[0][k] = -REAL_MAX;
+    parmec::dashpot[1][k] = 0.0;
+    parmec::dashpot[0][k+1] = +REAL_MAX;
+    parmec::dashpot[1][k+1] = 0.0;
+    dashidx[sprnum] = k+2;
+  }
+
+  if (direction)
+  {
+    REAL dir[3];
+
+    dir[0] = PyFloat_AsDouble(PyTuple_GetItem(direction,0));
+    dir[1] = PyFloat_AsDouble(PyTuple_GetItem(direction,1));
+    dir[2] = PyFloat_AsDouble(PyTuple_GetItem(direction,2));
+
+    REAL len = LEN(dir);
+
+    if (len == 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid zero direction");
+      return NULL;
+    }
+
+    REAL inv = 1.0/len;
+
+    dir[0] *= inv;
+    dir[1] *= inv;
+    dir[2] *= inv;
+
+    sprdir[0][i] = dir[0];
+    sprdir[1][i] = dir[1];
+    sprdir[2][i] = dir[2];
+
+    sprdirup[i] = 0; /* constant direction */
+
+    REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
+                   sprpnt[1][1][i] - sprpnt[0][1][i],
+                   sprpnt[1][2][i] - sprpnt[0][2][i]};
+
+    stroke0[i] = DOT (dif, dir);
+  }
+  else /* direction = (p2 - p1)/|p2 - p1| */
+  {
+    sprdirup[i] = 1;
+
+    REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
+                   sprpnt[1][1][i] - sprpnt[0][1][i],
+                   sprpnt[1][2][i] - sprpnt[0][2][i]};
+
+    stroke0[i] = LEN (dif);
+  }
 
   Py_RETURN_NONE;
 }
@@ -1420,6 +1478,8 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   invert_inertia (threads, parnum, inertia, inverse, mass, invm);
 
+  zero_force_and_torque (parnum, force, torque);
+
   partitioning *tree = partitioning_create (threads, ellnum, center);
 
   /* time stepping */
@@ -1447,8 +1507,11 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
-    forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
-            mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
+    contacts (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
+              mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
+
+    springs (threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir,
+             sprdirup, stroke0, angular, linear, rotation, position, force, torque);
 
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
       position, inertia, inverse, mass, invm, force, torque, gravity, step);

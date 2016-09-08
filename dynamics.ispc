@@ -85,13 +85,13 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
       }
     }
 
-    force[0][i] = reduce_add (fs[0]) + ma * gravity[0];
-    force[1][i] = reduce_add (fs[1]) + ma * gravity[1];
-    force[2][i] = reduce_add (fs[2]) + ma * gravity[2];
+    force[0][i] += reduce_add (fs[0]) + ma * gravity[0];
+    force[1][i] += reduce_add (fs[1]) + ma * gravity[1];
+    force[2][i] += reduce_add (fs[2]) + ma * gravity[2];
 
-    torque[0][i] = reduce_add (ts[0]);
-    torque[1][i] = reduce_add (ts[1]);
-    torque[2][i] = reduce_add (ts[2]);
+    torque[0][i] += reduce_add (ts[0]);
+    torque[1][i] += reduce_add (ts[1]);
+    torque[2][i] += reduce_add (ts[2]);
   }
 
   foreach (i = start ... end) /* time integration */
@@ -194,6 +194,14 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
     linear[0][i] = v[0];
     linear[1][i] = v[1];
     linear[2][i] = v[2];
+
+    force[0][i] = 0.0;
+    force[1][i] = 0.0;
+    force[2][i] = 0.0;
+
+    torque[0][i] = 0.0;
+    torque[1][i] = 0.0;
+    torque[2][i] = 0.0;
   }
 }
 

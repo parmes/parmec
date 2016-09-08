@@ -122,6 +122,9 @@ REAL *spring[2]; /* spring force lookup tables */
 int *spridx; /* spring force lookup start index */
 REAL *dashpot[2]; /* dashpot force lookup tables */
 int *dashidx; /* dashpot force lookup start index */
+REAL *sprdir[3]; /* spring direction */
+int *sprdirup; /* spring direction update flag */
+REAL *stroke0; /* initial spring stroke */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
@@ -601,6 +604,11 @@ int spring_buffer_init ()
   dashpot[0] = aligned_real_alloc (dashpot_lookup_size);
   dashpot[1] = aligned_real_alloc (dashpot_lookup_size);
   dashidx = aligned_int_alloc (spring_buffer_size+1);
+  sprdir[0] = aligned_real_alloc (spring_buffer_size);
+  sprdir[1] = aligned_real_alloc (spring_buffer_size);
+  sprdir[2] = aligned_real_alloc (spring_buffer_size);
+  sprdirup = aligned_int_alloc (spring_buffer_size);
+  stroke0 = aligned_real_alloc (spring_buffer_size);
 
   sprnum = 0;
   spridx[sprnum] = 0;
@@ -630,6 +638,11 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
     real_buffer_grow(sprpnt[1][5], sprnum, spring_buffer_size);
     integer_buffer_grow(spridx, sprnum+1, spring_buffer_size+1);
     integer_buffer_grow(dashidx, sprnum+1, spring_buffer_size+1);
+    real_buffer_grow(sprdir[0], sprnum, spring_buffer_size);
+    real_buffer_grow(sprdir[1], sprnum, spring_buffer_size);
+    real_buffer_grow(sprdir[2], sprnum, spring_buffer_size);
+    integer_buffer_grow(sprdirup, sprnum, spring_buffer_size);
+    real_buffer_grow(stroke0, sprnum, spring_buffer_size);
   }
 
   if (spring_lookup_size < spridx[sprnum] + spring_lookup)

@@ -165,8 +165,8 @@ inline static int granural_force (REAL n[3], REAL vij[3], REAL oij[3], REAL dept
   return depth < 0.0 ? 1 : 0;
 }
 
-/* forces task */
-task void forces_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[],
+/* contact forces task */
+task void contacts_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL * uniform inertia[9],
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[], uniform REAL obspnt[],
@@ -376,8 +376,202 @@ task void forces_task (uniform int span, uniform master_conpnt master[], uniform
   }
 }
 
-/* update forces */
-export void forces (uniform int threads, uniform master_conpnt master[], uniform slave_conpnt slave[],
+/* look up table based linear spline interpolation */
+static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg)
+{
+  if (arg < tab[0][lo]) return tab[1][lo];
+  if (arg > tab[0][hi-1]) return tab[1][hi-1];
+
+  while (hi > lo+1)
+  {
+    uniform int mid = lo + (hi-lo)/2;
+    if (arg > tab[0][mid]) lo = mid;
+    else hi = mid;
+  }
+
+  return tab[1][lo] + (tab[1][lo+1]-tab[1][lo])*(arg-tab[0][lo])/(tab[0][lo+1]-tab[0][lo]);
+}
+
+/* update spring foces */
+task void springs_task (uniform int span, uniform int sprnum, uniform int * uniform sprpart[2],
+  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
+  uniform int sprdirup[], uniform REAL stroke0[],
+  uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
+  uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+{
+  uniform int start = taskIndex*span;
+  uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
+
+  /* update spring points and look up spring and dashpot forces */
+  /* update global force and torque */
+  for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
+  {
+    uniform REAL o[2][3], v[2][3], x[2][3], X[2][3], L[2][9], Y[3], y[2][3], z[3], w[3], a[2][3];
+    uniform REAL len, inv, stroke, velocity, spring_force, dashpot_force, total_force;
+    uniform int j = sprpart[0][i], k = sprpart[1][i];
+
+    o[0][0] = angular[3][j];
+    o[0][1] = angular[4][j];
+    o[0][2] = angular[5][j];
+
+    v[0][0] = linear[0][j];
+    v[0][1] = linear[1][j];
+    v[0][2] = linear[2][j];
+
+    x[0][0] = position[0][j];
+    x[0][1] = position[1][j];
+    x[0][2] = position[2][j];
+
+    X[0][0] = position[3][j];
+    X[0][1] = position[4][j];
+    X[0][2] = position[5][j];
+
+    L[0][0] = rotation[0][j];
+    L[0][1] = rotation[1][j];
+    L[0][2] = rotation[2][j];
+    L[0][3] = rotation[3][j];
+    L[0][4] = rotation[4][j];
+    L[0][5] = rotation[5][j];
+    L[0][6] = rotation[6][j];
+    L[0][7] = rotation[7][j];
+    L[0][8] = rotation[8][j];
+
+    if (k >= 0)
+    {
+      o[1][0] = angular[3][k];
+      o[1][1] = angular[4][k];
+      o[1][2] = angular[5][k];
+
+      v[1][0] = linear[0][k];
+      v[1][1] = linear[1][k];
+      v[1][2] = linear[2][k];
+
+      x[1][0] = position[0][k];
+      x[1][1] = position[1][k];
+      x[1][2] = position[2][k];
+
+      X[1][0] = position[3][k];
+      X[1][1] = position[4][k];
+      X[1][2] = position[5][k];
+
+      L[1][0] = rotation[0][k];
+      L[1][1] = rotation[1][k];
+      L[1][2] = rotation[2][k];
+      L[1][3] = rotation[3][k];
+      L[1][4] = rotation[4][k];
+      L[1][5] = rotation[5][k];
+      L[1][6] = rotation[6][k];
+      L[1][7] = rotation[7][k];
+      L[1][8] = rotation[8][k];
+    }
+    else
+    {
+      o[1][0] = 0.0;
+      o[1][1] = 0.0;
+      o[1][2] = 0.0;
+
+      v[1][0] = 0.0;
+      v[1][1] = 0.0;
+      v[1][2] = 0.0;
+    }
+
+    Y[0] = sprpnt[0][3][i];
+    Y[1] = sprpnt[0][4][i];
+    Y[2] = sprpnt[0][5][i];
+
+    SCC (Y, X[0]);
+    NVADDMUL (x[0], L[0], Y, y[0]);
+
+    sprpnt[0][0][i] = y[0][0];
+    sprpnt[0][1][i] = y[0][1];
+    sprpnt[0][2][i] = y[0][2];
+
+    if (k >= 0)
+    {
+      Y[0] = sprpnt[1][3][i];
+      Y[1] = sprpnt[1][4][i];
+      Y[2] = sprpnt[1][5][i];
+
+      SCC (Y, X[1]);
+      NVADDMUL (x[1], L[1], Y, y[1]);
+
+      sprpnt[1][0][i] = y[1][0];
+      sprpnt[1][1][i] = y[1][1];
+      sprpnt[1][2][i] = y[1][2];
+    }
+    else
+    {
+      y[1][0] = sprpnt[1][0][i];
+      y[1][1] = sprpnt[1][1][i];
+      y[1][2] = sprpnt[1][2][i];
+    }
+
+    if (sprdirup[i])
+    {
+      SUB (y[1], y[0], w);
+
+      len = LEN(w);
+      inv = len > 0.0 ? 1.0/len : 0.0; /* zero force in case of zero length via (temporary) zero direction */
+
+      z[0] = inv*w[0];
+      z[1] = inv*w[1];
+      z[2] = inv*w[2];
+
+      sprdir[0][i] = z[0];
+      sprdir[1][i] = z[1];
+      sprdir[2][i] = z[2];
+    }
+    else
+    {
+      SUB (y[1], y[0], w);
+
+      z[0] = sprdir[0][i];
+      z[1] = sprdir[1][i];
+      z[2] = sprdir[2][i];
+
+      len = DOT (w, z);
+    }
+
+    stroke = len - stroke0[i];
+
+    SUB (v[1], v[0], w);
+    SUB (y[1], x[1], a[1]);
+    PRODUCTADD (o[1], a[1], w);
+    SUB (y[0], x[0], a[0]);
+    PRODUCTSUB (o[0], a[0], w);
+
+    velocity = DOT (z, w);
+
+    spring_force = look_up (spring, spridx[i], spridx[i+1], stroke);
+
+    dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity);
+
+    total_force = spring_force + dashpot_force;
+
+    SCALE (z, total_force);
+
+    force[0][j] += z[0];
+    force[1][j] += z[1];
+    force[2][j] += z[2];
+    force[0][k] -= z[0];
+    force[1][k] -= z[1];
+    force[2][k] -= z[2];
+
+    PRODUCT (z, a[0], y[0]);
+    PRODUCT (z, a[1], y[1]);
+
+    torque[0][j] += y[0][0];
+    torque[1][j] += y[0][1];
+    torque[2][j] += y[0][2];
+    torque[0][k] += y[1][0];
+    torque[1][k] += y[1][1];
+    torque[2][k] += y[1][2];
+  }
+}
+
+/* update contact forces */
+export void contacts (uniform int threads, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL * uniform inertia[9],
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[], uniform REAL obspnt[],
@@ -388,6 +582,32 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   launch [threads] clear_slaves (parnum/threads, slave, parnum);
   sync;
 
-  launch [threads] forces_task (parnum/threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
-                                mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
+  launch [threads] contacts_task (parnum/threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
+                                  mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
+}
+
+/* update spring foces */
+export void springs (uniform int threads, uniform int sprnum, uniform int * uniform sprpart[2],
+  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
+  uniform int sprdirup[], uniform REAL stroke0[],
+  uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
+  uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+{
+  launch [threads] springs_task (sprnum/threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx,
+                                 sprdir, sprdirup, stroke0, angular, linear, rotation, position, force, torque);
+}
+
+/* zero force and torque */
+export void zero_force_and_torque (uniform int parnum, uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+{
+  foreach (i = 0 ... parnum)
+  {
+    force[0][i] = 0.0;
+    force[1][i] = 0.0;
+    force[2][i] = 0.0;
+    torque[0][i] = 0.0;
+    torque[1][i] = 0.0;
+    torque[2][i] = 0.0;
+  }
 }
