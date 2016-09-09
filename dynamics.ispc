@@ -31,68 +31,11 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
   uniform REAL mass[], uniform REAL invm[], uniform REAL * uniform force[3],
-  uniform REAL * uniform torque[3], uniform REAL gravity[3], uniform REAL step)
+  uniform REAL * uniform torque[3], uniform REAL step)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
   uniform REAL half = 0.5*step;
-
-  for (uniform int i = start; i < end; i ++) /* force accumulation */
-  {
-    REAL f[3], a[3], fs[3], ts[3];
-    uniform REAL po[3], ma;
-
-    po[0] = position[0][i];
-    po[1] = position[1][i];
-    po[2] = position[2][i];
-
-    ma = mass[i];
-
-    SET (fs, 0.0);
-    SET (ts, 0.0);
-
-    for (uniform master_conpnt * uniform m = &master[i]; m; m = m->next)
-    {
-      foreach (j = 0 ... m->size)
-      {
-	f[0] = m->force[0][j];
-	f[1] = m->force[1][j];
-	f[2] = m->force[2][j];
-
-	a[0] = m->point[0][j]-po[0];
-	a[1] = m->point[1][j]-po[1];
-	a[2] = m->point[2][j]-po[2];
-
-	ACC (f, fs);
-	PRODUCTADD (a, f, ts);
-      }
-    }
-
-    for (uniform slave_conpnt * uniform s = &slave[i]; s; s = s->next)
-    {
-      foreach (j = 0 ... s->size)
-      {
-	f[0] = s->force[0][j];
-	f[1] = s->force[1][j];
-	f[2] = s->force[2][j];
-
-	a[0] = s->point[0][j]-po[0];
-	a[1] = s->point[1][j]-po[1];
-	a[2] = s->point[2][j]-po[2];
-
-	ACC (f, fs);
-	PRODUCTADD (a, f, ts);
-      }
-    }
-
-    force[0][i] += reduce_add (fs[0]) + ma * gravity[0];
-    force[1][i] += reduce_add (fs[1]) + ma * gravity[1];
-    force[2][i] += reduce_add (fs[2]) + ma * gravity[2];
-
-    torque[0][i] += reduce_add (ts[0]);
-    torque[1][i] += reduce_add (ts[1]);
-    torque[2][i] += reduce_add (ts[2]);
-  }
 
   foreach (i = start ... end) /* time integration */
   {
@@ -211,8 +154,8 @@ export void dynamics (uniform int threads, uniform master_conpnt master[], unifo
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
   uniform REAL mass[], uniform REAL invm[], uniform REAL * uniform force[3],
-  uniform REAL * uniform torque[3], uniform REAL gravity[3], uniform REAL step)
+  uniform REAL * uniform torque[3], uniform REAL step)
 {
   launch [threads] dynamics_task (parnum/threads, master, slave, parnum, angular, linear,
-          rotation, position, inertia, inverse, mass, invm, force, torque, gravity, step);
+          rotation, position, inertia, inverse, mass, invm, force, torque, step);
 }

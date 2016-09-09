@@ -129,6 +129,20 @@ int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
 
+int cnsnum; /* number of constraints */
+int *cnspart; /* constrained particle numbers */
+REAL *cnslin[9]; /* constrained linear directions */
+REAL *cnsang[9]; /* constrained angular directions */
+int constrain_buffer_size; /* size of constrained particles buffer */
+
+int prsnum; /* number of particles with prescribed motion */
+int *prspart; /* prescribed motion particle numbers */
+callback_t *prslin; /* prescribed linear motion time history callbacks */
+int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-acceleration */
+callback_t *prsang; /* prescribed angular motion time history callbacks */
+int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
+int prescribe_buffer_size; /* size of prescribed particle motion buffer */
+
 /* grow integer buffer */
 void integer_buffer_grow (int* &src, int num, int size)
 {
@@ -660,6 +674,90 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
   }
 }
 
+/* init constrained particles buffer */
+int constrain_buffer_init ()
+{
+  constrain_buffer_size = 256;
+
+  cnspart = aligned_int_alloc (constrain_buffer_size);
+  cnslin[0] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[1] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[2] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[3] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[4] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[5] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[6] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[7] = aligned_real_alloc (constrain_buffer_size);
+  cnslin[8] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[0] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[1] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[2] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[3] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[4] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[5] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[6] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[7] = aligned_real_alloc (constrain_buffer_size);
+  cnsang[8] = aligned_real_alloc (constrain_buffer_size);
+
+  cnsnum = 0;
+}
+
+/* grow constrained particles buffer */
+int constrain_buffer_grow ()
+{
+  constrain_buffer_size *= 2;
+
+  integer_buffer_grow (cnspart, cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[0], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[1], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[2], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[3], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[4], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[5], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[6], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[7], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnslin[8], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[0], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[1], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[2], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[3], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[4], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[5], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[6], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[7], cnsnum, constrain_buffer_size);
+  real_buffer_grow (cnsang[8], cnsnum, constrain_buffer_size);
+
+  return constrain_buffer_size;
+}
+
+/* init prescribed particles motion buffer */
+int prescribe_buffer_init ()
+{
+  prescribe_buffer_size = 256;
+
+  prspart = aligned_int_alloc (prescribe_buffer_size);
+  prslin = new callback_t [prescribe_buffer_size];
+  linkind = aligned_int_alloc (prescribe_buffer_size);
+  prsang = new callback_t [prescribe_buffer_size];
+  angkind = aligned_int_alloc (prescribe_buffer_size);
+
+  prsnum = 0;
+}
+
+/* grow prescribed particles motion buffer */
+int prescribe_buffer_grow ()
+{
+  prescribe_buffer_size *= 2;
+
+  integer_buffer_grow (prspart, prsnum, prescribe_buffer_size);
+  callback_buffer_grow (prslin, prsnum, prescribe_buffer_size);
+  integer_buffer_grow (linkind, prsnum, prescribe_buffer_size);
+  callback_buffer_grow (prsang, prsnum, prescribe_buffer_size);
+  integer_buffer_grow (angkind, prsnum, prescribe_buffer_size);
+
+  return prescribe_buffer_size;
+}
+
 /* reset all data */
 void reset_all_data ()
 {
@@ -678,6 +776,8 @@ void reset_all_data ()
   faccon = 0;
   obsnum = 0;
   sprnum = 0;
+  cnsnum = 0;
+  prsnum = 0;
 
   pair_reset();
 }
@@ -889,6 +989,8 @@ int main (int argc, char *argv[])
     element_buffer_init ();
     obstacle_buffer_init ();
     spring_buffer_init ();
+    constrain_buffer_init ();
+    prescribe_buffer_init ();
     reset_all_data ();
 
     if (strcmp (argv[1], "-threads") == 0 && argc > 2)

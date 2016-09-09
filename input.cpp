@@ -43,6 +43,7 @@ SOFTWARE.
 #include "dynamics_ispc.h"
 #include "shapes_ispc.h"
 #include "obstacles_ispc.h"
+#include "constrain_ispc.h"
 
 using namespace parmec;
 
@@ -1299,6 +1300,253 @@ static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
+/* constrain particle  motion */
+static PyObject* CONSTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("parnum", "linear", "angular");
+  PyObject *lin, *ang;
+  REAL dir[3][3], dot;
+  int i, j;
+
+  lin = NULL;
+  ang = NULL;
+
+  PARSEKEYS ("i|OO", &j, &lin, &ang);
+
+  TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_list (lin, kwl[1], 3) && is_list (ang, kwl[2], 3));
+
+  if (lin || ang)
+  {
+    if (cnsnum >= constrain_buffer_size) constrain_buffer_grow ();
+
+    i = cnsnum ++;
+
+    cnspart[i] = j;
+  }
+
+  if (lin)
+  {
+    if (PyList_Size (lin) == 3)
+    {
+      dir[0][0] = PyFloat_AsDouble (PyList_GetItem (lin, 0)); 
+      dir[0][1] = PyFloat_AsDouble (PyList_GetItem (lin, 1)); 
+      dir[0][2] = PyFloat_AsDouble (PyList_GetItem (lin, 2)); 
+      dir[1][0] = 0.0;
+      dir[1][1] = 0.0;
+      dir[1][2] = 0.0;
+      dir[2][0] = 0.0;
+      dir[2][1] = 0.0;
+      dir[2][2] = 0.0;
+      NORMALIZE (dir[0]);
+    }
+    else if (PyList_Size (lin) == 6)
+    {
+      dir[0][0] = PyFloat_AsDouble (PyList_GetItem (lin, 0)); 
+      dir[0][1] = PyFloat_AsDouble (PyList_GetItem (lin, 1)); 
+      dir[0][2] = PyFloat_AsDouble (PyList_GetItem (lin, 2)); 
+      dir[1][0] = PyFloat_AsDouble (PyList_GetItem (lin, 3));  
+      dir[1][1] = PyFloat_AsDouble (PyList_GetItem (lin, 4)); 
+      dir[1][2] = PyFloat_AsDouble (PyList_GetItem (lin, 5)); 
+      dir[2][0] = 0.0;
+      dir[2][1] = 0.0;
+      dir[2][2] = 0.0;
+      NORMALIZE (dir[0]);
+      dot = DOT (dir[0], dir[1]);
+      SUBMUL (dir[1], dot, dir[0], dir[1]);
+      NORMALIZE (dir[1]);
+    }
+    else if (PyList_Size (lin) == 9)
+    {
+      dir[0][0] = PyFloat_AsDouble (PyList_GetItem (lin, 0)); 
+      dir[0][1] = PyFloat_AsDouble (PyList_GetItem (lin, 1)); 
+      dir[0][2] = PyFloat_AsDouble (PyList_GetItem (lin, 2)); 
+      dir[1][0] = PyFloat_AsDouble (PyList_GetItem (lin, 3));  
+      dir[1][1] = PyFloat_AsDouble (PyList_GetItem (lin, 4)); 
+      dir[1][2] = PyFloat_AsDouble (PyList_GetItem (lin, 5)); 
+      dir[2][0] = PyFloat_AsDouble (PyList_GetItem (lin, 6));  
+      dir[2][1] = PyFloat_AsDouble (PyList_GetItem (lin, 7));  
+      dir[2][2] = PyFloat_AsDouble (PyList_GetItem (lin, 8));  
+      NORMALIZE (dir[0]);
+      dot = DOT (dir[0], dir[1]);
+      SUBMUL (dir[1], dot, dir[0], dir[1]);
+      NORMALIZE (dir[1]);
+      dot = DOT (dir[0], dir[2]);
+      SUBMUL (dir[2], dot, dir[0], dir[2]);
+      dot = DOT (dir[1], dir[2]);
+      SUBMUL (dir[2], dot, dir[1], dir[2]);
+      NORMALIZE (dir[2]);
+    }
+    else
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid linear constrained directions list");
+      return NULL;
+    }
+
+    cnslin[0][i] = dir[0][0];
+    cnslin[1][i] = dir[0][1];
+    cnslin[2][i] = dir[0][2];
+    cnslin[3][i] = dir[1][0];
+    cnslin[4][i] = dir[1][1];
+    cnslin[5][i] = dir[1][2];
+    cnslin[6][i] = dir[2][0];
+    cnslin[7][i] = dir[2][1];
+    cnslin[8][i] = dir[2][2];
+  }
+
+  if (ang)
+  {
+    if (PyList_Size (ang) == 3)
+    {
+      dir[0][0] = PyFloat_AsDouble (PyList_GetItem (ang, 0)); 
+      dir[0][1] = PyFloat_AsDouble (PyList_GetItem (ang, 1)); 
+      dir[0][2] = PyFloat_AsDouble (PyList_GetItem (ang, 2)); 
+      dir[1][0] = 0.0;
+      dir[1][1] = 0.0;
+      dir[1][2] = 0.0;
+      dir[2][0] = 0.0;
+      dir[2][1] = 0.0;
+      dir[2][2] = 0.0;
+      NORMALIZE (dir[0]);
+    }
+    else if (PyList_Size (ang) == 6)
+    {
+      dir[0][0] = PyFloat_AsDouble (PyList_GetItem (ang, 0)); 
+      dir[0][1] = PyFloat_AsDouble (PyList_GetItem (ang, 1)); 
+      dir[0][2] = PyFloat_AsDouble (PyList_GetItem (ang, 2)); 
+      dir[1][0] = PyFloat_AsDouble (PyList_GetItem (ang, 3));  
+      dir[1][1] = PyFloat_AsDouble (PyList_GetItem (ang, 4)); 
+      dir[1][2] = PyFloat_AsDouble (PyList_GetItem (ang, 5)); 
+      dir[2][0] = 0.0;
+      dir[2][1] = 0.0;
+      dir[2][2] = 0.0;
+      NORMALIZE (dir[0]);
+      dot = DOT (dir[0], dir[1]);
+      SUBMUL (dir[1], dot, dir[0], dir[1]);
+      NORMALIZE (dir[1]);
+    }
+    else if (PyList_Size (ang) == 9)
+    {
+      dir[0][0] = PyFloat_AsDouble (PyList_GetItem (ang, 0)); 
+      dir[0][1] = PyFloat_AsDouble (PyList_GetItem (ang, 1)); 
+      dir[0][2] = PyFloat_AsDouble (PyList_GetItem (ang, 2)); 
+      dir[1][0] = PyFloat_AsDouble (PyList_GetItem (ang, 3));  
+      dir[1][1] = PyFloat_AsDouble (PyList_GetItem (ang, 4)); 
+      dir[1][2] = PyFloat_AsDouble (PyList_GetItem (ang, 5)); 
+      dir[2][0] = PyFloat_AsDouble (PyList_GetItem (ang, 6));  
+      dir[2][1] = PyFloat_AsDouble (PyList_GetItem (ang, 7));  
+      dir[2][2] = PyFloat_AsDouble (PyList_GetItem (ang, 8));  
+      NORMALIZE (dir[0]);
+      dot = DOT (dir[0], dir[1]);
+      SUBMUL (dir[1], dot, dir[0], dir[1]);
+      NORMALIZE (dir[1]);
+      dot = DOT (dir[0], dir[2]);
+      SUBMUL (dir[2], dot, dir[0], dir[2]);
+      dot = DOT (dir[1], dir[2]);
+      SUBMUL (dir[2], dot, dir[1], dir[2]);
+      NORMALIZE (dir[2]);
+    }
+    else
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid angular constrained directions list");
+      return NULL;
+    }
+
+    cnsang[0][i] = dir[0][0];
+    cnsang[1][i] = dir[0][1];
+    cnsang[2][i] = dir[0][2];
+    cnsang[3][i] = dir[1][0];
+    cnsang[4][i] = dir[1][1];
+    cnsang[5][i] = dir[1][2];
+    cnsang[6][i] = dir[2][0];
+    cnsang[7][i] = dir[2][1];
+    cnsang[8][i] = dir[2][2];
+  }
+
+  Py_RETURN_NONE;
+}
+
+/* prescribe particle moion */
+static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("parnum", "linear", "angular", "kind");
+  PyObject *lin, *ang, *kind;
+  char *kindvalue;
+  int i, j;
+
+  lin = NULL;
+  ang = NULL;
+  kind = NULL;
+
+  PARSEKEYS ("i|OO", &j, &lin, &ang, &kind);
+
+  TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_callable (lin, kwl[1]) &&
+            is_callable (ang, kwl[2]) && is_string (kind, kwl[3]));
+
+  if (lin || ang)
+  {
+    if (prsnum >= prescribe_buffer_size) prescribe_buffer_grow ();
+
+    j = prsnum ++;
+
+    prspart[i] = j;
+  }
+
+  if (lin)
+  {
+    prslin[i] = NULL;
+  }
+  else
+  {
+    prslin[i] = NULL;
+  }
+
+  if (ang)
+  {
+    prsang[i] = NULL;
+  }
+  else
+  {
+    prsang[i] = NULL;
+  }
+
+  if (kind)
+  {
+    IFIS (kind, "vv")
+    {
+      kindvalue = (char*)"vv";
+    }
+    ELIF (kind, "va")
+    {
+      kindvalue = (char*)"va";
+    }
+    ELIF (kind, "av")
+    {
+      kindvalue = (char*)"av";
+    }
+    ELIF (kind, "aa")
+    {
+      kindvalue = (char*)"aa";
+    }
+    ELSE
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid time history kind");
+      return NULL;
+    }
+  }
+  else
+  {
+    kindvalue = (char*)"vv";
+  }
+
+  if (lin || ang)
+  {
+    linkind[i] = kindvalue[0] == 'v' ? 0 : 1;
+    angkind[i] = kindvalue[1] == 'v' ? 0 : 1;
+  }
+
+  Py_RETURN_NONE;
+}
+
 /* set particle velocity */
 static PyObject* VELOCITY (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -1306,15 +1554,19 @@ static PyObject* VELOCITY (PyObject *self, PyObject *args, PyObject *kwds)
   PyObject *lin, *ang;
   int i;
 
+  lin = NULL;
   ang = NULL;
 
-  PARSEKEYS ("iO|O", &i, &lin, &ang);
+  PARSEKEYS ("i|OO", &i, &lin, &ang);
 
   TYPETEST (is_in_range (i, 0, parnum, kwl[0]) && is_tuple (lin, kwl[1], 3) && is_tuple (ang, kwl[2], 3));
 
-  linear[0][i] = PyFloat_AsDouble (PyTuple_GetItem (lin, 0)); 
-  linear[1][i] = PyFloat_AsDouble (PyTuple_GetItem (lin, 1)); 
-  linear[2][i] = PyFloat_AsDouble (PyTuple_GetItem (lin, 2)); 
+  if (lin)
+  {
+    linear[0][i] = PyFloat_AsDouble (PyTuple_GetItem (lin, 0)); 
+    linear[1][i] = PyFloat_AsDouble (PyTuple_GetItem (lin, 1)); 
+    linear[2][i] = PyFloat_AsDouble (PyTuple_GetItem (lin, 2)); 
+  }
 
   if (ang)
   {
@@ -1423,6 +1675,125 @@ static void obstaclev (int obsnum, REAL *obsang, REAL *obslin, callback_t anghis
   Py_DECREF (args);
 }
 
+/* prescribe particle acceleration */
+static void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
+  REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3])
+{
+  PyObject *result, *args;
+  int i, j;
+
+  args = Py_BuildValue ("(d)", time);
+
+  for (i = 0; i < prsnum; i ++)
+  {
+    j = prspart[i];
+
+    if (prslin[i] && linkind[i] == 1)
+    {
+      result = PyObject_CallObject ((PyObject*)prslin[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear acceleration callback did not return a (ax, ay, az) tuple");
+
+      REAL acc[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
+
+      REAL ma = mass[j];
+
+      force[0][j] = ma * acc[0];
+      force[1][j] = ma * acc[1];
+      force[2][j] = ma * acc[2];
+
+      Py_DECREF (result);
+    }
+
+    if (prsang[i] && angkind[i] == 1)
+    {
+      result = PyObject_CallObject ((PyObject*)linhis[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular acceleration callback did not return a (ox, oy, oz) tuple");
+
+      REAL acc[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
+
+      REAL in[9] = {inertia[0][j], inertia[1][j], inertia[2][j],
+                    inertia[3][j], inertia[4][j], inertia[5][j],
+		    inertia[6][j], inertia[7][j], inertia[8][j]};
+
+      REAL to[3];
+
+      NVMUL (in, acc, to);
+
+      torque[0][j] = to[0];
+      torque[1][j] = to[1];
+      torque[2][j] = to[2];
+
+      Py_DECREF (result);
+    }
+  }
+
+  Py_DECREF (args);
+}
+
+/* prescribe particle velocity */
+static void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
+  REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6])
+{
+  PyObject *result, *args;
+  int i, j;
+
+  args = Py_BuildValue ("(d)", time);
+
+  for (i = 0; i < prsnum; i ++)
+  {
+    j = prspart[i];
+
+    if (prslin[i] && linkind[i] == 0)
+    {
+      result = PyObject_CallObject ((PyObject*)prslin[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear velocity callback did not return a (vx, vy, vz) tuple");
+
+      linear[0][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+      linear[1][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+      linear[2][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+      Py_DECREF (result);
+    }
+
+    if (prsang[i] && angkind[i] == 0)
+    {
+      result = PyObject_CallObject ((PyObject*)linhis[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular velocity callback did not return a (ox, oy, oz) tuple");
+
+      REAL o[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
+                   PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
+                   PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
+
+      REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
+                   rotation[3][j], rotation[4][j], rotation[5][j],
+		   rotation[6][j], rotation[7][j], rotation[8][j]};
+
+      REAL O[3];
+
+      TVMUL (L, o, O);
+
+      angular[0][j] = O[0];
+      angular[1][j] = O[1];
+      angular[2][j] = O[2];
+      angular[3][j] = o[0];
+      angular[4][j] = o[1];
+      angular[5][j] = o[2];
+
+      Py_DECREF (result);
+    }
+  }
+
+  Py_DECREF (args);
+}
+
 /* run DEM simulation */
 static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -1507,14 +1878,21 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
-    contacts (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
-              mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
+    forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
+            mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step,
+            sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir, sprdirup, stroke0,
+	    gravity, force, torque);
 
-    springs (threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir,
-             sprdirup, stroke0, angular, linear, rotation, position, force, torque);
+    constrain (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
+
+    prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
+                            angkind, time, mass, inertia, force, torque);
 
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
-      position, inertia, inverse, mass, invm, force, torque, gravity, step);
+              position, inertia, inverse, mass, invm, force, torque, step);
+
+    prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
+                        angkind, time, rotation, linear, angular);
 
     if (time >= t0 + interval) /* full update, due to output */
     {
@@ -1564,6 +1942,8 @@ static PyMethodDef methods [] =
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
+  {"CONSTRAIN", (PyCFunction)CONSTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
+  {"PRESCRIBE", (PyCFunction)PRESCRIBE, METH_VARARGS|METH_KEYWORDS, "Prescribe particle motion"},
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
   {"CRITICAL", (PyCFunction)CRITICAL, METH_NOARGS, "Estimate critical time step"},
@@ -1587,6 +1967,8 @@ int input (const char *path)
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
                       "from parmec import GRANULAR\n"
+                      "from parmec import CONSTRAIN\n"
+                      "from parmec import PRESCRIBE\n"
                       "from parmec import VELOCITY\n"
                       "from parmec import GRAVITY\n"
                       "from parmec import CRITICAL\n"

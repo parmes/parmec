@@ -1319,8 +1319,8 @@ not prescribed
 \series bold
 kind
 \series default
- - string 'vv', 'va', 'av', or 'aa' indicating interpretation of respectively
- 
+ - list ['vel', 'vel'], ['vel', 'acc'], ['acc', 'vel'], or ['acc', 'acc']
+ indicating interpretation of 
 \series bold
 linear
 \series default
@@ -1328,7 +1328,7 @@ linear
 \series bold
 angular
 \series default
- time histories as either velocity or acceleration; default: 'vv'
+ time histories, respectively; default: ['vel', 'vel']
 \end_layout
 
 \begin_layout Section
@@ -1346,7 +1346,7 @@ Set particle velocity.
 \end_layout
 
 \begin_layout Subsection*
-VELOCITY (parnum | linear, angular)
+VELOCITY (parnum | linear | angular)
 \end_layout
 
 \begin_layout Itemize
@@ -1362,16 +1362,8 @@ parnum
 \series bold
 linear
 \series default
- - linear velocity tuple 
+ - initial linear velocity tuple 
 \begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)$
-\end_inset
-
-; default: 
-\begin_inset Formula $\left(0,0,0\right)$
-\end_inset
-
- at 
-\begin_inset Formula $t=0$
 \end_inset
 
 
@@ -1382,16 +1374,8 @@ linear
 \series bold
 angular
 \series default
- - angular velocity tuple 
+ - initial angular velocity tuple 
 \begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)$
-\end_inset
-
-; default: 
-\begin_inset Formula $\left(0,0,0\right)$
-\end_inset
-
- at 
-\begin_inset Formula $t=0$
 \end_inset
 
 

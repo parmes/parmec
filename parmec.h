@@ -137,6 +137,22 @@ extern int spring_lookup_size; /* size of the spring force lookup tables */
 extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */
 extern void spring_buffer_grow (int spring_lookup, int dashpot_lookup); /* grow buffer */
 
+extern int cnsnum; /* number of constraints */
+extern int *cnspart; /* constrained particle numbers */
+extern REAL *cnslin[9]; /* constrained linear directions */
+extern REAL *cnsang[9]; /* constrained angular directions */
+extern int constrain_buffer_size; /* size of constrained particles buffer */
+extern int constrain_buffer_grow (); /* grow buffer */
+
+extern int prsnum; /* number of particles with prescribed motion */
+extern int *prspart; /* prescribed motion particle numbers */
+extern callback_t *prslin; /* prescribed linear motion time history callbacks */
+extern int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-acceleration */
+extern callback_t *prsang; /* prescribed angular motion time history callbacks */
+extern int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
+extern int prescribe_buffer_size; /* size of prescribed particle motion buffer */
+extern int prescribe_buffer_grow (); /* grow buffer */
+
 extern void reset_all_data (); /* reset all simulation data */
 
 extern void declare_analytical (int k); /* declare particle 'k' analytical */
