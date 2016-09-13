@@ -21,7 +21,7 @@ EXE=parmec
 REAL=float
 
 # Debug version
-DEBUG=no
+DEBUG=yes
 
 # Do the rest
 include common.mk

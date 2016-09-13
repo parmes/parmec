@@ -356,7 +356,7 @@ static int is_list_or_number (PyObject *obj, const char *var, int len)
 
     if (PyList_Check (obj))
     {
-      if (!(len > 0 && PyList_Size (obj) != len))
+      if (len > 0 && PyList_Size (obj) != len)
       {
 	char buf [BUFLEN];
 	sprintf (buf, "'%s' must have %d items", var, len);
@@ -789,6 +789,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::nodes[0][k] = parmec::nodes[3][k] = msh->nodes[j][0];
     parmec::nodes[1][k] = parmec::nodes[4][k] = msh->nodes[j][1];
     parmec::nodes[2][k] = parmec::nodes[5][k] = msh->nodes[j][2];
+    nodpart[k] = parnum;
   }
   nodnum += node_count;
 
@@ -1806,6 +1807,8 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("dd|dO", &duration, &step, &interval, &prefix);
 
+  interval = step;
+
   TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
             is_positive (interval, kwl[2]) && is_string (prefix, kwl[3]));
 
@@ -1831,6 +1834,16 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     outpath = out;
   }
 
+  REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
+  REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
+  REAL *iorient[18] = {orient[0]+ellcon, orient[1]+ellcon, orient[2]+ellcon, orient[3]+ellcon, orient[4]+ellcon, orient[5]+ellcon,
+		       orient[6]+ellcon, orient[7]+ellcon, orient[8]+ellcon, orient[9]+ellcon, orient[10]+ellcon, orient[11]+ellcon,
+		       orient[12]+ellcon, orient[13]+ellcon, orient[14]+ellcon, orient[15]+ellcon, orient[16]+ellcon, orient[17]+ellcon};
+  REAL *itri[3][3] = {{tri[0][0]+tricon, tri[0][1]+tricon, tri[0][2]+tricon},
+		      {tri[1][0]+tricon, tri[1][1]+tricon, tri[1][2]+tricon},
+		      {tri[2][0]+tricon, tri[2][1]+tricon, tri[2][2]+tricon}};
+  int *ifacnod[3] = {facnod[0]+faccon, facnod[1]+faccon, facnod[2]+faccon};
+
   sort_materials ();
 
   if (curtime == 0.0)
@@ -1851,21 +1864,11 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   zero_force_and_torque (parnum, force, torque);
 
-  partitioning *tree = partitioning_create (threads, ellnum, center);
+  partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
 
   /* time stepping */
   for (t0 = time = 0.0; time < duration; time += step)
   {
-    REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
-    REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
-    REAL *iorient[18] = {orient[0]+ellcon, orient[1]+ellcon, orient[2]+ellcon, orient[3]+ellcon, orient[4]+ellcon, orient[5]+ellcon,
-                         orient[6]+ellcon, orient[7]+ellcon, orient[8]+ellcon, orient[9]+ellcon, orient[10]+ellcon, orient[11]+ellcon,
-			 orient[12]+ellcon, orient[13]+ellcon, orient[14]+ellcon, orient[15]+ellcon, orient[16]+ellcon, orient[17]+ellcon};
-    REAL *itri[3][3] = {{tri[0][0]+tricon, tri[0][1]+tricon, tri[0][2]+tricon},
-                        {tri[1][0]+tricon, tri[1][1]+tricon, tri[1][2]+tricon},
-			{tri[2][0]+tricon, tri[2][1]+tricon, tri[2][2]+tricon}};
-    int *ifacnod[3] = {facnod[0]+faccon, facnod[1]+faccon, facnod[2]+faccon};
-
     if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
     {
       partitioning_destroy (tree);
@@ -1964,6 +1967,7 @@ int input (const char *path)
   PyRun_SimpleString ("from parmec import RESET\n"
                       "from parmec import MATERIAL\n"
                       "from parmec import SPHERE\n"
+                      "from parmec import MESH\n"
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
                       "from parmec import GRANULAR\n"

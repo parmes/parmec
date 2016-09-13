@@ -783,6 +783,8 @@ export void condet (uniform int threads, uniform partitioning tree[], uniform ma
   uniform REAL * uniform radii[3], uniform REAL * uniform orient[18], uniform int trinum,
   uniform int tricol[], uniform int triobs[], uniform REAL * uniform tri[3][3])
 {
+  if (tree == NULL) return;
+
   launch [threads] update_existing (parnum/threads, parnum, master, center, radii, orient, tri);
   sync;
 

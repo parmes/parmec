@@ -663,6 +663,8 @@ task void store_ellipsoids (uniform int span, uniform partitioning tree[], unifo
 /* create partitioning tree */
 export uniform partitioning * uniform partitioning_create (uniform int threads, uniform int ellnum, uniform REAL * uniform center[6])
 {
+  if (ellnum == 0) return NULL;
+
   uniform int span = ellnum/threads;
 
   uniform REAL * uniform extents = uniform new uniform REAL [6*threads];
@@ -746,6 +748,8 @@ export uniform int partitioning_store (uniform int threads, uniform partitioning
   uniform int ellnum, uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
   uniform REAL * uniform radii[3], uniform REAL * uniform orient[18])
 {
+  if (ellnum == 0) return 0;
+
   partitioning_tree_zero (tree, 0);
 
   uniform int repart = 0;
@@ -758,6 +762,8 @@ export uniform int partitioning_store (uniform int threads, uniform partitioning
 /* copy partitioned data back to global buffers and free its memory */
 export void partitioning_destroy (uniform partitioning * uniform tree)
 {
+  if (tree == NULL) return;
+
   partitioning_tree_free (tree, 0);
 
   delete tree;

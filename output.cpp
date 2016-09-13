@@ -29,6 +29,11 @@ SOFTWARE.
 #include "macros.h"
 #include "parmec.h"
 
+namespace parmec
+{
+int vtk_frame = 0; /* VTK output frame */
+}
+
 using namespace parmec;
 
 /* output current state */
@@ -39,22 +44,57 @@ void output ()
   ofstream out;
   int i;
 
-  oss << outpath << ".dump";
-  out.open (oss.str().c_str(), ios::app);
-
-  out << "ITEM: TIMESTEP\n";
-  out << curtime << "\n";
-  out << "ITEM: NUMBER OF ATOMS\n";
-  out << ellnum << "\n";
-  out << "ITEM: BOX BOUNDS\n";
-  out << "0 1\n";
-  out << "0 1\n";
-  out << "0 1\n";
-  out << "ITEM: ATOMS id x y z radius\n";
-  for (i = 0; i < ellnum; i ++)
+  if (ellnum)
   {
-    out << i+1 << " " << center[0][i] << " " << center[1][i] << " " << center[2][i] << " " <<  radii[0][i] << "\n";
+    oss << outpath << ".dump";
+    out.open (oss.str().c_str());
+
+    out << "ITEM: TIMESTEP\n";
+    out << curtime << "\n";
+    out << "ITEM: NUMBER OF ATOMS\n";
+    out << ellnum << "\n";
+    out << "ITEM: BOX BOUNDS\n";
+    out << "0 1\n";
+    out << "0 1\n";
+    out << "0 1\n";
+    out << "ITEM: ATOMS id x y z radius\n";
+    for (i = 0; i < ellnum; i ++)
+    {
+      out << i+1 << " " << center[0][i] << " " << center[1][i] << " " << center[2][i] << " " <<  radii[0][i] << "\n";
+    }
+
+    out.close();
   }
 
-  out.close();
+  if (trinum)
+  {
+    oss << outpath << vtk_frame << ".vtk";
+    out.open (oss.str().c_str());
+
+    out << "# vtk DataFile Version 2.0\n";
+    out << "PARMEC triangles output\n";
+    out << "ASCII\n";
+    out << "DATASET UNSTRUCTURED_GRID\n";
+    out << "POINTS " << 3*trinum << " float\n";
+    for (i = 0; i < trinum; i ++)
+    {
+      out << tri [0][0][i] << " " << tri[0][1][i] << " " << tri[0][2][i] << " "
+          << tri [1][0][i] << " " << tri[1][1][i] << " " << tri[1][2][i] << " "
+          << tri [2][0][i] << " " << tri[2][1][i] << " " << tri[2][2][i] << "\n";
+    }
+    out << "CELLS " << trinum << " " << 4*trinum << "\n";
+    for (i = 0; i < trinum; i ++)
+    {
+      out << 3 << " " << 3*i << " " << 3*i+1 << " " << 3*i+2 << "\n";
+    }
+    out << "CELLS_TYPES " << trinum << "\n";
+    for (i = 0; i < trinum; i ++)
+    {
+      out << 5 << "\n";
+    }
+ 
+    out.close();
+
+    vtk_frame ++; 
+  }
 }
