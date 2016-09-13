@@ -87,7 +87,7 @@ void output ()
     {
       out << 3 << " " << 3*i << " " << 3*i+1 << " " << 3*i+2 << "\n";
     }
-    out << "CELLS_TYPES " << trinum << "\n";
+    out << "CELL_TYPES " << trinum << "\n";
     for (i = 0; i < trinum; i ++)
     {
       out << 5 << "\n";

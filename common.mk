@@ -33,10 +33,11 @@ dirs:
 
 del:
 	find ./ -iname "*.dump" -exec rm '{}' ';'
+	find ./ -iname "*.vtk" -exec rm '{}' ';'
 
-clean:
+clean:  del
+	find ./ -iname "*.pdf" -exec rm '{}' ';'
 	/bin/rm -rf objs *~ $(EXE) *.dSYM
-	find ./ -iname "*.dump" -exec rm '{}' ';'
 
 $(EXE): $(CPP_OBJS) $(C_OBJS) $(ISPC_OBJS)
 	$(CXX) $(CFLAGS) -fopenmp -o $@ $^ $(LIBS)

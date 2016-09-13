@@ -109,10 +109,10 @@ task void nodes_task (uniform int span, uniform int nodnum, uniform REAL * unifo
     {
       REAL L[9], X[3], x[3], C[3], c[3];
 
-      cif (analytical[i] == 0) /* non-analytical update */
-      {
-	int j = nodpart[i];
+      int j = nodpart[i];
 
+      cif (analytical[j] == 0) /* non-analytical update */
+      {
 	L[0] = rotation[0][j];
 	L[1] = rotation[1][j];
 	L[2] = rotation[2][j];

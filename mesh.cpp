@@ -256,37 +256,41 @@ static void element_char_add (MESH_DATA *msh, ELEMENT *ele, REAL *me, REAL *sx, 
 {
   REAL rho = parmec::mparam[parmec::DENSITY][ele->material];
   REAL zero [3] = {0, 0, 0}, J, *a, *b, *c;
-  int (*ver) [4], nv[8], i, j;
+  int (*ver) [4], nv[8], nf, i, j;
 
   switch (ele->type)
   {
   case 4:
+    nf = 4;
     ver = tet;
     nv[0] = nv[1] = nv[2] = nv[3] = 4;
   break;
   case 5:
+    nf = 5;
     ver = pyr;
     nv[0] = 4; nv[1] = nv[2] = nv[3] = nv[4] = 3;
   break;
   case 6:
+    nf = 5;
     ver = wed;
     nv[0] = nv[1] = 3; nv[2] = nv[3] = nv[4] = 4;
   break;
   case 8:
+    nf = 6;
     ver = hex;
     nv[0] = nv[1] = nv[2] = nv[3] = 
     nv[4] = nv[5] = nv[6] = nv[7] = 4;
   break;
   }
 
-  for (i = 0; i < ele->type; i++)
+  for (i = 0; i < nf; i++)
   {
-    a = msh->nodes[ele->nodes[ver[i][0]]];
+    a = msh->nodes[ele->nodes[ver[i][0]-1]];
 
     for (j = 1; j < nv[i]-1; j ++)
     {
-      b = msh->nodes[ele->nodes[ver[i][j]]];
-      c = msh->nodes[ele->nodes[ver[i][j+1]]];
+      b = msh->nodes[ele->nodes[ver[i][j]-1]];
+      c = msh->nodes[ele->nodes[ver[i][j+1]-1]];
 
       J = rho * simplex_J (zero, a, b, c);
       *me += simplex_1 (J, zero, a, b, c);
@@ -489,6 +493,8 @@ void MESH_Char (MESH_DATA *msh, REAL *mass, REAL *center, REAL *inertia)
 
   for (ele = msh->surfeles; ele; ele = ele->next)
     element_char_add (msh, ele, &me, &sx, &sy, &sz, euler);
+
+  mass[0] = me;
 
   center [0] = sx / me;
   center [1] = sy / me;

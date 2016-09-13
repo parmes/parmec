@@ -1804,10 +1804,11 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   timing tt;
 
   prefix = NULL;
+  interval = 0.0;
 
   PARSEKEYS ("dd|dO", &duration, &step, &interval, &prefix);
 
-  interval = step;
+  if (interval == 0.0) interval = step;
 
   TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
             is_positive (interval, kwl[2]) && is_string (prefix, kwl[3]));
