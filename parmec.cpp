@@ -785,21 +785,23 @@ void reset_all_data ()
 /* try shuffle ellipsoids */
 static int shuffle_ellipsoids (int k)
 {
-  int start = ellcon, mid, end = ellnum, i, j;
+  int start = ellcon, end = ellnum, mid = (start+end)/2, i, j;
 
   /* particles are inserted in ascending index order
    * therefore we can apply binary search */
   while (start < end)
   {
+    i = part[mid];
+    if (i < k) start = mid;
+    else if (i > k) end = mid;
+    else break;
     mid = (start+end)/2;
-    if (part[mid] < k) start = mid;
-    else end = mid;
   }
 
-  if (part[mid] != k) return 0; /* not found */
+  if (mid == ellnum || part[mid] != k) return 0; /* not found */
 
   /* find the range of ellipsoids used by this particle */
-  for (start = mid; start > 0 && part[start] == k; start--);
+  for (start = mid; start > ellcon && part[start] == k; start--);
   for (end = mid; end < ellnum && part[end] == k; end++);
 
   /* swap initial ellipsoids with those from the found range */
@@ -882,19 +884,23 @@ static int shuffle_ellipsoids (int k)
 /* try shuffle faces */
 static void shuffle_faces (int k)
 {
-  int start = faccon, mid, end = facnum, i, j, l;
+  int start = faccon, end = facnum, mid = (start+end)/2, i, j, l;
 
   /* particles are inserted in ascending index order
    * therefore we can apply binary search */
   while (start < end)
   {
+    i = facpart[mid];
+    if (i < k) start = mid;
+    else if (i > k) end = mid;
+    else break;
     mid = (start+end)/2;
-    if (facpart[mid] < k) start = mid;
-    else end = mid;
   }
 
+  if (mid == facnum || facpart[mid] != k) return; /* not found */
+
   /* find the range of faces used by this particle */
-  for (start = mid; start > 0 && facpart[start] == k; start--);
+  for (start = mid; start > faccon && facpart[start] == k; start--);
   for (end = mid; end < facnum && facpart[end] == k; end++);
 
   /* swap initial faces with those from the found range */

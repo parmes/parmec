@@ -861,11 +861,11 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
   material = 0;
   particle = -1;
 
-  PARSEKEYS ("|OdOOi", &inertia, &mass, &rotation, &position, &particle);
+  PARSEKEYS ("|OdOOii", &inertia, &mass, &rotation, &position, &material, &particle);
 
-  TYPETEST (is_list (inertia, kwl[0], 6) && is_positive (mass, kwl[1]) &&
+  TYPETEST (is_list (inertia, kwl[0], 6) && is_non_negative (mass, kwl[1]) &&
             is_list (rotation, kwl[2], 9) && is_tuple (position, kwl[3], 3) &&
-	    is_non_negative (material, kwl[4]) && is_non_negative (particle, kwl[4]));
+	    is_non_negative (material, kwl[4]));
 
   if (inertia)
   {
@@ -945,8 +945,6 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::position[4][i] = vposition[1];
     parmec::position[5][i] = vposition[2];
 
-    if (mass > 0.0) parmec::mass[i] = mass;
-
     parmec::rotation[0][i] = vrotation[0];
     parmec::rotation[1][i] = vrotation[1];
     parmec::rotation[2][i] = vrotation[2]; 
@@ -956,6 +954,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::rotation[6][i] = vrotation[6];
     parmec::rotation[7][i] = vrotation[7];
     parmec::rotation[8][i] = vrotation[8];
+
+    parmec::mass[i] = (mass == 0.0 ? 1.0 : mass);
 
     parmec::inertia[0][i] = vinertia[0];
     parmec::inertia[4][i] = vinertia[1];
@@ -984,8 +984,6 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::position[5][i] = vposition[2];
     }
 
-    if (mass > 0.0) parmec::mass[i] = mass;
-
     if (rotation)
     {
       parmec::rotation[0][i] = vrotation[0];
@@ -998,6 +996,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::rotation[7][i] = vrotation[7];
       parmec::rotation[8][i] = vrotation[8];
     }
+
+    if (mass > 0.0) parmec::mass[i] = mass;
 
     if (inertia)
     {
@@ -1969,6 +1969,7 @@ int input (const char *path)
                       "from parmec import MATERIAL\n"
                       "from parmec import SPHERE\n"
                       "from parmec import MESH\n"
+                      "from parmec import ANALYTICAL\n"
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
                       "from parmec import GRANULAR\n"

@@ -92,6 +92,13 @@ void output ()
     {
       out << 5 << "\n";
     }
+    out << "CELL_DATA " << trinum << "\n";
+    out << "SCALARS colors int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < trinum; i ++)
+    {
+      out << tricol[i] << "\n";
+    }
  
     out.close();
 
