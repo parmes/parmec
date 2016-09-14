@@ -37,6 +37,7 @@ del:
 
 clean:  del
 	find ./ -iname "*.pdf" -exec rm '{}' ';'
+	find ./ -iname "*.pyc" -exec rm '{}' ';'
 	/bin/rm -rf objs *~ $(EXE) *.dSYM
 
 $(EXE): $(CPP_OBJS) $(C_OBJS) $(ISPC_OBJS)
