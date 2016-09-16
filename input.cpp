@@ -1572,9 +1572,20 @@ static PyObject* VELOCITY (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (ang)
   {
-    angular[0][i] = PyFloat_AsDouble (PyTuple_GetItem (ang, 0)); 
-    angular[1][i] = PyFloat_AsDouble (PyTuple_GetItem (ang, 1)); 
-    angular[2][i] = PyFloat_AsDouble (PyTuple_GetItem (ang, 2)); 
+    angular[3][i] = PyFloat_AsDouble (PyTuple_GetItem (ang, 0)); 
+    angular[4][i] = PyFloat_AsDouble (PyTuple_GetItem (ang, 1)); 
+    angular[5][i] = PyFloat_AsDouble (PyTuple_GetItem (ang, 2)); 
+
+    REAL o[3] = {angular[3][i], angular[4][i], angular[5][i]}, O[3];
+    REAL L[9] = {rotation[0][i], rotation[1][i], rotation[2][i],
+                 rotation[3][i], rotation[4][i], rotation[5][i],
+		 rotation[6][i], rotation[7][i], rotation[8][i]};
+
+    TVMUL (L,o,O);
+
+    angular[0][i] = O[0];
+    angular[1][i] = O[1];
+    angular[2][i] = O[2];
   }
 
   Py_RETURN_NONE;
@@ -1944,12 +1955,25 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   int list_size, *list, kind;
 
   point = NULL;
+  source = NULL;
 
-  PARSEKEYS ("OO|O", &entity, &source, &point);
+  PARSEKEYS ("O|OO", &entity, &source, &point);
 
   TYPETEST (is_string (entity, kwl[0]) && is_tuple (point, kwl[2], 3));
 
-  if (PyInt_Check (source))
+  if (source == NULL) /* useful when entity is 'TIME' */
+  {
+    list_size = 1;
+    list = new int;
+    list [0] = 0;
+    if (!parnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "No particle has been defined");
+      return NULL;
+    }
+    kind = HIS_LIST;
+  }
+  else if (PyInt_Check (source))
   {
     list_size = 1;
     list = new int;

@@ -1066,6 +1066,7 @@ int main (int argc, char *argv[])
     spring_buffer_init ();
     constrain_buffer_init ();
     prescribe_buffer_init ();
+    history_buffer_init ();
     reset_all_data ();
 
     if (strcmp (argv[1], "-threads") == 0 && argc > 2)

@@ -1550,7 +1550,7 @@ Request time history output.
 \end_layout
 
 \begin_layout Subsection*
-list = HISTORY (entity, source | point)
+list = HISTORY (entity | source, point)
 \end_layout
 
 \begin_layout Itemize
@@ -1595,7 +1595,8 @@ i, j, ...
 
 ; in case of a list of particle numbers the output entity is averaged over
  the set of particles; in case of a spatial sphere or box the output entity
- is averaged over the set of particles passing through it
+ is averaged over the set of particles passing through it; default: 0 (useful
+ when entity is 'TIME')
 \end_layout
 
 \begin_layout Itemize

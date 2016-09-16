@@ -108,12 +108,123 @@ void output ()
 
   for (i = 0; i < hisnum; i ++) /* append time histories */
   {
-    switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
+    if (hisent[i] == HIS_TIME)
+    {
+      PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(curtime));
+    }
+    else switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
     {
     case HIS_LIST:
     {
       if (hiskind[i] & HIS_POINT) /* one particle point based */
       {
+	k = hispart[hisidx[i]];
+
+	REAL x[3] = {position[0][k], position[1][k], position[2][k]};
+	REAL X[3] = {position[3][k], position[4][k], position[5][k]};
+	REAL v[3] = {linear[0][k], linear[1][k], linear[2][k]};
+	REAL o[3] = {angular[3][k], angular[4][k], angular[5][k]};
+	REAL L[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
+	             rotation[3][k], rotation[4][k], rotation[5][k],
+		     rotation[6][k], rotation[7][k], rotation[8][k]};
+        REAL P[3] = {source[0][i], source[1][i], source[2][i]};
+	REAL Q[3], p[3], a[3], value;
+
+	SUB (P, X, Q);
+	NVADDMUL (x, L, Q, p);
+	SUB (p, x, a);
+
+	switch (hisent[i])
+	{
+	case HIS_PX:
+	  value = p[0];
+	break;
+	case HIS_PY:
+	  value = p[1];
+	break;
+	case HIS_PZ:
+	  value = p[2];
+	break;
+	case HIS_PL:
+	  value = LEN(p);
+	break;
+	case HIS_DX:
+	  value = p[0]-P[0];
+	break;
+	case HIS_DY:
+	  value = p[1]-P[1];
+	break;
+	case HIS_DZ:
+	  value = p[2]-P[2];
+	break;
+	case HIS_DL:
+	{
+	  REAL q[3] = {p[0]-P[0], p[1]-P[1], p[2]-P[2]};
+	  value = LEN(q);
+	}
+	break;
+	case HIS_VX:
+	  value = v[0] + a[1]*o[2] - a[2]*o[1];
+	break;
+	case HIS_VY:
+	  value = v[1] + a[2]*o[0] - a[0]*o[2];
+	break;
+	case HIS_VZ:
+	  value = v[2] + a[0]*o[1] - a[1]*o[0];
+	break;
+	case HIS_VL:
+	{
+	  REAL q[3] = {v[0] + a[1]*o[2] - a[2]*o[1], v[1] + a[2]*o[0] - a[0]*o[2], v[2] + a[0]*o[1] - a[1]*o[0]};
+	  value = LEN(q);
+	}
+	break;
+	case HIS_OX:
+	  value = o[0];
+	break;
+	case HIS_OY:
+	  value = o[1];
+	break;
+	case HIS_OZ:
+	  value = o[2];
+	break;
+	case HIS_OL:
+	{
+	  value = LEN(o);
+	}
+	break;
+	case HIS_FX:
+	  value = force[0][k];
+	break;
+	case HIS_FY:
+	  value = force[1][k];
+	break;
+	case HIS_FZ:
+	  value = force[2][k];
+	break;
+	case HIS_FL:
+	{
+	  REAL q[3] = {force[0][k], force[1][k], force[2][k]};
+	  value = LEN(q);
+	}
+	break;
+	case HIS_TX:
+	  value = torque[0][k];
+	break;
+	case HIS_TY:
+	  value = torque[1][k];
+	break;
+	case HIS_TZ:
+	  value = torque[2][k];
+	break;
+	case HIS_TL:
+	{
+	  REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
+	  value = LEN(q);
+	}
+	break;
+	}
+
+        PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
       }
       else /* particle list based */
       {
@@ -126,18 +237,101 @@ void output ()
 	  switch (hisent[i])
 	  {
 	  case HIS_PX:
+	    value += position[0][k];
 	  break;
 	  case HIS_PY:
+	    value += position[1][k];
 	  break;
 	  case HIS_PZ:
+	    value += position[2][k];
 	  break;
 	  case HIS_PL:
+	  {
+	    REAL q[3] = {position[0][k], position[1][k], position[2][k]};
+	    value += LEN(q);
+	  }
 	  break;
-	  case HIS_TIME:
+	  case HIS_DX:
+	    value += position[0][k]-position[3][k];
 	  break;
-	  /* TODO */
+	  case HIS_DY:
+	    value += position[1][k]-position[4][k];
+	  break;
+	  case HIS_DZ:
+	    value += position[2][k]-position[5][k];
+	  break;
+	  case HIS_DL:
+	  {
+	    REAL q[3] = {position[0][k]-position[3][k], position[1][k]-position[4][k], position[2][k]-position[5][k]};
+	    value += LEN(q);
+	  }
+	  break;
+	  case HIS_VX:
+	    value += linear[0][k];
+	  break;
+	  case HIS_VY:
+	    value += linear[1][k];
+	  break;
+	  case HIS_VZ:
+	    value += linear[2][k];
+	  break;
+	  case HIS_VL:
+	  {
+	    REAL q[3] = {linear[0][k], linear[1][k], linear[2][k]};
+	    value += LEN(q);
+	  }
+	  break;
+	  case HIS_OX:
+	    value += angular[3][k];
+	  break;
+	  case HIS_OY:
+	    value += angular[4][k];
+	  break;
+	  case HIS_OZ:
+	    value += angular[5][k];
+	  break;
+	  case HIS_OL:
+	  {
+	    REAL q[3] = {angular[3][k], angular[4][k], angular[5][k]};
+	    value += LEN(q);
+	  }
+	  break;
+          case HIS_FX:
+	    value += force[0][k];
+	  break;
+	  case HIS_FY:
+	    value += force[1][k];
+	  break;
+	  case HIS_FZ:
+	    value += force[2][k];
+	  break;
+	  case HIS_FL:
+	  {
+	    REAL q[3] = {force[0][k], force[1][k], force[2][k]};
+	    value += LEN(q);
+	  }
+	  break;
+          case HIS_TX:
+	    value += torque[0][k];
+	  break;
+	  case HIS_TY:
+	    value += torque[1][k];
+	  break;
+	  case HIS_TZ:
+	    value += torque[2][k];
+	  break;
+	  case HIS_TL:
+	  {
+	    REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
+	    value += LEN(q);
+	  }
+	  break;
 	  }
 	}
+
+	j = hisidx[i+1]-hisidx[i];
+
+        PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value/(REAL)j));
       }
     }
     break;
