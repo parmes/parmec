@@ -75,7 +75,7 @@ REAL *mass; /* scalar mass */
 REAL *invm; /* inverse scalar mass */
 REAL *force[3]; /* total spatial force */
 REAL *torque[3]; /* total spatial torque */
-int *analytical; /* analytical flag */
+int *flags; /* particle flags */
 ispc::master_conpnt *master; /* master contact points */
 ispc::slave_conpnt *slave; /* slave contact points */
 int particle_buffer_size; /* size of the buffer */
@@ -142,6 +142,24 @@ int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-accelerati
 callback_t *prsang; /* prescribed angular motion time history callbacks */
 int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
 int prescribe_buffer_size; /* size of prescribed particle motion buffer */
+
+int hisnum; /* number of time histories */
+int *hispart; /* history particle lists */
+int *hisidx; /* history particle list start index */
+int *hisent; /* history entity */
+int *hiskind; /* history kind */
+REAL *source[6]; /* source sphere or box definition or optional point */
+callback_t *history; /* Python list storing history */
+int history_buffer_size; /* size of history buffer */
+int history_list_size; /* size of history particle lists buffer */
+
+int outnum; /* number of output lists */
+int *outpart; /* output particle lists */
+int *outidx; /* output particle list start index */
+int *outent; /* output entities */
+int outrest; /* default output entities for unlisted particles */
+int output_buffer_size; /* size of output buffer */
+int output_list_size; /* size of output particle lists buffer */
 
 /* grow integer buffer */
 void integer_buffer_grow (int* &src, int num, int size)
@@ -376,7 +394,7 @@ void particle_buffer_init ()
   torque[0] = aligned_real_alloc (particle_buffer_size);
   torque[1] = aligned_real_alloc (particle_buffer_size);
   torque[2] = aligned_real_alloc (particle_buffer_size);
-  analytical = aligned_int_alloc (particle_buffer_size);
+  flags = aligned_int_alloc (particle_buffer_size);
   master = master_alloc (NULL, 0, particle_buffer_size);
   slave = slave_alloc (NULL, 0, particle_buffer_size);
 
@@ -439,7 +457,7 @@ int particle_buffer_grow ()
   real_buffer_grow (torque[0], parnum, particle_buffer_size);
   real_buffer_grow (torque[1], parnum, particle_buffer_size);
   real_buffer_grow (torque[2], parnum, particle_buffer_size);
-  integer_buffer_grow (analytical, parnum, particle_buffer_size);
+  integer_buffer_grow (flags, parnum, particle_buffer_size);
   master = master_alloc (master, parnum, particle_buffer_size);
   slave = slave_alloc (slave, parnum, particle_buffer_size);
 
@@ -758,6 +776,54 @@ int prescribe_buffer_grow ()
   return prescribe_buffer_size;
 }
 
+/* init history buffer */
+int history_buffer_init ()
+{
+  history_buffer_size = 256;
+  history_list_size = 1024;
+
+  hispart = aligned_int_alloc (history_list_size);
+  hisidx = aligned_int_alloc (history_buffer_size+1);
+  hisent = aligned_int_alloc (history_buffer_size);
+  hiskind = aligned_int_alloc (history_buffer_size);
+  source[0] = aligned_real_alloc (history_buffer_size);
+  source[1] = aligned_real_alloc (history_buffer_size);
+  source[2] = aligned_real_alloc (history_buffer_size);
+  source[3] = aligned_real_alloc (history_buffer_size);
+  source[4] = aligned_real_alloc (history_buffer_size);
+  source[5] = aligned_real_alloc (history_buffer_size);
+  history = new callback_t [history_buffer_size];
+
+  hisnum = 0;
+  hisidx[hisnum] = 0;
+}
+
+/* grow history buffer */
+void history_buffer_grow (int list_size)
+{
+  if (hisnum+1 >= history_buffer_size)
+  {
+    history_buffer_size *= 2;
+
+    integer_buffer_grow (hisidx, hisnum, history_buffer_size+1);
+    integer_buffer_grow (hisent, hisnum, history_buffer_size);
+    integer_buffer_grow (hiskind, hisnum, history_buffer_size);
+    real_buffer_grow (source[0], hisnum, history_buffer_size);
+    real_buffer_grow (source[1], hisnum, history_buffer_size);
+    real_buffer_grow (source[2], hisnum, history_buffer_size);
+    real_buffer_grow (source[3], hisnum, history_buffer_size);
+    real_buffer_grow (source[4], hisnum, history_buffer_size);
+    real_buffer_grow (source[5], hisnum, history_buffer_size);
+    callback_buffer_grow (history, hisnum, history_buffer_size);
+  }
+
+  if (history_list_size < hisidx[hisnum] + list_size)
+  {
+    history_list_size = 2 * (hisidx[hisnum] + list_size);
+    integer_buffer_grow (hispart, hisidx[hisnum], history_list_size);
+  }
+}
+
 /* reset all data */
 void reset_all_data ()
 {
@@ -778,6 +844,9 @@ void reset_all_data ()
   sprnum = 0;
   cnsnum = 0;
   prsnum = 0;
+  hisnum = 0;
+  outnum = 0;
+  outrest = OUT_COLOR|OUT_DISP|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
 
   pair_reset();
 }

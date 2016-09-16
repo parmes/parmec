@@ -137,16 +137,16 @@ target "http://www.python.org/"
  input file in this directory (e.g.
  
 \emph on
-test.py;
+test.py
 \emph default
- see also Chapter 
+); Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Input"
+reference "cha:Input commands"
 
 \end_inset
 
-).
+ documents all input commands.
 \end_layout
 
 \begin_layout Enumerate
@@ -159,18 +159,11 @@ PARMEC path/to/test/test.py
 \end_layout
 
 \begin_layout Enumerate
-Time histories can be generated during analysis using 
-\begin_inset CommandInset href
-LatexCommand href
-name "Python"
-target "http://www.python.org/"
-
-\end_inset
-
- commands documented in Chapter 
+Time histories can be generated during analysis using the HISTORY command;
+ see Section 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Output"
+reference "subsec:HISTORY"
 
 \end_inset
 
@@ -184,7 +177,18 @@ Upon termination a *.dump file and/or a *.vtk file(s) is/are created in the
 \emph on
 path/to/test/test.dump
 \emph default
-), which can be viewed with 
+); their format is documented in Chapter 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Output files"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+The output files can be viewed with 
 \begin_inset CommandInset href
 LatexCommand href
 name "OVITO"
@@ -200,10 +204,10 @@ target "http://www.paraview.org"
 
 \end_inset
 
-, see also Chapter 
+, as documented in Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Viewers"
+reference "cha:Output viewers"
 
 \end_inset
 
@@ -211,10 +215,11 @@ reference "cha:Viewers"
 \end_layout
 
 \begin_layout Standard
-A tutorial is provided in Chapter 
+An all-in-one tutorial, documenting all PARMEC features, is provided in
+ Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Tutorial"
+reference "cha:An all-in-one tutorial"
 
 \end_inset
 
@@ -224,11 +229,11 @@ reference "cha:Tutorial"
 \begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Input"
+name "cha:Input commands"
 
 \end_inset
 
-Input
+Input commands
 \end_layout
 
 \begin_layout Standard
@@ -1530,34 +1535,150 @@ prefix
  extension)
 \end_layout
 
-\begin_layout Chapter
+\begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Output"
+name "subsec:HISTORY"
 
 \end_inset
 
-Output
+HISTORY
+\end_layout
+
+\begin_layout Standard
+Request time history output.
+\end_layout
+
+\begin_layout Subsection*
+list = HISTORY (entity, source | point)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+list
+\series default
+ - output time history list
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+entity
+\series default
+ - entity name; one of: (output time) 'TIME', (position) 'PX', 'PY', 'PZ',
+ '|P|', (displacement) 'DX', 'DY', 'DZ', '|D|', (linear velocity) 'VX',
+ 'VY', 'VZ', '|V|', (angular velocity) 'OX', 'OY', 'OZ', '|O|', (body force)
+ 'FX', 'FY', 'FZ', '|F|', (body torque) 'TX', 'TY', 'TZ', '|T|'
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+source
+\series default
+ - particle number 
+\emph on
+i
+\emph default
+, or a list of particle numbers [
+\emph on
+i, j, ...
+\emph default
+], or a spatial sphere defined as tuple 
+\begin_inset Formula $\left(x,y,z,r\right)$
+\end_inset
+
+, or a spatial box defined as tuple 
+\begin_inset Formula $\left(x_{\text{min}},y_{\text{min}},z_{\text{min}},x_{\text{max}},y_{\text{max}},z_{\text{max}}\right)$
+\end_inset
+
+; in case of a list of particle numbers the output entity is averaged over
+ the set of particles; in case of a spatial sphere or box the output entity
+ is averaged over the set of particles passing through it
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point
+\series default
+ - optional referential point used in case of a single particle source;
+ default: particle mass centre
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:OUTPUT"
+
+\end_inset
+
+OUTPUT
+\end_layout
+
+\begin_layout Standard
+Define scalar and/or vector entities included into the output file(s).
+\end_layout
+
+\begin_layout Subsection*
+OUTPUT (entities | subset)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+entities
+\series default
+ - list of output entities; default: ['COLOR', 'DISP', 'LINVEL', 'ANGVEL',
+ 'FORCE', 'TORQUE'] corresponding to surface colors, displacement, linear
+ velocity, angular velocity, body force, and body torque, respectively
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+subset
+\series default
+ - optional particle number 
+\emph on
+i, 
+\emph default
+or a list of particle numbers [
+\emph on
+i, j, ...
+\emph default
+], to which this specification is narrowed down
 \end_layout
 
 \begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Viewers"
+name "cha:Output files"
 
 \end_inset
 
-Viewers
+Output files
 \end_layout
 
 \begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Tutorial"
+name "cha:Output viewers"
 
 \end_inset
 
-Tutorial
+Output viewers
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:An all-in-one tutorial"
+
+\end_inset
+
+An all-in-one tutorial
 \end_layout
 
 \end_body

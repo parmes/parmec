@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 #include "macros.h"
+#include "constants.h"
 
 /* ellipsoids task */
 task void ellipsoids_task (uniform int span, uniform int ellnum, uniform int part[],
@@ -98,12 +99,12 @@ task void ellipsoids_task (uniform int span, uniform int ellnum, uniform int par
 
 /* nodes task */
 task void nodes_task (uniform int span, uniform int nodnum, uniform REAL * uniform nodes [6], uniform int nodpart[],
-  uniform int * uniform analytical, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
+  uniform int * uniform flags, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? nodnum : start+span;
 
-  if (analytical)
+  if (flags)
   {
     foreach (i = start ... end)
     {
@@ -111,7 +112,7 @@ task void nodes_task (uniform int span, uniform int nodnum, uniform REAL * unifo
 
       int j = nodpart[i];
 
-      cif (analytical[j] == 0) /* non-analytical update */
+      cif ((flags[j] & ANALYTICAL) == 0) /* non-analytical update */
       {
 	L[0] = rotation[0][j];
 	L[1] = rotation[1][j];
@@ -212,13 +213,13 @@ task void faces_task (uniform int span, uniform int facnum, uniform int * unifor
 /* update shapes */
 export void shapes (uniform int threads, uniform int ellnum, uniform int part[],
   uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
-  uniform int nodnum, uniform REAL * uniform nodes[6], uniform int nodpart[], uniform int * uniform analytical,
+  uniform int nodnum, uniform REAL * uniform nodes[6], uniform int nodpart[], uniform int * uniform flags,
   uniform int facnum, uniform int * uniform facnod[3], uniform int factri[], uniform REAL * uniform tri[3][3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
 {
   launch [threads] ellipsoids_task (ellnum/threads, ellnum, part, center, radii, orient, rotation, position);
 
-  launch [threads] nodes_task (nodnum/threads, nodnum, nodes, nodpart, analytical, rotation, position);
+  launch [threads] nodes_task (nodnum/threads, nodnum, nodes, nodpart, flags, rotation, position);
   sync;
 
   launch [threads] faces_task (facnum/threads, facnum, facnod, factri, nodes, tri);

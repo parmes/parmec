@@ -49,6 +49,9 @@ objs/%_ispc.h objs/%_ispc.o objs/%_ispc_sse2.o objs/%_ispc_sse4.o objs/%_ispc_av
 objs/input.o: input.cpp
 	$(CXX) $(CFLAGS) $(PYTHONINC) $< -c -o $@
 
+objs/output.o: output.cpp
+	$(CXX) $(CFLAGS) $(PYTHONINC) $< -c -o $@
+
 objs/tasksys.o: tasksys.cpp
 	$(CXX) $(CFLAGS) -D ISPC_USE_OMP $< -c -o $@
 

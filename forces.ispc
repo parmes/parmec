@@ -24,7 +24,24 @@ SOFTWARE.
 
 #include "macros.h"
 #include "condet.h"
-#include "material.h"
+#include "constants.h"
+
+/* zero force and torque */
+task void zero_force_and_torque (uniform int span, uniform int parnum, uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+{
+  uniform int start = taskIndex*span;
+  uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
+
+  foreach (i = start ... end)
+  {
+    force[0][i] = 0.0;
+    force[1][i] = 0.0;
+    force[2][i] = 0.0;
+    torque[0][i] = 0.0;
+    torque[1][i] = 0.0;
+    torque[2][i] = 0.0;
+  }
+}
 
 /* clear slave contact points */
 task void clear_slaves (uniform int span, uniform slave_conpnt slave[], uniform int parnum)
@@ -636,20 +653,6 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
   }
 }
 
-/* zero force and torque */
-export void zero_force_and_torque (uniform int parnum, uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
-{
-  foreach (i = 0 ... parnum)
-  {
-    force[0][i] = 0.0;
-    force[1][i] = 0.0;
-    force[2][i] = 0.0;
-    torque[0][i] = 0.0;
-    torque[1][i] = 0.0;
-    torque[2][i] = 0.0;
-  }
-}
-
 /* update forces */
 export void forces (uniform int threads, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
@@ -663,6 +666,8 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform int sprdirup[], uniform REAL stroke0[], uniform REAL gravity[3],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
+  launch [threads] zero_force_and_torque (parnum/threads, parnum, force, torque);
+
   launch [threads] clear_slaves (parnum/threads, slave, parnum);
   sync;
 

@@ -22,19 +22,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef __material__
-#define __material__
+#ifndef __constants__
+#define __constants__
 
 #ifdef __cplusplus
 namespace parmec
 {
 #endif
 
-enum {DENSITY = 0, YOUNG, POISSON, NMAT};
+enum {DENSITY = 0, YOUNG, POISSON, NMAT}; /* bulk material constants */
 
-enum {GRANULAR_FORCE, USER_FORCE};
+enum {GRANULAR_FORCE, USER_FORCE}; /* interaction force kind */
 
-enum {SPRING = 0, DAMPER, FRISTAT, FRIDYN, FRIROL, FRIDRIL, KSKN, NIPARAM};
+enum {SPRING = 0, DAMPER, FRISTAT, FRIDYN, FRIROL, FRIDRIL, KSKN, NIPARAM}; /* surface material constants */
+
+enum {ANALYTICAL = 1, OUTREST = 2}; /* particle flags */
+
+enum {HIS_LIST = 1, HIS_SPHERE = 2, HIS_BOX = 4, HIS_POINT = 8}; /* history kind flags */
+
+enum {HIS_PX, HIS_PY, HIS_PZ, HIS_PL, HIS_DX, HIS_DY, HIS_DZ, HIS_DL,
+      HIS_VX, HIS_VY, HIS_VZ, HIS_VL, HIS_OX, HIS_OY, HIS_OZ, HIS_OL,
+      HIS_FX, HIS_FY, HIS_FZ, HIS_FL, HIS_TX, HIS_TY, HIS_TZ, HIS_TL, HIS_TIME}; /* history entities */
+
+enum {OUT_COLOR = 1, OUT_DISP = 2, OUT_LINVEL = 4, OUT_ANGVEL = 8, OUT_FORCE = 16, OUT_TORQUE = 32}; /* output entities */
 
 #ifdef __cplusplus
 };

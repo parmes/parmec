@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "material.h"
+#include "constants.h"
 #include "macros.h"
 
 /* optimal number of hardware threads */

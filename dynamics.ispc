@@ -137,14 +137,6 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
     linear[0][i] = v[0];
     linear[1][i] = v[1];
     linear[2][i] = v[2];
-
-    force[0][i] = 0.0;
-    force[1][i] = 0.0;
-    force[2][i] = 0.0;
-
-    torque[0][i] = 0.0;
-    torque[1][i] = 0.0;
-    torque[2][i] = 0.0;
   }
 }
 

@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <Python.h>
+#include <structmember.h>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -31,7 +33,7 @@ SOFTWARE.
 
 namespace parmec
 {
-int vtk_frame = 0; /* VTK output frame */
+int output_frame = 0; /* output frame */
 }
 
 using namespace parmec;
@@ -42,12 +44,13 @@ void output ()
   using namespace std;
   ostringstream oss;
   ofstream out;
-  int i;
+  int i, j, k;
 
   if (ellnum)
   {
     oss << outpath << ".dump";
-    out.open (oss.str().c_str());
+    if (output_frame) out.open (oss.str().c_str(), ios::app);
+    else out.open (oss.str().c_str());
 
     out << "ITEM: TIMESTEP\n";
     out << curtime << "\n";
@@ -68,7 +71,7 @@ void output ()
 
   if (trinum)
   {
-    oss << outpath << vtk_frame << ".vtk";
+    oss << outpath << output_frame << ".vtk";
     out.open (oss.str().c_str());
 
     out << "# vtk DataFile Version 2.0\n";
@@ -101,7 +104,55 @@ void output ()
     }
  
     out.close();
-
-    vtk_frame ++; 
   }
+
+  for (i = 0; i < hisnum; i ++) /* append time histories */
+  {
+    switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
+    {
+    case HIS_LIST:
+    {
+      if (hiskind[i] & HIS_POINT) /* one particle point based */
+      {
+      }
+      else /* particle list based */
+      {
+	REAL value = 0.0;
+
+	for (j = hisidx[i]; j < hisidx[i+1]; j ++)
+	{
+	  k = hispart[j];
+
+	  switch (hisent[i])
+	  {
+	  case HIS_PX:
+	  break;
+	  case HIS_PY:
+	  break;
+	  case HIS_PZ:
+	  break;
+	  case HIS_PL:
+	  break;
+	  case HIS_TIME:
+	  break;
+	  /* TODO */
+	  }
+	}
+      }
+    }
+    break;
+    case HIS_SPHERE:
+    {
+      ASSERT (0, "Sphere based time history is not yet implemented");
+    }
+    break;
+    case HIS_BOX:
+    {
+      ASSERT (0, "Box based time history is not yet implemented");
+    }
+    break;
+    }
+  }
+
+  output_frame ++; 
 }

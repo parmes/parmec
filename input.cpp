@@ -37,6 +37,7 @@ SOFTWARE.
 #include "parmec.h"
 #include "timer.h"
 #include "mesh.h"
+#include "constants.h"
 #include "parmec_ispc.h"
 #include "partition_ispc.h"
 #include "forces_ispc.h"
@@ -538,7 +539,7 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   inertia[5][i] = inertia[6][i] = inertia[7][i] = 0.0;
 
   /* return regular particle */
-  analytical[i] = 0;
+  flags[i] = OUTREST;
 
   return PyInt_FromLong (i);
 }
@@ -840,7 +841,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   free (lsur);
 
   /* return regular particle */
-  analytical[i] = 0;
+  flags[i] = OUTREST;
 
   return PyInt_FromLong (i);
 }
@@ -1011,7 +1012,7 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
   }
 
   /* return analytical particle */
-  analytical[particle] = 1;
+  flags[particle] = parmec::ANALYTICAL|OUTREST;
 
   return PyInt_FromLong (particle);
 }
@@ -1863,8 +1864,6 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   invert_inertia (threads, parnum, inertia, inverse, mass, invm);
 
-  zero_force_and_torque (parnum, force, torque);
-
   partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
 
   /* time stepping */
@@ -1907,7 +1906,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     else /* partial update, skipping analytical particles */
     {
       shapes (threads, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
-	      nodnum, nodes, nodpart, analytical, facnum-faccon, ifacnod,
+	      nodnum, nodes, nodpart, flags, facnum-faccon, ifacnod,
 	      factri+faccon, tri, rotation, position);
     }
 
@@ -1936,13 +1935,229 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   return Py_BuildValue ("d", dt); /* PyFloat_FromDouble (dt) */
 }
 
+/* time history output */
+static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("entity", "source", "point");
+  PyObject *entity, *source, *point;
+  REAL s[6] = {0., 0., 0., 0., 0., 0.};
+  int list_size, *list, kind;
+
+  point = NULL;
+
+  PARSEKEYS ("OO|O", &entity, &source, &point);
+
+  TYPETEST (is_string (entity, kwl[0]) && is_tuple (point, kwl[2], 3));
+
+  if (PyInt_Check (source))
+  {
+    list_size = 1;
+    list = new int;
+    list [0] = PyInt_AsLong (source);
+    if (list[0] < 0 || list[0] >= parnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Particle index out of range");
+      return NULL;
+    }
+    kind = HIS_LIST;
+  }
+  else if (PyList_Check (source))
+  {
+    list_size = PyList_Size (source);
+    list = new int[list_size];
+    for (int j = 0; j < list_size; j ++)
+    {
+      list[j] = PyInt_AsLong (PyList_GetItem(source, j));
+      if (list[j] < 0 || list[j] >= parnum)
+      {
+	PyErr_SetString (PyExc_ValueError, "Particle index out of range");
+	return NULL;
+      }
+    }
+    kind = HIS_LIST;
+  }
+  else if (PyTuple_Check (source))
+  {
+    list_size = 0;
+    list = NULL;
+
+    if (PyTuple_Size(source) == 4)
+    {
+      s[0] = PyFloat_AsDouble(PyTuple_GetItem (source, 0));
+      s[1] = PyFloat_AsDouble(PyTuple_GetItem (source, 1));
+      s[2] = PyFloat_AsDouble(PyTuple_GetItem (source, 2));
+      s[3] = PyFloat_AsDouble(PyTuple_GetItem (source, 3));
+    }
+    else if (PyTuple_Size(source) == 6)
+    {
+      s[0] = PyFloat_AsDouble(PyTuple_GetItem (source, 0));
+      s[1] = PyFloat_AsDouble(PyTuple_GetItem (source, 1));
+      s[2] = PyFloat_AsDouble(PyTuple_GetItem (source, 2));
+      s[3] = PyFloat_AsDouble(PyTuple_GetItem (source, 3));
+      s[4] = PyFloat_AsDouble(PyTuple_GetItem (source, 4));
+      s[5] = PyFloat_AsDouble(PyTuple_GetItem (source, 5));
+    }
+    else
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid source tuple size");
+      return NULL;
+    }
+  }
+
+  history_buffer_grow (list_size);
+
+  int i = hisnum ++;
+
+  if (list) /* particle list source */
+  {
+    for (int j = 0; j < list_size; j ++)
+    {
+      hispart[hisidx[i]+j] = list[j];
+    }
+    hisidx[i+1] = hisidx[i]+list_size;
+    delete list;
+  }
+  else /* sphere or box source */
+  {
+    hisidx[i+1] = hisidx[i];
+  }
+
+  IFIS (entity, "TIME")
+  {
+    hisent[i] = HIS_TIME;
+  }
+  ELIF (entity, "PX")
+  {
+    hisent[i] = HIS_PX;
+  }
+  ELIF (entity, "PY")
+  {
+    hisent[i] = HIS_PY;
+  }
+  ELIF (entity, "PZ")
+  {
+    hisent[i] = HIS_PZ;
+  }
+  ELIF (entity, "|P|")
+  {
+    hisent[i] = HIS_PL;
+  }
+  ELIF (entity, "DX")
+  {
+    hisent[i] = HIS_DX;
+  }
+  ELIF (entity, "DY")
+  {
+    hisent[i] = HIS_DY;
+  }
+  ELIF (entity, "DZ")
+  {
+    hisent[i] = HIS_DZ;
+  }
+  ELIF (entity, "|D|")
+  {
+    hisent[i] = HIS_DL;
+  }
+  ELIF (entity, "VX")
+  {
+    hisent[i] = HIS_VX;
+  }
+  ELIF (entity, "VY")
+  {
+    hisent[i] = HIS_VY;
+  }
+  ELIF (entity, "VZ")
+  {
+    hisent[i] = HIS_VZ;
+  }
+  ELIF (entity, "|V|")
+  {
+    hisent[i] = HIS_VL;
+  }
+  ELIF (entity, "OX")
+  {
+    hisent[i] = HIS_OX;
+  }
+  ELIF (entity, "OY")
+  {
+    hisent[i] = HIS_OY;
+  }
+  ELIF (entity, "OZ")
+  {
+    hisent[i] = HIS_OZ;
+  }
+  ELIF (entity, "|O|")
+  {
+    hisent[i] = HIS_OL;
+  }
+  ELIF (entity, "FX")
+  {
+    hisent[i] = HIS_FX;
+  }
+  ELIF (entity, "FY")
+  {
+    hisent[i] = HIS_FY;
+  }
+  ELIF (entity, "FZ")
+  {
+    hisent[i] = HIS_FZ;
+  }
+  ELIF (entity, "|F|")
+  {
+    hisent[i] = HIS_FL;
+  }
+  ELIF (entity, "TX")
+  {
+    hisent[i] = HIS_TX;
+  }
+  ELIF (entity, "TY")
+  {
+    hisent[i] = HIS_TY;
+  }
+  ELIF (entity, "TZ")
+  {
+    hisent[i] = HIS_TZ;
+  }
+  ELIF (entity, "|T|")
+  {
+    hisent[i] = HIS_TL;
+  }
+  ELSE
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid entity");
+    return NULL;
+  }
+
+  if (kind == HIS_LIST && list_size == 1 && point)
+  {
+    parmec::source[0][i] = PyFloat_AsDouble (PyTuple_GetItem (point, 0));
+    parmec::source[1][i] = PyFloat_AsDouble (PyTuple_GetItem (point, 1));
+    parmec::source[2][i] = PyFloat_AsDouble (PyTuple_GetItem (point, 2));
+
+    kind = HIS_LIST|HIS_POINT;
+  }
+
+  hiskind[i] = kind;
+
+  parmec::source[0][i] = s[0];
+  parmec::source[1][i] = s[1];
+  parmec::source[2][i] = s[2];
+  parmec::source[3][i] = s[3];
+  parmec::source[4][i] = s[4];
+  parmec::source[5][i] = s[5];
+
+  history[i] = PyList_New(0);
+
+  return (PyObject*) history[i];
+}
+
 static PyMethodDef methods [] =
 {
   {"RESET", (PyCFunction)RESET, METH_NOARGS, "Reset simulation"},
   {"MATERIAL", (PyCFunction)MATERIAL, METH_VARARGS|METH_KEYWORDS, "Create material"},
   {"SPHERE", (PyCFunction)SPHERE, METH_VARARGS|METH_KEYWORDS, "Create spherical particle"},
   {"MESH", (PyCFunction)MESH, METH_VARARGS|METH_KEYWORDS, "Create meshed particle"},
-  {"ANALYTICAL", (PyCFunction)ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
+  {"ANALYTICAL", (PyCFunction)::ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
@@ -1952,6 +2167,7 @@ static PyMethodDef methods [] =
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
   {"CRITICAL", (PyCFunction)CRITICAL, METH_NOARGS, "Estimate critical time step"},
   {"DEM", (PyCFunction)DEM, METH_VARARGS|METH_KEYWORDS, "Run DEM simulation"},
+  {"HISTORY", (PyCFunction)HISTORY, METH_VARARGS|METH_KEYWORDS, "Time history output"},
   {NULL, 0, 0, NULL}
 };
 
@@ -1978,7 +2194,8 @@ int input (const char *path)
                       "from parmec import VELOCITY\n"
                       "from parmec import GRAVITY\n"
                       "from parmec import CRITICAL\n"
-                      "from parmec import DEM\n");
+                      "from parmec import DEM\n"
+                      "from parmec import HISTORY\n");
 
   ERRMEM (line = new char [128 + strlen (path)]);
   sprintf (line, "execfile ('%s')", path);

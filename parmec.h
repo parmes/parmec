@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "condet_ispc.h"
-#include "material.h"
+#include "constants.h"
 
 #ifndef __parmec__
 #define __parmec__
@@ -78,7 +78,7 @@ extern REAL *mass; /* scalar mass */
 extern REAL *invm; /* inverse scalar mass */
 extern REAL *force[3]; /* total spatial force */
 extern REAL *torque[3]; /* total spatial torque */
-extern int *analytical; /* analytical flag */
+extern int *flags; /* particle flags */
 extern ispc::master_conpnt *master; /* master contact points */
 extern ispc::slave_conpnt *slave; /* slave contact points */
 extern int particle_buffer_size; /* size of the buffer */
@@ -152,6 +152,17 @@ extern callback_t *prsang; /* prescribed angular motion time history callbacks *
 extern int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
 extern int prescribe_buffer_size; /* size of prescribed particle motion buffer */
 extern int prescribe_buffer_grow (); /* grow buffer */
+
+extern int hisnum; /* number of time histories */
+extern int *hispart; /* history particle lists */
+extern int *hisidx; /* history particle list start index */
+extern int *hisent; /* history entity */
+extern int *hiskind; /* history kind */
+extern REAL *source[6]; /* source sphere or box definition or optional point */
+extern callback_t *history; /* Python list storing history */
+extern int history_buffer_size; /* size of history buffer */
+extern int history_list_size; /* size of history particle lists buffer */
+extern void history_buffer_grow (int list_size); /* grow buffer */
 
 extern void reset_all_data (); /* reset all simulation data */
 
