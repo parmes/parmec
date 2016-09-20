@@ -1100,7 +1100,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   direction = NULL;
   dashpot = NULL;
 
-  PARSEKEYS ("dOdOO|OO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction);
+  PARSEKEYS ("iOiOO|OO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
@@ -1118,7 +1118,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
-  if (PyList_Size (dashpot) < 4 || PyList_Size (dashpot) % 2)
+  if (dashpot && (PyList_Size (dashpot) < 4 || PyList_Size (dashpot) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid dashpot lookup table list length");
     return NULL;
@@ -1635,7 +1635,7 @@ using namespace ispc;
 /* estimate critical time step */
 static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  REAL h = critical (parnum, mass, pairnum, iparam);
+  REAL h = critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
 
   return PyFloat_FromDouble (h);
 }
@@ -1811,19 +1811,42 @@ static void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], 
 static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 {
   KEYWORDS ("duration", "step", "interval", "prefix");
-  double duration, step, interval, time, t0;
-  PyObject *prefix;
+  double duration, step, time, t0, t1, dt[2];
+  PyObject *prefix, *interval;
   timing tt;
 
   prefix = NULL;
-  interval = 0.0;
+  interval = NULL;
 
-  PARSEKEYS ("dd|dO", &duration, &step, &interval, &prefix);
+  PARSEKEYS ("dd|OO", &duration, &step, &interval, &prefix);
 
-  if (interval == 0.0) interval = step;
+  TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) && is_string (prefix, kwl[3]));
 
-  TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
-            is_positive (interval, kwl[2]) && is_string (prefix, kwl[3]));
+  if (PyTuple_Check(interval))
+  {
+    if (PyTuple_Size(interval) != 2)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+      return NULL;
+    }
+
+    dt[0] = PyFloat_AsDouble (PyTuple_GetItem (interval, 0));
+    dt[1] = PyFloat_AsDouble (PyTuple_GetItem (interval, 1));
+  }
+  else if (interval)
+  {
+    dt[0] = dt[1] = PyFloat_AsDouble (interval);
+
+    if (dt[0] <= 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+      return NULL;
+    }
+  }
+  else
+  {
+    dt[0] = dt[1] = step;
+  }
 
   timerstart (&tt);
 
@@ -1861,7 +1884,9 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (curtime == 0.0)
   {
-    output ();
+    output_files ();
+
+    output_history ();
 
     euler (threads, parnum, angular, linear, rotation, position, 0.5*step);
 
@@ -1878,7 +1903,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
 
   /* time stepping */
-  for (t0 = time = 0.0; time < duration; time += step)
+  for (t0 = t1 = time = 0.0; time < duration; time += step)
   {
     if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
     {
@@ -1908,7 +1933,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
                         angkind, time, rotation, linear, angular);
 
-    if (time >= t0 + interval) /* full update, due to output */
+    if (time >= t0 + dt[0]) /* full update, due to output */
     {
       shapes (threads, ellnum, part, center, radii, orient,
 	      nodnum, nodes, nodpart, NULL, facnum, facnod,
@@ -1925,11 +1950,18 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
     obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
 
-    if (time >= t0 + interval)
+    if (time >= t0 + dt[0])
     {
-      output ();
+      output_files ();
 
-      t0 += interval;
+      t0 += dt[0];
+    }
+
+    if (time >= t1 + dt[1])
+    {
+      output_history ();
+
+      t1 += dt[1];
     }
 
     progressbar (time/step, duration/step);
@@ -1939,9 +1971,9 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   partitioning_destroy (tree);
 
-  double dt = timerend (&tt);
+  dt[0] = timerend (&tt);
 
-  printf("[ ===             %10.3f sec                    === ]\n", dt);
+  printf("[ ===             %10.3f sec                    === ]\n", dt[0]);
 
   return Py_BuildValue ("d", dt); /* PyFloat_FromDouble (dt) */
 }

@@ -33,18 +33,18 @@ SOFTWARE.
 
 namespace parmec
 {
-int output_frame = 0; /* output frame */
+int output_frame = 0; /* output files frame */
 }
 
 using namespace parmec;
 
-/* output current state */
-void output ()
+/* output files */
+void output_files ()
 {
   using namespace std;
   ostringstream oss;
   ofstream out;
-  int i, j, k;
+  int i;
 
   if (ellnum)
   {
@@ -105,6 +105,14 @@ void output ()
  
     out.close();
   }
+
+  output_frame ++; 
+}
+
+/* output time history */
+void output_history ()
+{
+  int i, j, k;
 
   for (i = 0; i < hisnum; i ++) /* append time histories */
   {
@@ -347,6 +355,4 @@ void output ()
     break;
     }
   }
-
-  output_frame ++; 
 }

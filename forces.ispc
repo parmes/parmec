@@ -563,7 +563,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
     Y[1] = sprpnt[0][4][i];
     Y[2] = sprpnt[0][5][i];
 
-    SCC (Y, X[0]);
+    SUB (Y, X[0], Y);
     NVADDMUL (x[0], L[0], Y, y[0]);
 
     sprpnt[0][0][i] = y[0][0];
@@ -576,7 +576,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       Y[1] = sprpnt[1][4][i];
       Y[2] = sprpnt[1][5][i];
 
-      SCC (Y, X[1]);
+      SUB (Y, X[1], Y);
       NVADDMUL (x[1], L[1], Y, y[1]);
 
       sprpnt[1][0][i] = y[1][0];
@@ -600,10 +600,6 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       z[0] = inv*w[0];
       z[1] = inv*w[1];
       z[2] = inv*w[2];
-
-      sprdir[0][i] = z[0];
-      sprdir[1][i] = z[1];
-      sprdir[2][i] = z[2];
     }
     else
     {
@@ -637,19 +633,26 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
     force[0][j] += z[0];
     force[1][j] += z[1];
     force[2][j] += z[2];
-    force[0][k] -= z[0];
-    force[1][k] -= z[1];
-    force[2][k] -= z[2];
+
+    if (k >= 0)
+    {
+      force[0][k] -= z[0];
+      force[1][k] -= z[1];
+      force[2][k] -= z[2];
+    }
 
     PRODUCT (z, a[0], y[0]);
-    PRODUCT (z, a[1], y[1]);
-
     torque[0][j] += y[0][0];
     torque[1][j] += y[0][1];
     torque[2][j] += y[0][2];
-    torque[0][k] -= y[1][0];
-    torque[1][k] -= y[1][1];
-    torque[2][k] -= y[1][2];
+
+    if (k >= 0)
+    {
+      PRODUCT (z, a[1], y[1]);
+      torque[0][k] -= y[1][0];
+      torque[1][k] -= y[1][1];
+      torque[2][k] -= y[1][2];
+    }
   }
 }
 

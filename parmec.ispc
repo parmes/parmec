@@ -92,15 +92,18 @@ export void invert_inertia (uniform int threads, uniform int size, uniform REAL 
 }
 
 /* estimate critical time step */
-export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform int pairnum, uniform REAL * uniform iparam[NIPARAM])
+export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform int pairnum, uniform REAL * uniform iparam[NIPARAM],
+  uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[])
 {
   uniform REAL kmax, emax, mmin, omax, step;
+  uniform int j;
   REAL k, e, m;
 
   k = 0.0;
   e = 0.0;
 
-  foreach (i = 0 ... pairnum)
+  foreach (i = 0 ... pairnum) /* contact springs */
   {
     k = max(iparam[SPRING][i],k);
     e = max(iparam[DAMPER][i],e);
@@ -108,6 +111,51 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
   kmax = reduce_max(k);
   emax = reduce_max(e);
+
+  k = 0.0;
+  e = 0.0;
+
+  for (j = 0; j < sprnum; j ++) /* spring constraints */
+  {
+    uniform REAL kspr = 0.0;
+
+    for (uniform int i = spridx[j]; i < spridx[j+1]-1; i ++)
+    {
+      uniform REAL k = (spring[1][i+1]-spring[1][i]) / (spring[0][i+1]-spring[0][i]);
+
+      kspr = max(abs(k), kspr);
+    }
+
+    kmax = max(kspr, kmax);
+
+    uniform REAL espr = 0.0;
+
+    for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
+    {
+      uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
+
+      espr = max(abs(e), espr);
+    }
+
+    uniform REAL mspr = 0.0;
+    
+    if (sprpart[1][j] == -1)
+    {
+      mspr = mass[sprpart[0][j]];
+    }
+    else
+    {
+      uniform REAL im0 = 1.0/mass[sprpart[0][j]], im1 = 1.0/mass[sprpart[1][j]];
+
+      mspr = 1.0/(im0+im1);
+    }
+
+    uniform REAL omega = sqrt(kspr/mspr);
+
+    uniform REAL ratio = espr / (2*mspr*omega);
+
+    kmax = max(ratio, kmax);
+  }
 
   m = 1E99;
 

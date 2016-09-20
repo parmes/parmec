@@ -175,6 +175,8 @@ int input (const char *path); /* interpret an input file (return 0 on success) *
 
 /* === output.cpp === */
 
-void output (); /* output current state */
+void output_files (); /* output files */
+
+void output_history (); /* output time history */
 
 #endif

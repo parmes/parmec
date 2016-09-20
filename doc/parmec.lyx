@@ -1516,7 +1516,12 @@ step
 \series bold
 interval
 \series default
- - output interval (default: time step)
+ - output interval (default: time step); tuple 
+\begin_inset Formula $\left(dt_{\text{files}},dt_{\text{history}}\right)$
+\end_inset
+
+ can be used to indicate different output frequencies of output files and
+ time histories
 \end_layout
 
 \begin_layout Itemize
