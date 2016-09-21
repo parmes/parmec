@@ -154,7 +154,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
     uniform REAL ratio = espr / (2*mspr*omega);
 
-    kmax = max(ratio, kmax);
+    emax = max(ratio, emax);
   }
 
   m = 1E99;

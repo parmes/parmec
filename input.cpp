@@ -553,7 +553,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   REAL (*lnod) [3], mi, ci[3], ii[9];
   MESH_DATA *msh;
 
-  PARSEKEYS ("OOdO", &nodes, &elements, &material, &colors);
+  PARSEKEYS ("OOiO", &nodes, &elements, &material, &colors);
 
   TYPETEST (is_list (nodes, kwl[0], 0) && is_list (elements, kwl[1], 0) && is_list_or_number (colors, kwl[3], 0));
 
@@ -796,6 +796,8 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
   /* insert particle data */
 
+  if (parnum >= particle_buffer_size) particle_buffer_grow ();
+
   i = parnum ++;
 
   parmat[i] = material;
@@ -927,6 +929,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (particle < 0) /* create new analytical particle */
   {
+    if (parnum >= particle_buffer_size) particle_buffer_grow ();
+
     i = particle = parnum ++;
 
     parmat[i] = material;
@@ -1315,7 +1319,7 @@ static PyObject* CONSTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("i|OO", &j, &lin, &ang);
 
-  TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_list (lin, kwl[1], 3) && is_list (ang, kwl[2], 3));
+  TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_list (lin, kwl[1], 0) && is_list (ang, kwl[2], 0));
 
   if (lin || ang)
   {
@@ -1822,25 +1826,28 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) && is_string (prefix, kwl[3]));
 
-  if (PyTuple_Check(interval))
+  if (interval)
   {
-    if (PyTuple_Size(interval) != 2)
+    if (PyTuple_Check(interval))
     {
-      PyErr_SetString (PyExc_ValueError, "Invalid output interval");
-      return NULL;
+      if (PyTuple_Size(interval) != 2)
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+	return NULL;
+      }
+
+      dt[0] = PyFloat_AsDouble (PyTuple_GetItem (interval, 0));
+      dt[1] = PyFloat_AsDouble (PyTuple_GetItem (interval, 1));
     }
-
-    dt[0] = PyFloat_AsDouble (PyTuple_GetItem (interval, 0));
-    dt[1] = PyFloat_AsDouble (PyTuple_GetItem (interval, 1));
-  }
-  else if (interval)
-  {
-    dt[0] = dt[1] = PyFloat_AsDouble (interval);
-
-    if (dt[0] <= 0.0)
+    else 
     {
-      PyErr_SetString (PyExc_ValueError, "Invalid output interval");
-      return NULL;
+      dt[0] = dt[1] = PyFloat_AsDouble (interval);
+
+      if (dt[0] <= 0.0)
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+	return NULL;
+      }
     }
   }
   else
@@ -1900,6 +1907,8 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   invert_inertia (threads, parnum, inertia, inverse, mass, invm);
 
+  constrain_velocities (threads, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+
   partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
 
   /* time stepping */
@@ -1922,7 +1931,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
             sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir, sprdirup, stroke0,
 	    gravity, force, torque);
 
-    constrain (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
+    constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);

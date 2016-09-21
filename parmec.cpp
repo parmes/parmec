@@ -522,7 +522,7 @@ int element_buffer_init ()
   nodpart = aligned_int_alloc (node_buffer_size); 
   eletype = aligned_int_alloc (element_buffer_size); 
   elenod = aligned_int_alloc (element_node_buffer_size); 
-  eleidx = aligned_int_alloc (element_buffer_size); 
+  eleidx = aligned_int_alloc (element_buffer_size+1); 
   elepart = aligned_int_alloc (element_buffer_size); 
   elemat = aligned_int_alloc (element_buffer_size); 
   facnod[0] = aligned_int_alloc (face_buffer_size); 

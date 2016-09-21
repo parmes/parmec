@@ -26,8 +26,71 @@ SOFTWARE.
 
 #include "macros.h"
 
-/* constrain particle motion task */
-task void constrain_task (uniform int span, uniform int cnsnum, uniform int cnspart[],
+/* constrain particle motion via velocities task */
+task void constrain_velocities_task (uniform int span, uniform int cnsnum, uniform int cnspart[],
+  uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
+  uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
+{
+  uniform int start = taskIndex*span;
+  uniform int end = taskIndex == taskCount-1 ? cnsnum: start+span;
+
+  foreach (i = start ... end)
+  {
+    int j = cnspart[i];
+    REAL v[3] = {linear[0][j], linear[1][j], linear[2][j]};
+    REAL O[3] = {angular[0][j], angular[1][j], angular[2][j]};
+    REAL o[3] = {angular[3][j], angular[4][j], angular[5][j]};
+    REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
+                 rotation[3][j], rotation[4][j], rotation[5][j],
+                 rotation[6][j], rotation[7][j], rotation[8][j]};
+    REAL l0[3] = {cnslin[0][i], cnslin[1][i], cnslin[2][i]};
+    REAL l1[3] = {cnslin[3][i], cnslin[4][i], cnslin[5][i]};
+    REAL l2[3] = {cnslin[6][i], cnslin[7][i], cnslin[8][i]};
+    REAL a0[3] = {cnsang[0][i], cnsang[1][i], cnsang[2][i]};
+    REAL a1[3] = {cnsang[3][i], cnsang[4][i], cnsang[5][i]};
+    REAL a2[3] = {cnsang[6][i], cnsang[7][i], cnsang[8][i]};
+    REAL A0[3], A1[3], A2[3];
+    REAL dot;
+
+    dot = DOT(v,l0);
+    SUBMUL (v, dot, l0, v);
+    dot = DOT(v,l1);
+    SUBMUL (v, dot, l1, v);
+    dot = DOT(v,l2);
+    SUBMUL (v, dot, l2, v);
+
+    dot = DOT(o,a0);
+    SUBMUL (o, dot, a0, o);
+    dot = DOT(o,a1);
+    SUBMUL (o, dot, a1, o);
+    dot = DOT(o,a2);
+    SUBMUL (o, dot, a2, o);
+
+    TVMUL (L, a0, A0);
+    TVMUL (L, a1, A1);
+    TVMUL (L, a2, A2);
+
+    dot = DOT(O,A0);
+    SUBMUL (O, dot, A0, O);
+    dot = DOT(O,A1);
+    SUBMUL (O, dot, A1, O);
+    dot = DOT(O,A2);
+    SUBMUL (O, dot, A2, O);
+
+    linear[0][j] = v[0];
+    linear[1][j] = v[1];
+    linear[2][j] = v[2];
+    angular[0][j] = O[0];
+    angular[1][j] = O[1];
+    angular[2][j] = O[2];
+    angular[3][j] = o[0];
+    angular[4][j] = o[1];
+    angular[5][j] = o[2];
+  }
+}
+
+/* constrain particle motion via forces task */
+task void constrain_forces_task (uniform int span, uniform int cnsnum, uniform int cnspart[],
   uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
@@ -70,10 +133,18 @@ task void constrain_task (uniform int span, uniform int cnsnum, uniform int cnsp
   }
 }
 
-/* constrain particle motion */
-export void constrain (uniform int threads, uniform int cnsnum, uniform int cnspart[],
+/* constrain particle motion by adjusting velocities */
+export void constrain_velocities (uniform int threads, uniform int cnsnum, uniform int cnspart[],
+  uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
+  uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
+{
+  launch [threads] constrain_velocities_task (cnsnum/threads, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+}
+
+/* constrain particle motion by adjusting forces */
+export void constrain_forces (uniform int threads, uniform int cnsnum, uniform int cnspart[],
   uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
-  launch [threads] constrain_task (cnsnum/threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
+  launch [threads] constrain_forces_task (cnsnum/threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 }

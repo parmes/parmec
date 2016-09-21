@@ -490,121 +490,119 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
   /* update global force and torque */
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
-    uniform REAL o[2][3], v[2][3], x[2][3], X[2][3], L[2][9], Y[3], y[2][3], z[3], w[3], a[2][3];
+    uniform REAL o[3], v[3], x[3], X[3], L[9], Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3];
     uniform REAL len, inv, stroke, velocity, spring_force, dashpot_force, total_force;
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
-    o[0][0] = angular[3][j];
-    o[0][1] = angular[4][j];
-    o[0][2] = angular[5][j];
+    o[0] = angular[3][j];
+    o[1] = angular[4][j];
+    o[2] = angular[5][j];
 
-    v[0][0] = linear[0][j];
-    v[0][1] = linear[1][j];
-    v[0][2] = linear[2][j];
+    v[0] = linear[0][j];
+    v[1] = linear[1][j];
+    v[2] = linear[2][j];
 
-    x[0][0] = position[0][j];
-    x[0][1] = position[1][j];
-    x[0][2] = position[2][j];
+    x[0] = position[0][j];
+    x[1] = position[1][j];
+    x[2] = position[2][j];
 
-    X[0][0] = position[3][j];
-    X[0][1] = position[4][j];
-    X[0][2] = position[5][j];
+    X[0] = position[3][j];
+    X[1] = position[4][j];
+    X[2] = position[5][j];
 
-    L[0][0] = rotation[0][j];
-    L[0][1] = rotation[1][j];
-    L[0][2] = rotation[2][j];
-    L[0][3] = rotation[3][j];
-    L[0][4] = rotation[4][j];
-    L[0][5] = rotation[5][j];
-    L[0][6] = rotation[6][j];
-    L[0][7] = rotation[7][j];
-    L[0][8] = rotation[8][j];
-
-    if (k >= 0)
-    {
-      o[1][0] = angular[3][k];
-      o[1][1] = angular[4][k];
-      o[1][2] = angular[5][k];
-
-      v[1][0] = linear[0][k];
-      v[1][1] = linear[1][k];
-      v[1][2] = linear[2][k];
-
-      x[1][0] = position[0][k];
-      x[1][1] = position[1][k];
-      x[1][2] = position[2][k];
-
-      X[1][0] = position[3][k];
-      X[1][1] = position[4][k];
-      X[1][2] = position[5][k];
-
-      L[1][0] = rotation[0][k];
-      L[1][1] = rotation[1][k];
-      L[1][2] = rotation[2][k];
-      L[1][3] = rotation[3][k];
-      L[1][4] = rotation[4][k];
-      L[1][5] = rotation[5][k];
-      L[1][6] = rotation[6][k];
-      L[1][7] = rotation[7][k];
-      L[1][8] = rotation[8][k];
-    }
-    else
-    {
-      o[1][0] = 0.0;
-      o[1][1] = 0.0;
-      o[1][2] = 0.0;
-
-      v[1][0] = 0.0;
-      v[1][1] = 0.0;
-      v[1][2] = 0.0;
-    }
+    L[0] = rotation[0][j];
+    L[1] = rotation[1][j];
+    L[2] = rotation[2][j];
+    L[3] = rotation[3][j];
+    L[4] = rotation[4][j];
+    L[5] = rotation[5][j];
+    L[6] = rotation[6][j];
+    L[7] = rotation[7][j];
+    L[8] = rotation[8][j];
 
     Y[0] = sprpnt[0][3][i];
     Y[1] = sprpnt[0][4][i];
     Y[2] = sprpnt[0][5][i];
 
-    SUB (Y, X[0], Y);
-    NVADDMUL (x[0], L[0], Y, y[0]);
+    SUB (Y, X, Y);
+    NVADDMUL (x, L, Y, p);
 
-    sprpnt[0][0][i] = y[0][0];
-    sprpnt[0][1][i] = y[0][1];
-    sprpnt[0][2][i] = y[0][2];
+    sprpnt[0][0][i] = p[0];
+    sprpnt[0][1][i] = p[1];
+    sprpnt[0][2][i] = p[2];
+
+    COPY (v, u);
+    SCALE(u, -1.0);
+    SUB (p, x, a);
+    PRODUCTSUB (o, a, u);
 
     if (k >= 0)
     {
+      o[0] = angular[3][k];
+      o[1] = angular[4][k];
+      o[2] = angular[5][k];
+
+      v[0] = linear[0][k];
+      v[1] = linear[1][k];
+      v[2] = linear[2][k];
+
+      x[0] = position[0][k];
+      x[1] = position[1][k];
+      x[2] = position[2][k];
+
+      X[0] = position[3][k];
+      X[1] = position[4][k];
+      X[2] = position[5][k];
+
+      L[0] = rotation[0][k];
+      L[1] = rotation[1][k];
+      L[2] = rotation[2][k];
+      L[3] = rotation[3][k];
+      L[4] = rotation[4][k];
+      L[5] = rotation[5][k];
+      L[6] = rotation[6][k];
+      L[7] = rotation[7][k];
+      L[8] = rotation[8][k];
+
       Y[0] = sprpnt[1][3][i];
       Y[1] = sprpnt[1][4][i];
       Y[2] = sprpnt[1][5][i];
 
-      SUB (Y, X[1], Y);
-      NVADDMUL (x[1], L[1], Y, y[1]);
+      SUB (Y, X, Y);
+      NVADDMUL (x, L, Y, q);
 
-      sprpnt[1][0][i] = y[1][0];
-      sprpnt[1][1][i] = y[1][1];
-      sprpnt[1][2][i] = y[1][2];
+      sprpnt[1][0][i] = q[0];
+      sprpnt[1][1][i] = q[1];
+      sprpnt[1][2][i] = q[2];
+
+      ACC (v, u);
+      SUB (q, x, b);
+      PRODUCTADD (o, b, u);
     }
     else
     {
-      y[1][0] = sprpnt[1][0][i];
-      y[1][1] = sprpnt[1][1][i];
-      y[1][2] = sprpnt[1][2][i];
+      q[0] = sprpnt[1][0][i];
+      q[1] = sprpnt[1][1][i];
+      q[2] = sprpnt[1][2][i];
     }
+
+    SUB (q, p, w);
 
     if (sprdirup[i])
     {
-      SUB (y[1], y[0], w);
-
       len = LEN(w);
       inv = len > 0.0 ? 1.0/len : 0.0; /* zero force in case of zero length via (temporary) zero direction */
 
       z[0] = inv*w[0];
       z[1] = inv*w[1];
       z[2] = inv*w[2];
+
+      sprdir[0][i] = z[0];
+      sprdir[1][i] = z[1];
+      sprdir[2][i] = z[2];
     }
     else
     {
-      SUB (y[1], y[0], w);
-
       z[0] = sprdir[0][i];
       z[1] = sprdir[1][i];
       z[2] = sprdir[2][i];
@@ -614,44 +612,33 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
 
     stroke = len - stroke0[i];
 
-    SUB (v[1], v[0], w);
-    SUB (y[1], x[1], a[1]);
-    PRODUCTADD (o[1], a[1], w);
-    SUB (y[0], x[0], a[0]);
-    PRODUCTSUB (o[0], a[0], w);
-
-    velocity = DOT (z, w);
+    velocity = DOT (z, u);
 
     spring_force = look_up (spring, spridx[i], spridx[i+1], stroke);
 
     dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity);
 
-    total_force = spring_force + dashpot_force;
+    total_force = spring_force + (spring_force == 0.0 ? 0.0 : dashpot_force);
 
     SCALE (z, total_force);
 
     force[0][j] += z[0];
     force[1][j] += z[1];
     force[2][j] += z[2];
+    PRODUCT (a, z, w);
+    torque[0][j] += w[0];
+    torque[1][j] += w[1];
+    torque[2][j] += w[2];
 
     if (k >= 0)
     {
       force[0][k] -= z[0];
       force[1][k] -= z[1];
       force[2][k] -= z[2];
-    }
-
-    PRODUCT (z, a[0], y[0]);
-    torque[0][j] += y[0][0];
-    torque[1][j] += y[0][1];
-    torque[2][j] += y[0][2];
-
-    if (k >= 0)
-    {
-      PRODUCT (z, a[1], y[1]);
-      torque[0][k] -= y[1][0];
-      torque[1][k] -= y[1][1];
-      torque[2][k] -= y[1][2];
+      PRODUCT (b, z, w);
+      torque[0][k] -= w[0];
+      torque[1][k] -= w[1];
+      torque[2][k] -= w[2];
     }
   }
 }

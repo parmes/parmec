@@ -255,7 +255,7 @@ static int minimal (int *element)
 static void element_char_add (MESH_DATA *msh, ELEMENT *ele, REAL *me, REAL *sx, REAL *sy, REAL *sz, REAL *euler)
 {
   REAL rho = parmec::mparam[parmec::DENSITY][ele->material];
-  REAL zero [3] = {0, 0, 0}, J, *a, *b, *c;
+  REAL J, *zero, *a, *b, *c;
   int (*ver) [4], nv[8], nf, i, j;
 
   switch (ele->type)
@@ -282,6 +282,8 @@ static void element_char_add (MESH_DATA *msh, ELEMENT *ele, REAL *me, REAL *sx, 
     nv[4] = nv[5] = nv[6] = nv[7] = 4;
   break;
   }
+
+  zero = msh->nodes[0];
 
   for (i = 0; i < nf; i++)
   {

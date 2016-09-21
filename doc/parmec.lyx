@@ -215,11 +215,10 @@ reference "cha:Output viewers"
 \end_layout
 
 \begin_layout Standard
-An all-in-one tutorial, documenting all PARMEC features, is provided in
- Chapter 
+A tutorial is provided in Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:An all-in-one tutorial"
+reference "cha:Tutorial"
 
 \end_inset
 
@@ -825,7 +824,7 @@ Create a translational spring constraint.
  The applied force formula reads
 \begin_inset Formula 
 \[
-\text{force}\left(t\right)=\text{direction}\left(t\right)\cdot\left[\text{spring}\left(\text{stroke}\left(t\right)\right)+\text{dashpot}\left(\text{velocity}\left(t\right)\right)\right]
+\text{force}\left(t\right)=\text{direction}\left(t\right)\cdot\left[\text{spring}\left(\text{stroke}\left(t\right)\right)+\text{dashpot}\left(\text{velocity}\left(t\right)\right)\cdot\left|\text{sign}\left(\text{spring}\left(\text{stroke}\left(t\right)\right)\right)\right|\right]
 \]
 
 \end_inset
@@ -860,6 +859,21 @@ where
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{sign}\left(x\right)=\left\{ \begin{array}{c}
+-1\text{ if }x<0\\
+0\text{ if }x=0\\
+1\text{ if }x>0
+\end{array}\right.
+\]
+
+\end_inset
+
 The 
 \begin_inset Formula $\text{spring}\left(\text{stroke}\right)$
 \end_inset
@@ -884,7 +898,7 @@ The
 \begin_inset Formula $\text{point1}\left(t\right)$
 \end_inset
 
-.
+; dashpot force is not applied when spring force is zero.
 \end_layout
 
 \begin_layout Subsection*
@@ -1613,6 +1627,10 @@ point
  default: particle mass centre
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
@@ -1623,7 +1641,7 @@ name "subsec:OUTPUT"
 OUTPUT
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Define scalar and/or vector entities included into the output file(s).
 \end_layout
 
@@ -1657,6 +1675,11 @@ i, j, ...
 ], to which this specification is narrowed down
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
 \begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
@@ -1680,11 +1703,11 @@ Output viewers
 \begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:An all-in-one tutorial"
+name "cha:Tutorial"
 
 \end_inset
 
-An all-in-one tutorial
+Tutorial
 \end_layout
 
 \end_body
