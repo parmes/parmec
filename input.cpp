@@ -1483,7 +1483,7 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
   ang = NULL;
   kind = NULL;
 
-  PARSEKEYS ("i|OO", &j, &lin, &ang, &kind);
+  PARSEKEYS ("i|OOO", &j, &lin, &ang, &kind);
 
   TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_callable (lin, kwl[1]) &&
             is_callable (ang, kwl[2]) && is_string (kind, kwl[3]));
@@ -1492,14 +1492,14 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
   {
     if (prsnum >= prescribe_buffer_size) prescribe_buffer_grow ();
 
-    j = prsnum ++;
+    i = prsnum ++;
 
     prspart[i] = j;
   }
 
   if (lin)
   {
-    prslin[i] = NULL;
+    prslin[i] = lin;
   }
   else
   {
@@ -1508,7 +1508,7 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (ang)
   {
-    prsang[i] = NULL;
+    prsang[i] = ang;
   }
   else
   {
@@ -1726,7 +1726,7 @@ static void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin
 
     if (prsang[i] && angkind[i] == 1)
     {
-      result = PyObject_CallObject ((PyObject*)linhis[i], args);
+      result = PyObject_CallObject ((PyObject*)prsang[i], args);
 
       ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular acceleration callback did not return a (ox, oy, oz) tuple");
 
@@ -1781,7 +1781,7 @@ static void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], 
 
     if (prsang[i] && angkind[i] == 0)
     {
-      result = PyObject_CallObject ((PyObject*)linhis[i], args);
+      result = PyObject_CallObject ((PyObject*)prsang[i], args);
 
       ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular velocity callback did not return a (ox, oy, oz) tuple");
 

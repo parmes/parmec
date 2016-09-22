@@ -56,14 +56,14 @@ try:
   plt.plot (t, vx)
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
-  plt.ylabel ('vx $(m)$')
+  plt.ylabel ('vx $(m/s)$')
   plt.savefig ('tests/history_vx.png')
 
   plt.clf ()
   plt.plot (t, oz)
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
-  plt.ylabel ('oz $(m)$')
+  plt.ylabel ('oz $(rad/s)$')
   plt.savefig ('tests/history_oz.png')
 
 except:
