@@ -44,7 +44,7 @@ enum {HIS_PX, HIS_PY, HIS_PZ, HIS_PL, HIS_DX, HIS_DY, HIS_DZ, HIS_DL,
       HIS_VX, HIS_VY, HIS_VZ, HIS_VL, HIS_OX, HIS_OY, HIS_OZ, HIS_OL,
       HIS_FX, HIS_FY, HIS_FZ, HIS_FL, HIS_TX, HIS_TY, HIS_TZ, HIS_TL, HIS_TIME}; /* history entities */
 
-enum {OUT_COLOR = 1, OUT_DISP = 2, OUT_LINVEL = 4, OUT_ANGVEL = 8, OUT_FORCE = 16, OUT_TORQUE = 32}; /* output entities */
+enum {OUT_NUMBER = 1, OUT_COLOR = 2, OUT_DISPL = 4, OUT_LINVEL = 8, OUT_ANGVEL = 16, OUT_FORCE = 32, OUT_TORQUE = 64}; /* output entities */
 
 #ifdef __cplusplus
 };

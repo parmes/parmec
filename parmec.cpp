@@ -83,7 +83,7 @@ int particle_buffer_size; /* size of the buffer */
 int trinum; /* number of triangles */
 int tricon; /* index of the first triangle used in contact detection */
 int *tricol; /* triangle color */
-int *triobs; /* triangle obstacle */
+int *triobs; /* triangle obstacle --> <0 - moving obstalce (-index-2), -1 - static obstacle, >= 0 - triangulated particle */
 REAL *tri[3][3]; /* triangle vertices */
 int triangle_buffer_size; /* size of the buffer */
 
@@ -824,6 +824,39 @@ void history_buffer_grow (int list_size)
   }
 }
 
+/* init output buffer */
+int output_buffer_init ()
+{
+  output_buffer_size = 256;
+  output_list_size = 1024;
+
+  outpart = aligned_int_alloc (output_list_size);
+  outidx = aligned_int_alloc (output_buffer_size+1);
+  outent = aligned_int_alloc (output_buffer_size);
+  outrest =  OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
+
+  outnum = 0;
+  outidx[outnum] = 0;
+}
+
+/* grow output buffer */
+void output_buffer_grow (int list_size)
+{
+  if (outnum+1 >= output_buffer_size)
+  {
+    output_buffer_size *= 2;
+
+    integer_buffer_grow (outidx, outnum, output_buffer_size+1);
+    integer_buffer_grow (outent, outnum, output_buffer_size);
+  }
+
+  if (output_list_size < outidx[outnum] + list_size)
+  {
+    output_list_size = 2 * (outidx[outnum] + list_size);
+    integer_buffer_grow (outpart, outidx[outnum], output_list_size);
+  }
+}
+
 /* reset all data */
 void reset_all_data ()
 {
@@ -846,7 +879,7 @@ void reset_all_data ()
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
-  outrest = OUT_COLOR|OUT_DISP|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
+  outrest = OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
 
   pair_reset();
 }
@@ -1067,6 +1100,7 @@ int main (int argc, char *argv[])
     constrain_buffer_init ();
     prescribe_buffer_init ();
     history_buffer_init ();
+    output_buffer_init ();
     reset_all_data ();
 
     if (strcmp (argv[1], "-threads") == 0 && argc > 2)

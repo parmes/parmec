@@ -87,7 +87,7 @@ extern int particle_buffer_grow (); /* grow buffer */
 extern int trinum; /* number of triangles */
 extern int tricon; /* index of the first triangle used in contact detection */
 extern int *tricol; /* triangle color */
-extern int *triobs; /* triangle obstacle */
+extern int *triobs; /* triangle obstacle --> <0 - moving obstalce (-index-2), -1 - static obstacle, >= 0 - triangulated particle */
 extern REAL *tri[3][3]; /* triangle vertices */
 extern int triangle_buffer_size; /* size of the buffer */
 extern int triangle_buffer_grow (); /* grow buffer */
@@ -163,6 +163,15 @@ extern callback_t *history; /* Python list storing history */
 extern int history_buffer_size; /* size of history buffer */
 extern int history_list_size; /* size of history particle lists buffer */
 extern void history_buffer_grow (int list_size); /* grow buffer */
+
+extern int outnum; /* number of output lists */
+extern int *outpart; /* output particle lists */
+extern int *outidx; /* output particle list start index */
+extern int *outent; /* output entities */
+extern int outrest; /* default output entities for unlisted particles */
+extern int output_buffer_size; /* size of output buffer */
+extern int output_list_size; /* size of output particle lists buffer */
+extern void output_buffer_grow (int list_size); /* grow buffer */
 
 extern void reset_all_data (); /* reset all simulation data */
 

@@ -1290,7 +1290,7 @@ static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else
   {
-    PyErr_SetString (PyExc_ValueError, "invalid color values");
+    PyErr_SetString (PyExc_ValueError, "Invalid color values");
     return NULL;
   }
 
@@ -2216,6 +2216,120 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   return (PyObject*) history[i];
 }
 
+/* declare output entities */
+static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("entities", "subset");
+  PyObject *entities, *subset;
+
+  subset = NULL;
+
+  PARSEKEYS ("O|O", &entities, &subset);
+
+  TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0));
+
+  int list_size = 0;
+
+  if (subset)
+  {
+    if (PyList_Check (subset))
+    {
+      list_size = PyList_Size (subset);
+
+      for (int j = 0; j < list_size; j ++)
+      {
+	int k = PyInt_AsLong (PyList_GetItem (subset, j));
+
+	if (k < 0 || k >= parnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid particle number");
+	  return NULL;
+	}
+      }
+    }
+    else
+    {
+      int k = PyInt_AsLong (subset);
+
+      if (k < 0 || k >= parnum)
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid particle number");
+	return NULL;
+      }
+ 
+      list_size = 1;
+    }
+  }
+
+  output_buffer_grow (list_size);
+
+  int i = outnum ++;
+
+  outidx[i] = outidx[i-1];
+
+  if (subset)
+  {
+    if (PyList_Check (subset))
+    {
+      for (int j = 0; j < list_size; j ++)
+      {
+	int k = PyInt_AsLong (PyList_GetItem (subset, j));
+
+	outpart[outidx[i]++] = k;
+      }
+    }
+    else
+    {
+      int k = PyInt_AsLong (subset);
+
+      outpart[outidx[i]++] = k;
+    }
+  }
+
+  outent[i] = 0;
+
+  for (int j = 0; j < PyList_Size (entities); j ++)
+  {
+    PyObject *item = PyList_GetItem (entities, j);
+
+    IFIS (item, "NUMBER")
+    {
+      outent[i] |= OUT_NUMBER;
+    }
+    ELIF (item, "COLOR")
+    {
+      outent[i] |= OUT_COLOR;
+    }
+    ELIF (item, "DISPL")
+    {
+      outent[i] |= OUT_DISPL;
+    }
+    ELIF (item, "LINVEL")
+    {
+      outent[i] |= OUT_LINVEL;
+    }
+    ELIF (item, "ANGVEL")
+    {
+      outent[i] |= OUT_ANGVEL;
+    }
+    ELIF (item, "FORCE")
+    {
+      outent[i] |= OUT_FORCE;
+    }
+    ELIF (item, "TORQUE")
+    {
+      outent[i] |= OUT_TORQUE;
+    }
+    ELSE
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid entity");
+      return NULL;
+    }
+  }
+
+  Py_RETURN_NONE;
+}
+
 static PyMethodDef methods [] =
 {
   {"RESET", (PyCFunction)RESET, METH_NOARGS, "Reset simulation"},
@@ -2233,6 +2347,7 @@ static PyMethodDef methods [] =
   {"CRITICAL", (PyCFunction)CRITICAL, METH_NOARGS, "Estimate critical time step"},
   {"DEM", (PyCFunction)DEM, METH_VARARGS|METH_KEYWORDS, "Run DEM simulation"},
   {"HISTORY", (PyCFunction)HISTORY, METH_VARARGS|METH_KEYWORDS, "Time history output"},
+  {"OUTPUT", (PyCFunction)OUTPUT, METH_VARARGS|METH_KEYWORDS, "Declare output entities"},
   {NULL, 0, 0, NULL}
 };
 
@@ -2260,7 +2375,8 @@ int input (const char *path)
                       "from parmec import GRAVITY\n"
                       "from parmec import CRITICAL\n"
                       "from parmec import DEM\n"
-                      "from parmec import HISTORY\n");
+                      "from parmec import HISTORY\n"
+                      "from parmec import OUTPUT\n");
 
   ERRMEM (line = new char [128 + strlen (path)]);
   sprintf (line, "execfile ('%s')", path);

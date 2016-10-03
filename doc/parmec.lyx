@@ -1627,10 +1627,6 @@ point
  default: particle mass centre
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
@@ -1641,7 +1637,7 @@ name "subsec:OUTPUT"
 OUTPUT
 \end_layout
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Define scalar and/or vector entities included into the output file(s).
 \end_layout
 
@@ -1654,9 +1650,10 @@ OUTPUT (entities | subset)
 \series bold
 entities
 \series default
- - list of output entities; default: ['COLOR', 'DISP', 'LINVEL', 'ANGVEL',
- 'FORCE', 'TORQUE'] corresponding to surface colors, displacement, linear
- velocity, angular velocity, body force, and body torque, respectively
+ - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'LINVEL',
+ 'ANGVEL', 'FORCE', 'TORQUE'] corresponding to particle numbers, surface
+ colors, displacement, linear velocity, angular velocity, body force, and
+ body torque, respectively
 \end_layout
 
 \begin_layout Itemize
@@ -1673,11 +1670,6 @@ or a list of particle numbers [
 i, j, ...
 \emph default
 ], to which this specification is narrowed down
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Chapter

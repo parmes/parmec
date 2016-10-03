@@ -37,7 +37,6 @@ del:
 	find ./ -iname "*.png" -exec rm '{}' ';'
 
 clean:  del
-	find ./ -iname "*.pdf" -exec rm '{}' ';'
 	find ./ -iname "*.pyc" -exec rm '{}' ';'
 	/bin/rm -rf objs *~ $(EXE) *.dSYM
 
