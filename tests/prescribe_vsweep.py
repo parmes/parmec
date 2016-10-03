@@ -1,4 +1,4 @@
-# PARMEC test --> PRESCRIBE command test (acceleration sweep)
+# PARMEC test --> PRESCRIBE command test (velocity sweep)
 from math import sin, cos, pi
 
 matnum = MATERIAL (1E3, 1E9, 0.25)
@@ -20,49 +20,46 @@ parnum = MESH (nodes, elements, matnum, colors)
 
 stop = 5.0
 
-def linacc(t):
+def linvel(t):
   amag = 1.0
   lofq = 0.0
   hifq = 5.0
-  a = amag * sin (2.0*pi*(lofq+(hifq-lofq)*t/stop)*t)
-  return (a, 0, 0)
+  # derivative of a = amag * sin (2.0*pi*(lofq+(hifq-lofq)*t/stop)*t) -->
+  v = amag * cos (2.0*pi*(lofq+(hifq-lofq)*t/stop)*t) * (2.0*pi*lofq + 4.0*pi*(hifq-lofq)*t/stop)
+  return (v, 0, 0)
 
-PRESCRIBE (parnum, linear = linacc, kind = 'av')
+PRESCRIBE (parnum, linear = linvel)
 
 t = HISTORY ('TIME')
-vx = HISTORY ('VX', parnum)
+vx1 = HISTORY ('VX', parnum)
 dx = HISTORY ('DX', parnum)
 
 DEM (stop, 0.001, (0.05, 0.01))
 
+vx0 = []
+for s in t: vx0.append(linvel(s)[0])
+
 try:
   import matplotlib.pyplot as plt
 
-  ax = []
-  for s in t: ax.append(linacc(s));
-
   plt.clf ()
-  plt.plot (t, ax)
-  plt.xlim ((0, t[-1]))
-  plt.xlabel ('time $(s)$')
-  plt.ylabel ('ax $(m/s^2)$')
-  plt.savefig ('tests/prescribe_asweep_ax.png')
-
-  plt.clf ()
-  plt.plot (t, vx)
+  plt.plot (t, vx0, label = 'input', linestyle = '--', marker = '.')
+  plt.plot (t, vx1, label = 'output')
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
   plt.ylabel ('vx $(m/s)$')
-  plt.savefig ('tests/prescribe_asweep_vx.png')
+  plt.legend()
+  plt.savefig ('tests/prescribe_vsweep_vx.png')
 
   plt.clf ()
   plt.plot (t, dx)
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
   plt.ylabel ('dx $(m)$')
-  plt.savefig ('tests/prescribe_asweep_dx.png')
+  plt.savefig ('tests/prescribe_vsweep_dx.png')
 
 except:
   print 'time = ', t
-  print 'vx = ', vx
+  print 'vx0 = ', vx0
+  print 'vx1 = ', vx1
   print 'dx = ', dx
