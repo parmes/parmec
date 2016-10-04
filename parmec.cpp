@@ -833,7 +833,7 @@ int output_buffer_init ()
   outpart = aligned_int_alloc (output_list_size);
   outidx = aligned_int_alloc (output_buffer_size+1);
   outent = aligned_int_alloc (output_buffer_size);
-  outrest =  OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
+  outrest = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
 
   outnum = 0;
   outidx[outnum] = 0;
@@ -879,7 +879,7 @@ void reset_all_data ()
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
-  outrest = OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
+  outrest = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
 
   pair_reset();
 }

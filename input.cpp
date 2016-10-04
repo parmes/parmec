@@ -2265,7 +2265,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
   int i = outnum ++;
 
-  outidx[i] = outidx[i-1];
+  outidx[i+1] = outidx[i];
 
   if (subset)
   {
@@ -2275,14 +2275,18 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	int k = PyInt_AsLong (PyList_GetItem (subset, j));
 
-	outpart[outidx[i]++] = k;
+	outpart[outidx[i+1]++] = k;
+
+	flags[k] &= ~OUTREST;
       }
     }
     else
     {
       int k = PyInt_AsLong (subset);
 
-      outpart[outidx[i]++] = k;
+      outpart[outidx[i+1]++] = k;
+
+      flags[k] &= ~OUTREST;
     }
   }
 

@@ -37,11 +37,318 @@ int output_frame = 0; /* output files frame */
 }
 
 using namespace parmec;
+using namespace std;
+
+/* output vtk dataset of triangles */
+static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
+{
+  int i, j;
+
+  out << "DATASET UNSTRUCTURED_GRID\n";
+
+  out << "POINTS " << 3*num << " float\n";
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+    out << tri [0][0][j] << " " << tri[0][1][j] << " " << tri[0][2][j] << " "
+	<< tri [1][0][j] << " " << tri[1][1][j] << " " << tri[1][2][j] << " "
+	<< tri [2][0][j] << " " << tri[2][1][j] << " " << tri[2][2][j] << "\n";
+  }
+
+  out << "CELLS " << num << " " << 4*num << "\n";
+  for (i = 0; i < num; i ++)
+  {
+    out << 3 << " " << 3*i << " " << 3*i+1 << " " << 3*i+2 << "\n";
+  }
+
+  out << "CELL_TYPES " << num << "\n";
+  for (i = 0; i < num; i ++)
+  {
+    out << 5 << "\n";
+  }
+
+  if (ent & (OUT_DISPL|OUT_LINVEL))
+  {
+    out << "POINT_DATA " << 3*num << "\n";
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    out << "VECTORS displ float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL p1[3] = {tri [0][0][j], tri[0][1][j], tri[0][2][j]};
+      REAL p2[3] = {tri [1][0][j], tri[1][1][j], tri[1][2][j]};
+      REAL p3[3] = {tri [2][0][j], tri[2][1][j], tri[2][2][j]};
+
+      j = triobs[set[i]];
+
+      if (j >= 0) /* particle */
+      {
+	REAL L[9], X[3], x[3], P[3], d[3];
+
+	L[0] = rotation[0][j];
+	L[1] = rotation[1][j];
+	L[2] = rotation[2][j];
+	L[3] = rotation[3][j];
+	L[4] = rotation[4][j];
+	L[5] = rotation[5][j];
+	L[6] = rotation[6][j];
+	L[7] = rotation[7][j];
+	L[8] = rotation[8][j];
+
+	x[0] = position[0][j];
+	x[1] = position[1][j];
+	x[2] = position[2][j];
+
+	X[0] = position[3][j];
+	X[1] = position[4][j];
+	X[2] = position[5][j];
+
+	SUB (p1, x, d);
+	TVADDMUL (X, L, d, P);
+	SUB (p1, P, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+
+	SUB (p2, x, d);
+	TVADDMUL (X, L, d, P);
+	SUB (p2, P, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+
+	SUB (p3, x, d);
+	TVADDMUL (X, L, d, P);
+	SUB (p3, P, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+      }
+      else if (j == -1) /* static obstacle */
+      {
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+      }
+      else /* moving obstacle */
+      {
+	j = -j-2;
+
+	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
+
+	SUB (p1, x, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+	SUB (p2, x, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+	SUB (p3, x, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+      }
+    }
+  }
+
+  if (ent & OUT_LINVEL)
+  {
+    out << "VECTORS linvel float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL p1[3] = {tri [0][0][j], tri[0][1][j], tri[0][2][j]};
+      REAL p2[3] = {tri [1][0][j], tri[1][1][j], tri[1][2][j]};
+      REAL p3[3] = {tri [2][0][j], tri[2][1][j], tri[2][2][j]};
+
+      j = triobs[set[i]];
+
+      if (j >= 0) /* particle */
+      {
+	REAL x[3], a[3], o[3], v[3], w[3];
+
+	x[0] = position[0][j];
+	x[1] = position[1][j];
+	x[2] = position[2][j];
+
+	o[0] = angular[3][j];
+	o[1] = angular[4][j];
+	o[2] = angular[5][j];
+
+	v[0] = linear[0][j];
+	v[1] = linear[1][j];
+	v[2] = linear[2][j];
+
+        COPY (v, w);
+	SUB (p1, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p2, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p3, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+      }
+      else if (j == -1) /* static obstacle */
+      {
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+      }
+      else /* moving obstacle */
+      {
+	j = -j-2;
+
+	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
+	REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
+	REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
+	REAL a[3], w[3];
+
+        COPY (v, w);
+	SUB (p1, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p2, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p3, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+      }
+    }
+  }
+
+  if (ent & (OUT_NUMBER|OUT_COLOR|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE))
+  {
+    out << "CELL_DATA " << num << "\n";
+  }
+
+  if (ent & OUT_NUMBER)
+  {
+    out << "SCALARS numbers int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      out << triobs[set[i]] << "\n";
+    }
+  }
+
+
+  if (ent & OUT_COLOR)
+  {
+    out << "SCALARS colors int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      out << tricol[set[i]] << "\n";
+    }
+  }
+
+  if (ent & OUT_ANGVEL)
+  {
+    out << "VECTORS angvel float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = triobs[set[i]];
+
+      if (j >= 0) /* particle */
+      {
+        out << angular[3][j] << " " << angular[4][j] << " " << angular[5][j] << "\n";
+      }
+      else if (j == -1) /* static obstacle */
+      {
+	out << "0.0 0.0 0.0\n";
+      }
+      else /* moving obstacle */
+      {
+	j = -j-2;
+
+        out << obsang[3*j] << " " << obsang[3*j+1] << " " << obsang[3*j+2] << "\n";
+      }
+    }
+  }
+
+  if (ent & OUT_FORCE)
+  {
+    out << "VECTORS force float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = triobs[set[i]];
+
+      if (j >= 0)
+      {
+        out << force[0][j] << " " << force[1][j] << " " << force[2][j] << "\n";
+      }
+      else
+      {
+	out << "0.0 0.0 0.0\n";
+      }
+    }
+  }
+
+  if (ent & OUT_TORQUE)
+  {
+    out << "VECTORS torque float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = triobs[set[i]];
+
+      if (j >= 0)
+      {
+        out << torque[0][j] << " " << torque[1][j] << " " << torque[2][j] << "\n";
+      }
+      else
+      {
+	out << "0.0 0.0 0.0\n";
+      }
+    }
+  }
+}
+
+/* find triangles belonging to a particle set [part0, part1) */
+static int find_triangle_set (int *part0, int *part1, int *triangles)
+{
+  int num = 0;
+
+  for (int *p = part0; p < part1; p ++)
+  {
+    int s = 0, e = trinum, i, j;
+
+    while (s < e)
+    {
+      i = (s+e)/2;
+
+      for (j = triobs[i]; i < e && j < 0; i++) j = triobs[i]; /* skip obstacles */
+
+      if (j == *p) break;
+      else if (j < *p) s = i;
+      else e = i;
+    }
+
+    if (j == *p)
+    {
+      while (i > 0 && triobs[i-1] == j) i --; /* find start of range */
+
+      while (i < trinum && triobs[i] == j)
+      {
+	triangles[num] = i;
+	num ++;
+	i ++;
+      }
+    }
+  }
+
+  return num;
+}
 
 /* output files */
 void output_files ()
 {
-  using namespace std;
   ostringstream oss;
   ofstream out;
   int i;
@@ -77,32 +384,30 @@ void output_files ()
     out << "# vtk DataFile Version 2.0\n";
     out << "PARMEC triangles output\n";
     out << "ASCII\n";
-    out << "DATASET UNSTRUCTURED_GRID\n";
-    out << "POINTS " << 3*trinum << " float\n";
-    for (i = 0; i < trinum; i ++)
+
+    int num, *set; /* number of and the set of unselected triangles */
+
+    ERRMEM (set = new int[trinum]);
+
+    for (num = i = 0; i < trinum; i ++)
     {
-      out << tri [0][0][i] << " " << tri[0][1][i] << " " << tri[0][2][i] << " "
-          << tri [1][0][i] << " " << tri[1][1][i] << " " << tri[1][2][i] << " "
-          << tri [2][0][i] << " " << tri[2][1][i] << " " << tri[2][2][i] << "\n";
+      if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST))
+      {
+	set[num ++] = i;
+      }
     }
-    out << "CELLS " << trinum << " " << 4*trinum << "\n";
-    for (i = 0; i < trinum; i ++)
+
+    output_triangle_dataset (num, set, outrest, out); /* output unselected triangles */
+
+    for (i = 0; i < outnum; i ++) /* output selected triangles */
     {
-      out << 3 << " " << 3*i << " " << 3*i+1 << " " << 3*i+2 << "\n";
-    }
-    out << "CELL_TYPES " << trinum << "\n";
-    for (i = 0; i < trinum; i ++)
-    {
-      out << 5 << "\n";
-    }
-    out << "CELL_DATA " << trinum << "\n";
-    out << "SCALARS colors int\n";
-    out << "LOOKUP_TABLE default\n";
-    for (i = 0; i < trinum; i ++)
-    {
-      out << tricol[i] << "\n";
+      num = find_triangle_set (&outpart[outidx[i]], &outpart[outidx[i+1]], set);
+
+      if (num) output_triangle_dataset (num, set, outent[i], out);
     }
  
+    delete set;
+
     out.close();
   }
 
