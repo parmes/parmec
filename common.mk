@@ -33,7 +33,7 @@ dirs:
 
 del:
 	find ./ -iname "*.dump" -exec rm '{}' ';'
-	find ./ -iname "*.vtk" -exec rm '{}' ';'
+	find ./ -iname "*.vtk.*" -exec rm '{}' ';'
 	find ./ -iname "*.png" -exec rm '{}' ';'
 
 clean:  del

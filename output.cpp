@@ -351,10 +351,12 @@ void output_files ()
 {
   ostringstream oss;
   ofstream out;
-  int i;
+  int i, j;
 
   if (ellnum)
   {
+    oss.str("");
+    oss.clear();
     oss << outpath << ".dump";
     if (output_frame) out.open (oss.str().c_str(), ios::app);
     else out.open (oss.str().c_str());
@@ -378,37 +380,45 @@ void output_files ()
 
   if (trinum)
   {
-    oss << outpath << output_frame << ".vtk";
-    out.open (oss.str().c_str());
-
-    out << "# vtk DataFile Version 2.0\n";
-    out << "PARMEC triangles output\n";
-    out << "ASCII\n";
-
-    int num, *set; /* number of and the set of unselected triangles */
+    int num, *set; /* number of and the set of triangles */
 
     ERRMEM (set = new int[trinum]);
 
-    for (num = i = 0; i < trinum; i ++)
+    for (j = -1; j < outnum; j ++)
     {
-      if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST))
+      oss.str("");
+      oss.clear();
+      oss << outpath << j+1 << ".vtk." << output_frame;
+      out.open (oss.str().c_str());
+
+
+      out << "# vtk DataFile Version 2.0\n";
+      out << "PARMEC triangles output\n";
+      out << "ASCII\n";
+
+      if (j < 0) /* output unselected triangles */
       {
-	set[num ++] = i;
+	for (num = i = 0; i < trinum; i ++)
+	{
+	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST))
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+	output_triangle_dataset (num, set, outrest, out);
       }
+      else /* output selected triangles */
+      {
+	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+
+	if (num) output_triangle_dataset (num, set, outent[j], out);
+      }
+   
+      out.close();
     }
 
-    output_triangle_dataset (num, set, outrest, out); /* output unselected triangles */
-
-    for (i = 0; i < outnum; i ++) /* output selected triangles */
-    {
-      num = find_triangle_set (&outpart[outidx[i]], &outpart[outidx[i+1]], set);
-
-      if (num) output_triangle_dataset (num, set, outent[i], out);
-    }
- 
     delete set;
-
-    out.close();
   }
 
   output_frame ++; 

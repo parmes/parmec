@@ -171,7 +171,7 @@ reference "subsec:HISTORY"
 \end_layout
 
 \begin_layout Enumerate
-Upon termination a *.dump file and/or a *.vtk file(s) is/are created in the
+Upon termination a *.dump file and/or a *.vtk.* file(s) is/are created in the
  same directory (e.g.
  
 \emph on
