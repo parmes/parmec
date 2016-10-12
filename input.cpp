@@ -1097,7 +1097,7 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction");
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction"); /* TODO: add direction type (as in constants.h) */
   PyObject *point1, *point2, *spring, *dashpot, *direction;
   int part1, part2;
 
