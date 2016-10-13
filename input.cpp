@@ -1097,18 +1097,20 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction"); /* TODO: add direction type (as in constants.h) */
-  PyObject *point1, *point2, *spring, *dashpot, *direction;
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "tangent");
+  PyObject *point1, *point2, *spring, *dashpot, *direction, *tangent;
   int part1, part2;
 
   direction = NULL;
   dashpot = NULL;
+  tangent = NULL;
 
-  PARSEKEYS ("iOiOO|OO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction);
+  PARSEKEYS ("iOiOO|OOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &tangent);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
-	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3));
+	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3) &&
+	    is_string (tangent, kwl[6]));
 
   if (part2 < -1)
   {
@@ -1210,17 +1212,49 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     sprdir[1][i] = dir[1];
     sprdir[2][i] = dir[2];
 
-    sprdirup[i] = 0; /* constant direction */
+    if (tangent)
+    {
+      IFIS (tangent, "ON") /* tangent direction */
+      {
+	sprdirup[i] = SPRDIR_TANGENT;
+      }
+      ELIF (tangent, "OFF") /* constant direction */
+      {
+	sprdirup[i] = SPRDIR_CONSTANT;
+      }
+      ELSE
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid tangent switch");
+	return NULL;
+      }
+    }
+    else /* constant direction */
+    {
+      sprdirup[i] = SPRDIR_CONSTANT;
+    }
 
     REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
                    sprpnt[1][1][i] - sprpnt[0][1][i],
                    sprpnt[1][2][i] - sprpnt[0][2][i]};
 
-    stroke0[i] = DOT (dif, dir);
+    if (sprdirup[i] == SPRDIR_CONSTANT)
+    {
+      stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
+    }
+    else /* stroke(0) = length in tangent plane */
+    {
+      REAL dot = DOT (dif, dir);
+
+      dif[0] -= dot*dir[0];
+      dif[1] -= dot*dir[1];
+      dif[2] -= dot*dir[2];
+
+      stroke0[i] = LEN (dif);
+    }
   }
   else /* direction = (p2 - p1)/|p2 - p1| */
   {
-    sprdirup[i] = 1;
+    sprdirup[i] = SPRDIR_FOLLOWER;
 
     REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
                    sprpnt[1][1][i] - sprpnt[0][1][i],

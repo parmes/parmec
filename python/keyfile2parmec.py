@@ -1,7 +1,11 @@
 # LS-DYNA keyfile to PARMEC input file generator
 import sys
+import time
 sys.path.append('.')
 from keyfileparse import Keyfile
+
+# start timer
+tic = time.clock()
 
 # check input syntax
 if len(sys.argv) < 3:
@@ -30,7 +34,7 @@ def trans(a):
 print 'Parsing keyfile...'
 keyfile = Keyfile(sys.argv[1])
 
-print 'Writing parmec file (defining rigid bodies)...'
+print 'Writing parmec file (rigid bodies)...'
 parmec = open(sys.argv[2], 'w')
 
 parmec.write ('pid2num = {} # part inertia to particle mapping\n')
@@ -193,6 +197,50 @@ for cxns in keyfile['CONSTRAINED_EXTRA_NODES_SET']:
   for i in keyfile.SET_NODE_LISTS[sid]:
     nod2pid[i] = pid
 
+print 'Writing parmec file (spring curves)...'
+parmec.write ('\n')
+parmec.write ('#\n')
+parmec.write ('# define spring curves\n')
+parmec.write ('#\n')
+curveset = Set()
+for ed in keyfile['ELEMENT_DISCRETE']:
+  pid = ed['PID']
+  part = keyfile.getcard('PART', PID=ed['PID'])
+  if part == None:
+    print 'ERROR: did not find PART card with PID = ', ed['PID']
+    sys.exit(1)
+  mid = part['MID']
+  mat = keyfile.getcard('MAT_SPRING_NONLINEAR_ELASTIC', MID=part['MID'])
+  if mat == None:
+    print 'ERROR: did not find MAT_SPRING_NONLINEAR_ELASTIC card with MID = ', mid
+    sys.exit(1)
+  lcd = mat['LCD']
+  if lcd not in curveset:
+    lc = keyfile.getcard('DEFINE_CURVE', LCID=lcd)
+    if lc == None:
+      print 'ERROR: DEFINE_CURVE card with ID = ', lcd, 'was not found'
+      sys.exit(1)
+    spring = []
+    for (t,v) in zip(lc['A1'], lc['O1']):
+      spring.append (t)
+      spring.append (v)
+    parmec.write ('curve%d = %s\n' % (lcd, str(spring)))
+    curveset.add (lcd)
+
+  lcr = mat['LCR']
+  if lcr > 0 and lcr not in curveset:
+    lc = keyfile.getcard('DEFINE_CURVE', LCID=lcr)
+    if lc == None:
+      print 'ERROR: DEFINE_CURVE card with ID = ', lcr, 'was not found'
+      sys.exit(1)
+    damper = []
+    for (t,v) in zip(lc['A1'], lc['O1']):
+      damper.append (t)
+      damper.append (v)
+    parmec.write ('curve%d = %s\n' % (lcr, str(damper)))
+    curveset.add (lcr)
+parmec.write ('curve0 = [-1, 0, 1, 0]\n')
+
 print 'Writing parmec file (springs)...'
 parmec.write ('\n')
 parmec.write ('#\n')
@@ -214,51 +262,30 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   if dso == None:
     print 'ERROR: did not find DEFINE_SD_ORIENTATION card with VID = ', vid
     sys.exit(1)
-  #FIXME: undo the below
-  #if dso['IOP'] != 0:
-    #print 'ERROR: unsupported IOP != 0 in DEFINE_SD_ORIENTATION card with VID = ', vid
-    #sys.exit(1)
+  if dso['IOP'] == 0:
+    tang = 'OFF'
+  elif dso['IOP'] == 1:
+    tang = 'ON'
+  else:
+    print 'ERROR: unsupported IOP != (0 or 1) in DEFINE_SD_ORIENTATION card with VID = ', vid
+    sys.exit(1)
   direct = (dso['XT'], dso['YT'], dso['ZT'])
 
   pid = ed['PID']
   part = keyfile.getcard('PART', PID=ed['PID'])
-  if part == None:
-    print 'ERROR: did not find PART card with PID = ', ed['PID']
-    sys.exit(1)
   mid = part['MID']
   mat = keyfile.getcard('MAT_SPRING_NONLINEAR_ELASTIC', MID=part['MID'])
-  if mat == None:
-    print 'ERROR: did not find MAT_SPRING_NONLINEAR_ELASTIC card with MID = ', mid
-    sys.exit(1)
   lcd = mat['LCD']
-  lc = keyfile.getcard('DEFINE_CURVE', LCID=lcd)
-  if lc == None:
-    print 'ERROR: DEFINE_CURVE card with ID = ', lcd, 'was not found'
-    sys.exit(1)
-  spring = []
-  for (t,v) in zip(lc['A1'], lc['O1']):
-    spring.append (t)
-    spring.append (v)
   lcr = mat['LCR']
-  if lcr > 0:
-    lc = keyfile.getcard('DEFINE_CURVE', LCID=lcr)
-    if lc == None:
-      print 'ERROR: DEFINE_CURVE card with ID = ', lcr, 'was not found'
-      sys.exit(1)
-    damper = []
-    for (t,v) in zip(lc['A1'], lc['O1']):
-      damper.append (t)
-      damper.append (v)
-  else: 
-    damper = [-1, 0, 1, 0]
+  spring = 'curve%d' % lcd
+  damper = 'curve%d' % lcr
 
-  parmec.write ('SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s)\n' % \
-    (pid1, str(pnt1), pid2, str(pnt2), str(spring), str(damper), str(direct)))
+  parmec.write ('SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
+               (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, tang))
 
 parmec.close()
 
+# end timer
+toc = time.clock()
 print 'Translated', len(keyfile['PART_INERTIA']), 'rigid bodies and', \
-       len(keyfile['ELEMENT_DISCRETE']), 'springs.'
-
-  #TODO: optimize parmec file size by defining all load curves first
-  #      end then only refering to them when used
+       len(keyfile['ELEMENT_DISCRETE']), 'springs in ', toc-tic, 'seconds'

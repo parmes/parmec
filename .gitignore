@@ -1,0 +1,4 @@
+parmec
+objs/*
+*.swp
+*.pyc

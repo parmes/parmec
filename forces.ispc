@@ -588,8 +588,10 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
 
     SUB (q, p, w);
 
-    if (sprdirup[i])
+    switch (sprdirup[i])
     {
+    case SPRDIR_FOLLOWER:
+
       len = LEN(w);
       inv = len > 0.0 ? 1.0/len : 0.0; /* zero force in case of zero length via (temporary) zero direction */
 
@@ -597,17 +599,35 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       z[1] = inv*w[1];
       z[2] = inv*w[2];
 
-      sprdir[0][i] = z[0];
+      sprdir[0][i] = z[0]; /* store current direction */
       sprdir[1][i] = z[1];
       sprdir[2][i] = z[2];
-    }
-    else
-    {
+      break;
+
+    case SPRDIR_CONSTANT:
+
       z[0] = sprdir[0][i];
       z[1] = sprdir[1][i];
       z[2] = sprdir[2][i];
 
       len = DOT (w, z);
+      break;
+
+    case SPRDIR_TANGENT:
+
+      inv = w[0]*sprdir[0][i]+w[1]*sprdir[1][i]+w[2]*sprdir[2][i]; /* dot of (q-p) and constant direction */
+
+      w[0] -= inv*sprdir[0][i];
+      w[1] -= inv*sprdir[1][i];
+      w[2] -= inv*sprdir[2][i];
+
+      len = LEN(w);
+      inv = len > 0.0 ? 1.0/len : 0.0; /* zero force in case of zero length via (temporary) zero direction */
+
+      z[0] = inv*w[0];
+      z[1] = inv*w[1];
+      z[2] = inv*w[2];
+      break;
     }
 
     stroke = len - stroke0[i];
