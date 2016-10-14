@@ -1097,20 +1097,20 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "tangent");
-  PyObject *point1, *point2, *spring, *dashpot, *direction, *tangent;
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar");
+  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar;
   int part1, part2;
 
   direction = NULL;
   dashpot = NULL;
-  tangent = NULL;
+  planar = NULL;
 
-  PARSEKEYS ("iOiOO|OOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &tangent);
+  PARSEKEYS ("iOiOO|OOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
 	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3) &&
-	    is_string (tangent, kwl[6]));
+	    is_string (planar, kwl[6]));
 
   if (part2 < -1)
   {
@@ -1212,19 +1212,19 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     sprdir[1][i] = dir[1];
     sprdir[2][i] = dir[2];
 
-    if (tangent)
+    if (planar)
     {
-      IFIS (tangent, "ON") /* tangent direction */
+      IFIS (planar, "ON") /* direction in plane */
       {
-	sprdirup[i] = SPRDIR_TANGENT;
+	sprdirup[i] = SPRDIR_PLANAR;
       }
-      ELIF (tangent, "OFF") /* constant direction */
+      ELIF (planar, "OFF") /* constant direction */
       {
 	sprdirup[i] = SPRDIR_CONSTANT;
       }
       ELSE
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid tangent switch");
+	PyErr_SetString (PyExc_ValueError, "Invalid planar switch");
 	return NULL;
       }
     }
@@ -1241,7 +1241,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
     }
-    else /* stroke(0) = length in tangent plane */
+    else /* stroke(0) = length in orthogonal plane */
     {
       REAL dot = DOT (dif, dir);
 
@@ -1263,7 +1263,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     stroke0[i] = LEN (dif);
   }
 
-  Py_RETURN_NONE;
+  return PyInt_FromLong (i);
 }
 
 /* define surface pairing for the granular interaction model */

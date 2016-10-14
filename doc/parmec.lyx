@@ -902,7 +902,16 @@ The
 \end_layout
 
 \begin_layout Subsection*
-SPRING (part1, point1, part2, point2, spring | dashpot, direction, tangent)
+sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
+ planar)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+sprnum
+\series default
+ - spring number
 \end_layout
 
 \begin_layout Itemize
@@ -993,13 +1002,17 @@ direction
 \begin_layout Itemize
 
 \series bold
-tangent
+planar
 \series default
- - optional tangent spring flag; when 'ON' the spring direction is 
-\begin_inset Formula $\left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|$
+ - optional planar spring flag; when 'ON' spring direction 
+\begin_inset Formula 
+\[
+\left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|
+\]
+
 \end_inset
 
- projected onto a plane tangent to 
+is projected onto a plane orthogonal to 
 \begin_inset Formula $\left(d_{x},d_{y},d_{z}\right)$
 \end_inset
 
@@ -1655,10 +1668,82 @@ OUTPUT
 
 \begin_layout Standard
 Define scalar and/or vector entities included into the output file(s).
+ PARMEC outputs:
+\end_layout
+
+\begin_layout Itemize
+*.dump files for spherical 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and elliptical
+\end_layout
+
+\end_inset
+
+ particles
+\end_layout
+
+\begin_layout Itemize
+*0.vtk.* files for obstacles and mesh based particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1.vtk.*, *2.vtk.*, ...
+ files for mesh based particles specified as subsets, where numbers 1, 2,
+ ...
+ match consecutive OUTPUT calls
+\end_layout
+
+\begin_layout Itemize
+*0rb.vtk.* for rigid body data of particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1rb.vtk.*, *2rb.vtk.*, ...
+ files for rigid body data of particles specified as subsets, where numbers
+ 1, 2, ...
+ match consecutive OUTPUT calls
+\end_layout
+
+\begin_layout Itemize
+*0cd.vtk.* for contact data including particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1cd.vtk.*, *2cd.vtk.*, ...
+ files for contact data including particles specified as subsets, where
+ numbers 1, 2, ...
+ match consecutive OUTPUT calls
 \end_layout
 
 \begin_layout Subsection*
-OUTPUT (entities | subset)
+OUTPUT (entities | subset, mode)
 \end_layout
 
 \begin_layout Itemize
@@ -1667,11 +1752,75 @@ OUTPUT (entities | subset)
 entities
 \series default
  - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'LINVEL',
- 'ANGVEL', 'FORCE', 'TORQUE'] corresponding to particle numbers, surface
- colors, displacement, linear velocity, angular velocity, body force, and
- body torque, respectively
+ 'ANGVEL', 'FORCE', 'TORQUE', 'CF', 'CFN', 'CFT', 'DEPTH', 'AREA', 'NORMAL',
+ 'PAIR'] where: 
 \end_layout
 
+\begin_deeper
+\begin_layout Itemize
+'NUMBER' - scalar field of particle numbers (modes: 'SPH', 'MESH', 'RB')
+\end_layout
+
+\begin_layout Itemize
+'COLOR' - scalar field of surface colors (modes: 'SPH', 'MESH'), or 2-component
+ vector field of contact surface colors (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'DISP' - 3-component vector field of displacements (modes: 'SPH', 'MESH',
+ 'RB')
+\end_layout
+
+\begin_layout Itemize
+'LINVEL' - 3-component vector field of linear velocity (modes: 'SPH', 'MESH',
+ 'RB')
+\end_layout
+
+\begin_layout Itemize
+'ANGVEL' - 3-component vector field of spatially constant angular velocity
+ (modes: 'SPH', 'MESH', 'RB')
+\end_layout
+
+\begin_layout Itemize
+'FORCE' - 3-component vector field of spatially constant body force (modes:
+ 'SPH', 'MESH', 'RB')
+\end_layout
+
+\begin_layout Itemize
+'TORQUE' - 3-component vector field of spatially constant body torque (modes:
+ 'SPH', 'MESH', 'RB')
+\end_layout
+
+\begin_layout Itemize
+'CF' - 3-component vector field of contact forces (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'CFN' - 3-component vector field of normal contact forces (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'CFT' - 3-component vector field of tangential contact forces (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'DEPTH' - scalar field of contact depth (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'AREA' - scalar field of contact area (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'NORMAL' - 3-component vector field of contact normals (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'PAIR' - 2-component vector field of contact pair particle numbers (modes:
+ 'CD')
+\end_layout
+
+\end_deeper
 \begin_layout Itemize
 
 \series bold
@@ -1686,6 +1835,25 @@ or a list of particle numbers [
 i, j, ...
 \emph default
 ], to which this specification is narrowed down
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+mode
+\series default
+ - optional mode: 'SPH' for sphere 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and ellipsoid
+\end_layout
+
+\end_inset
+
+ output, 'MESH' for mesh output, 'RB' for rigid body output, 'CD' for contact
+ output, 'ALL' for all output; default: 'ALL'
 \end_layout
 
 \begin_layout Chapter

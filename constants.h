@@ -46,7 +46,7 @@ enum {HIS_PX, HIS_PY, HIS_PZ, HIS_PL, HIS_DX, HIS_DY, HIS_DZ, HIS_DL,
 
 enum {OUT_NUMBER = 1, OUT_COLOR = 2, OUT_DISPL = 4, OUT_LINVEL = 8, OUT_ANGVEL = 16, OUT_FORCE = 32, OUT_TORQUE = 64}; /* output entities */
 
-enum {SPRDIR_CONSTANT = 0, SPRDIR_TANGENT, SPRDIR_FOLLOWER}; /* spring direction types */
+enum {SPRDIR_CONSTANT = 0, SPRDIR_PLANAR, SPRDIR_FOLLOWER}; /* spring direction types */
 
 #ifdef __cplusplus
 };

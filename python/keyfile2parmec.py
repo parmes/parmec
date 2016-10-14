@@ -37,7 +37,8 @@ keyfile = Keyfile(sys.argv[1])
 print 'Writing parmec file (rigid bodies)...'
 parmec = open(sys.argv[2], 'w')
 
-parmec.write ('pid2num = {} # part inertia to particle mapping\n')
+parmec.write ('pid2num = {} # PART_INERTIA to particle number mapping\n')
+parmec.write ('eid2num = {} # ELEMENT_DISCRETE to spring number mapping\n')
 mcnod2pid = {} # mass center node to part inertia mapping
 
 # define rigid bodies
@@ -66,11 +67,14 @@ for pi in keyfile['PART_INERTIA']:
 	     pi['IXY'], pi['IYY'], pi['IYZ'],\
 	     pi['IXZ'], pi['IYZ'], pi['IZZ'])
 
+  mcnode = pi['NODEID']
+  center = keyfile.NODES[mcnode]
+
   parmec.write ('num = ANALYTICAL (' +\
                 'inertia = [%g, %g, %g, %g, %g, %g], ' %\
 		(I_glo[0], I_glo[4], I_glo[8], I_glo[1], I_glo[2], I_glo[3]) +\
 		'mass = %g, ' % pi['TM'] +\
-		'position = (%g, %g, %g)' % (pi['XC'], pi['YC'], pi['ZC'])+\
+		'position = (%g, %g, %g)' % (center[0], center[1], center[2])+\
 		')\n')
 
   mat = keyfile.getcard ('MAT_RIGID', MID=str(int(pi['MID']))) # int() due to '01' used sometimes
@@ -116,7 +120,7 @@ for pi in keyfile['PART_INERTIA']:
   elif con2 > 0: parmec.write ('CONSTRAIN (num, angular = ' + angcon + ')\n')
 
   parmec.write ('pid2num[%d] = num\n' % pi['PID'])
-  mcnod2pid[pi['NODEID']] = pi['PID']
+  mcnod2pid[mcnode] = pi['PID']
 
 parmec.write ('\n')
 parmec.write ('#\n')
@@ -263,9 +267,9 @@ for ed in keyfile['ELEMENT_DISCRETE']:
     print 'ERROR: did not find DEFINE_SD_ORIENTATION card with VID = ', vid
     sys.exit(1)
   if dso['IOP'] == 0:
-    tang = 'OFF'
+    planar = 'OFF'
   elif dso['IOP'] == 1:
-    tang = 'ON'
+    planar = 'ON'
   else:
     print 'ERROR: unsupported IOP != (0 or 1) in DEFINE_SD_ORIENTATION card with VID = ', vid
     sys.exit(1)
@@ -280,8 +284,9 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   spring = 'curve%d' % lcd
   damper = 'curve%d' % lcr
 
-  parmec.write ('SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
-               (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, tang))
+  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
+               (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, planar))
+  parmec.write ('eid2num[%d] = num\n' % ed['EID'])
 
 parmec.close()
 

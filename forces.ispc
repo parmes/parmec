@@ -613,7 +613,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       len = DOT (w, z);
       break;
 
-    case SPRDIR_TANGENT:
+    case SPRDIR_PLANAR:
 
       inv = w[0]*sprdir[0][i]+w[1]*sprdir[1][i]+w[2]*sprdir[2][i]; /* dot of (q-p) and constant direction */
 
