@@ -132,6 +132,8 @@ extern int *dashidx; /* dashpot force lookup start index */
 extern REAL *sprdir[3]; /* spring direction */
 extern int *sprdirup; /* spring direction update flag */
 extern REAL *stroke0; /* initial spring stroke */
+extern REAL *stroke; /* current stroke */
+extern REAL *sprfrc[2]; /* total and spring force magnitude */
 extern int spring_buffer_size; /* size of the spring constraint buffer */
 extern int spring_lookup_size; /* size of the spring force lookup tables */
 extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */
@@ -167,8 +169,8 @@ extern void history_buffer_grow (int list_size); /* grow buffer */
 extern int outnum; /* number of output lists */
 extern int *outpart; /* output particle lists */
 extern int *outidx; /* output particle list start index */
-extern int *outent; /* output entities */
-extern int outrest; /* default output entities for unlisted particles */
+extern int *outent[4]; /* output entities per output mode */
+extern int outrest[4]; /* default output entities for unlisted particles */
 extern int output_buffer_size; /* size of output buffer */
 extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */

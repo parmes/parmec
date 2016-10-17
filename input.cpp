@@ -1963,7 +1963,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step,
             sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir, sprdirup, stroke0,
-	    gravity, force, torque);
+	    stroke, sprfrc, gravity, force, torque);
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
@@ -2253,14 +2253,15 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 /* declare output entities */
 static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("entities", "subset");
-  PyObject *entities, *subset;
+  KEYWORDS ("entities", "subset", "mode");
+  PyObject *entities, *subset, * mode;
 
   subset = NULL;
+  mode = NULL;
 
-  PARSEKEYS ("O|O", &entities, &subset);
+  PARSEKEYS ("O|OO", &entities, &subset, &mode);
 
-  TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0));
+  TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0) && is_string (mode, kwl[2]));
 
   int list_size = 0;
 
@@ -2324,7 +2325,43 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
-  outent[i] = 0;
+  outent[0][i] = outent[1][i] = 
+  outent[2][i] = outent[3][i] = 0;
+
+  int start = OUT_MODE_SPH, end = OUT_MODE_SD, j;
+
+  if (mode)
+  {
+    IFIS (mode, "SPH")
+    {
+      start = end = OUT_MODE_SPH;
+    }
+    ELIF (mode, "MESH")
+    {
+      start = end = OUT_MODE_MESH;
+    }
+    ELIF (mode, "RB")
+    {
+      start = end = OUT_MODE_RB;
+    }
+    ELIF (mode, "CD")
+    {
+      start = end = OUT_MODE_CD;
+    }
+    ELIF (mode, "SD")
+    {
+      start = end = OUT_MODE_SD;
+    }
+    ELIF (mode, "ALL")
+    {
+      start = OUT_MODE_SPH; end = OUT_MODE_SD;
+    }
+    ELSE
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid mode");
+      return NULL;
+    }
+  }
 
   for (int j = 0; j < PyList_Size (entities); j ++)
   {
@@ -2332,31 +2369,122 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
     IFIS (item, "NUMBER")
     {
-      outent[i] |= OUT_NUMBER;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_NUMBER;
+      }
     }
     ELIF (item, "COLOR")
     {
-      outent[i] |= OUT_COLOR;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_COLOR;
+      }
     }
     ELIF (item, "DISPL")
     {
-      outent[i] |= OUT_DISPL;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_DISPL;
+      }
     }
     ELIF (item, "LINVEL")
     {
-      outent[i] |= OUT_LINVEL;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_LINVEL;
+      }
     }
     ELIF (item, "ANGVEL")
     {
-      outent[i] |= OUT_ANGVEL;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_ANGVEL;
+      }
     }
     ELIF (item, "FORCE")
     {
-      outent[i] |= OUT_FORCE;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_FORCE;
+      }
     }
     ELIF (item, "TORQUE")
     {
-      outent[i] |= OUT_TORQUE;
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_TORQUE;
+      }
+    }
+    ELIF (item, "F")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_F;
+      }
+    }
+    ELIF (item, "FN")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_FN;
+      }
+    }
+    ELIF (item, "FT")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_FT;
+      }
+    }
+    ELIF (item, "SF")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_SF;
+      }
+    }
+    ELIF (item, "SFN")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_SFN;
+      }
+    }
+    ELIF (item, "SFT")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_SFT;
+      }
+    }
+    ELIF (item, "AREA")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_AREA;
+      }
+    }
+    ELIF (item, "NORMAL")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_NORMAL;
+      }
+    }
+    ELIF (item, "PAIR")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_PAIR;
+      }
+    }
+    ELIF (item, "ORIENT")
+    {
+      for (j = start; j <= end; j ++)
+      {
+        outent[j][i] |= OUT_ORIENT;
+      }
     }
     ELSE
     {

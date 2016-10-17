@@ -1742,6 +1742,25 @@ a subset
  match consecutive OUTPUT calls
 \end_layout
 
+\begin_layout Itemize
+*0sd.vtk.* for spring data including particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1sd.vtk.*, *2sd.vtk.*, ...
+ files for spring data including particles specified as subsets, where numbers
+ 1, 2, ...
+ match consecutive OUTPUT calls
+\end_layout
+
 \begin_layout Subsection*
 OUTPUT (entities | subset, mode)
 \end_layout
@@ -1751,14 +1770,15 @@ OUTPUT (entities | subset, mode)
 \series bold
 entities
 \series default
- - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'LINVEL',
- 'ANGVEL', 'FORCE', 'TORQUE', 'CF', 'CFN', 'CFT', 'DEPTH', 'AREA', 'NORMAL',
- 'PAIR'] where: 
+ - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'ORIENT',
+ 'LINVEL', 'ANGVEL', 'FORCE', 'TORQUE', 'F', 'FN', 'FT', 'SF', 'SFN', 'SFT',
+ 'AREA', 'NORMAL', 'PAIR'] where:
 \end_layout
 
 \begin_deeper
 \begin_layout Itemize
-'NUMBER' - scalar field of particle numbers (modes: 'SPH', 'MESH', 'RB')
+'NUMBER' - scalar field of particle numbers (modes: 'SPH', 'MESH', 'RB'),
+ or scalar field of spring numbers (modes: 'SD')
 \end_layout
 
 \begin_layout Itemize
@@ -1767,8 +1787,14 @@ entities
 \end_layout
 
 \begin_layout Itemize
-'DISP' - 3-component vector field of displacements (modes: 'SPH', 'MESH',
- 'RB')
+'DISPL' - 3-component vector field of displacements (modes: 'SPH', 'MESH',
+ 'RB'), or scalar field of contact depths (modes: 'CD'), or scalar field
+ of spring strokes (modes: 'SD')
+\end_layout
+
+\begin_layout Itemize
+'ORIENT' - three 3-component vector fields representing columns of rigid
+ rotation matrix (orientation vectors) (modes: 'RB')
 \end_layout
 
 \begin_layout Itemize
@@ -1777,34 +1803,46 @@ entities
 \end_layout
 
 \begin_layout Itemize
-'ANGVEL' - 3-component vector field of spatially constant angular velocity
+'ANGVEL' - 3-component vector field of (spatially constant) angular velocity
  (modes: 'SPH', 'MESH', 'RB')
 \end_layout
 
 \begin_layout Itemize
-'FORCE' - 3-component vector field of spatially constant body force (modes:
- 'SPH', 'MESH', 'RB')
+'FORCE' - 3-component vector field of (spatially constant) total body force
+ (modes: 'SPH', 'MESH', 'RB')
 \end_layout
 
 \begin_layout Itemize
-'TORQUE' - 3-component vector field of spatially constant body torque (modes:
- 'SPH', 'MESH', 'RB')
+'TORQUE' - 3-component vector field of (spatially constant) total body torque
+ (modes: 'SPH', 'MESH', 'RB')
 \end_layout
 
 \begin_layout Itemize
-'CF' - 3-component vector field of contact forces (modes: 'CD')
+'F' - 3-component vector field of total contact or spring forces (modes:
+ 'CD', 'SD')
 \end_layout
 
 \begin_layout Itemize
-'CFN' - 3-component vector field of normal contact forces (modes: 'CD')
+'FN' - 3-component vector field of normal contact forces (modes: 'CD')
 \end_layout
 
 \begin_layout Itemize
-'CFT' - 3-component vector field of tangential contact forces (modes: 'CD')
+'FT' - 3-component vector field of tangential contact forces (modes: 'CD')
 \end_layout
 
 \begin_layout Itemize
-'DEPTH' - scalar field of contact depth (modes: 'CD')
+'SF' - 3-component vector field of spring forces, without dashpot contribution
+ (modes: 'CD', 'SD')
+\end_layout
+
+\begin_layout Itemize
+'SFN' - 3-component vector field of normal spring forces, without dashpot
+ contribution (modes: 'CD')
+\end_layout
+
+\begin_layout Itemize
+'SFT' - 3-component vector field of tangential spring forces, without dashpot
+ contribution (modes: 'CD')
 \end_layout
 
 \begin_layout Itemize
@@ -1816,8 +1854,8 @@ entities
 \end_layout
 
 \begin_layout Itemize
-'PAIR' - 2-component vector field of contact pair particle numbers (modes:
- 'CD')
+'PAIR' - 2-component vector field of particle pair numbers (modes: 'CD',
+ 'SD')
 \end_layout
 
 \end_deeper
@@ -1853,7 +1891,8 @@ and ellipsoid
 \end_inset
 
  output, 'MESH' for mesh output, 'RB' for rigid body output, 'CD' for contact
- output, 'ALL' for all output; default: 'ALL'
+ data output, 'SD' for spring data output, 'ALL' for all output; default:
+ 'ALL'
 \end_layout
 
 \begin_layout Chapter

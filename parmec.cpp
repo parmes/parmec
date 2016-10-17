@@ -125,6 +125,8 @@ int *dashidx; /* dashpot force lookup start index */
 REAL *sprdir[3]; /* spring direction */
 int *sprdirup; /* spring direction update flag */
 REAL *stroke0; /* initial spring stroke */
+REAL *stroke; /* current stroke */
+REAL *sprfrc[2]; /* total and spring force magnitude */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
@@ -156,8 +158,8 @@ int history_list_size; /* size of history particle lists buffer */
 int outnum; /* number of output lists */
 int *outpart; /* output particle lists */
 int *outidx; /* output particle list start index */
-int *outent; /* output entities */
-int outrest; /* default output entities for unlisted particles */
+int *outent[4]; /* output entities per output mode */
+int outrest[4]; /* default output entities for unlisted particles */
 int output_buffer_size; /* size of output buffer */
 int output_list_size; /* size of output particle lists buffer */
 
@@ -641,6 +643,9 @@ int spring_buffer_init ()
   sprdir[2] = aligned_real_alloc (spring_buffer_size);
   sprdirup = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
+  stroke = aligned_real_alloc (spring_buffer_size);
+  sprfrc[0] = aligned_real_alloc (spring_buffer_size);
+  sprfrc[1] = aligned_real_alloc (spring_buffer_size);
 
   sprnum = 0;
   spridx[sprnum] = 0;
@@ -675,6 +680,9 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
     real_buffer_grow(sprdir[2], sprnum, spring_buffer_size);
     integer_buffer_grow(sprdirup, sprnum, spring_buffer_size);
     real_buffer_grow(stroke0, sprnum, spring_buffer_size);
+    real_buffer_grow(stroke, sprnum, spring_buffer_size);
+    real_buffer_grow(sprfrc[0], sprnum, spring_buffer_size);
+    real_buffer_grow(sprfrc[1], sprnum, spring_buffer_size);
   }
 
   if (spring_lookup_size < spridx[sprnum] + spring_lookup)
@@ -832,8 +840,13 @@ int output_buffer_init ()
 
   outpart = aligned_int_alloc (output_list_size);
   outidx = aligned_int_alloc (output_buffer_size+1);
-  outent = aligned_int_alloc (output_buffer_size);
-  outrest = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
+  outent[0] = aligned_int_alloc (output_buffer_size);
+  outent[1] = aligned_int_alloc (output_buffer_size);
+  outent[2] = aligned_int_alloc (output_buffer_size);
+  outent[3] = aligned_int_alloc (output_buffer_size);
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|
+    OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_SFN|OUT_SFT|OUT_AREA|OUT_NORMAL|OUT_PAIR|OUT_ORIENT;
+  outrest[1] = outrest[2] = outrest[3] = outrest[0];
 
   outnum = 0;
   outidx[outnum] = 0;
@@ -847,7 +860,10 @@ void output_buffer_grow (int list_size)
     output_buffer_size *= 2;
 
     integer_buffer_grow (outidx, outnum, output_buffer_size+1);
-    integer_buffer_grow (outent, outnum, output_buffer_size);
+    integer_buffer_grow (outent[0], outnum, output_buffer_size);
+    integer_buffer_grow (outent[1], outnum, output_buffer_size);
+    integer_buffer_grow (outent[2], outnum, output_buffer_size);
+    integer_buffer_grow (outent[3], outnum, output_buffer_size);
   }
 
   if (output_list_size < outidx[outnum] + list_size)
@@ -879,7 +895,9 @@ void reset_all_data ()
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
-  outrest = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE;
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|
+    OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_SFN|OUT_SFT|OUT_AREA|OUT_NORMAL|OUT_PAIR|OUT_ORIENT;
+  outrest[1] = outrest[2] = outrest[3] = outrest[0];
 
   pair_reset();
 }

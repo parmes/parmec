@@ -30,6 +30,8 @@ SOFTWARE.
 #include <sstream>
 #include "macros.h"
 #include "parmec.h"
+#include "mem.h"
+#include "map.h"
 
 namespace parmec
 {
@@ -38,6 +40,124 @@ int output_frame = 0; /* output files frame */
 
 using namespace parmec;
 using namespace std;
+
+/* output vtk dataset of rigid body data */
+static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
+{
+  int i, j;
+
+  out << "DATASET UNSTRUCTURED_GRID\n";
+
+  out << "POINTS " << num << " float\n";
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+    out << position [0][j] << " " << position[1][j] << " " << position[2][j] << "\n";
+  }
+
+  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE))
+  {
+    out << "POINT_DATA " << num << "\n";
+  }
+
+  if (ent & OUT_NUMBER)
+  {
+    out << "SCALARS number int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      out << set[i] << "\n";
+    }
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    out << "VECTORS displ float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL d[3] = {position[0][j]-position[3][j],
+                   position[1][j]-position[4][j],
+		   position[2][j]-position[5][j]};
+
+      out << d[0] << " " << d[1] << " " << d[2] << "\n";
+    }
+  }
+
+  if (ent & OUT_ORIENT)
+  {
+    out << "VECTORS orient1 float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << rotation[0][j] << " " << rotation[1][j] << " " << rotation[2][j] << "\n";
+    }
+
+    out << "VECTORS orient2 float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << rotation[3][j] << " " << rotation[4][j] << " " << rotation[5][j] << "\n";
+    }
+
+    out << "VECTORS orient3 float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << rotation[6][j] << " " << rotation[7][j] << " " << rotation[8][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_LINVEL)
+  {
+    out << "VECTORS linvel float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      out << linear[0][j] << " " << linear[1][j] << " " << linear[2][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_ANGVEL)
+  {
+    out << "VECTORS angvel float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      out << angular[0][j] << " " << angular[1][j] << " " << angular[2][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_FORCE)
+  {
+    out << "VECTORS force float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      out << force[0][j] << " " << force[1][j] << " " << force[2][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_TORQUE)
+  {
+    out << "VECTORS torque float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      out << torque[0][j] << " " << torque[1][j] << " " << torque[2][j] << "\n";
+    }
+  }
+}
 
 /* output vtk dataset of triangles */
 static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
@@ -230,7 +350,7 @@ static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_NUMBER)
   {
-    out << "SCALARS numbers int\n";
+    out << "SCALARS number int\n";
     out << "LOOKUP_TABLE default\n";
     for (i = 0; i < num; i ++)
     {
@@ -346,6 +466,62 @@ static int find_triangle_set (int *part0, int *part1, int *triangles)
   return num;
 }
 
+/* output vtk dataset of spring data */
+static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
+{
+  int i, j;
+
+  out << "DATASET UNSTRUCTURED_GRID\n";
+
+  out << "POINTS " << 2*num << " float\n";
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+    out << sprpnt[0][0][j] << " " << sprpnt[0][1][j] << " " << sprpnt[0][2][j] << "\n";
+    out << sprpnt[1][0][j] << " " << sprpnt[1][1][j] << " " << sprpnt[1][2][j] << "\n";
+  }
+
+  out << "CELLS " << num << " " << num << "\n"; /* FIXME --> if points coincide this format is not robust (ParaView crush) */
+  for (i = 0; i < num; i ++)
+  {
+    out << 2 << " " << 2*i << " " << 2*i+1 << "\n";
+  }
+
+  out << "CELL_TYPES " << num << "\n";
+  for (i = 0; i < num; i ++)
+  {
+    out << 3 << "\n";
+  }
+
+  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR))
+  {
+    out << "CELL_DATA " << num << "\n";
+  }
+
+  if (ent & OUT_NUMBER)
+  {
+    out << "SCALARS number int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      out << set[i] << "\n";
+    }
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    out << "SCALARS displ int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << stroke[j] << "\n";
+    }
+  }
+
+  /* TODO --> F, SF (decide whether scalar or vector), PAIR */
+}
+
 /* output files */
 void output_files ()
 {
@@ -376,6 +552,49 @@ void output_files ()
     }
 
     out.close();
+
+    /* TODO --> include output entities and subsets */
+  }
+
+  if (parnum)
+  {
+    int num, *set; /* number of and the of unselected particles */
+
+    ERRMEM (set = new int[parnum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      oss.str("");
+      oss.clear();
+      oss << outpath << j+1 << "rb.vtk." << output_frame;
+      out.open (oss.str().c_str());
+
+
+      out << "# vtk DataFile Version 2.0\n";
+      out << "PARMEC rigid bodies output\n";
+      out << "ASCII\n";
+
+      if (j < 0) /* output unselected particles */
+      {
+	for (num = i = 0; i < parnum; i ++)
+	{
+	  if (flags[i] & OUTREST)
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+	output_rb_dataset (num, set, outrest[OUT_MODE_RB], out);
+      }
+      else /* output selected particles */
+      {
+	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[OUT_MODE_RB][j], out);
+      }
+   
+      out.close();
+    }
+
+    delete set;
   }
 
   if (trinum)
@@ -400,25 +619,89 @@ void output_files ()
       {
 	for (num = i = 0; i < trinum; i ++)
 	{
-	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST))
+	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
+	  {
+	    set[num ++] = i;
+	  }
+	  else if (triobs[i] < 0) /* triangles of obstacles */
 	  {
 	    set[num ++] = i;
 	  }
 	}
 
-	output_triangle_dataset (num, set, outrest, out);
+	output_triangle_dataset (num, set, outrest[OUT_MODE_MESH], out);
       }
       else /* output selected triangles */
       {
 	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
-	if (num) output_triangle_dataset (num, set, outent[j], out);
+	if (num) output_triangle_dataset (num, set, outent[OUT_MODE_MESH][j], out);
       }
    
       out.close();
     }
 
     delete set;
+  }
+
+  /* TODO --> *cd.vtk.* contact data output */
+
+  if (sprnum)
+  {
+    int num, *set; /* number of and the set of springs */
+    MAP **map, *item; /* map of springs attached to particles, and iterator */
+    MEM mem;
+
+    MEM_Init (&mem, sizeof (MAP), 1024);
+    ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
+    ERRMEM (set = new int[sprnum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      oss.str("");
+      oss.clear();
+      oss << outpath << j+1 << "sd.vtk." << output_frame;
+      out.open (oss.str().c_str());
+
+      out << "# vtk DataFile Version 2.0\n";
+      out << "PARMEC springs output\n";
+      out << "ASCII\n";
+
+      if (j < 0) /* output springs attached to unselected particles */
+      {
+	for (num = i = 0; i < sprnum; i ++)
+	{
+	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+	  (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
+	  {
+	    set[num ++] = i;
+	  }
+
+	  MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+	  if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
+	}
+
+	output_spring_dataset (num, set, outrest[OUT_MODE_SD], out);
+      }
+      else /* output springs attached to selected particles */
+      {
+	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+	{
+	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+	  {
+	    set[num ++] = (int)(long)item->key;
+	  }
+	}
+
+	if (num) output_spring_dataset (num, set, outent[OUT_MODE_SD][j], out);
+      }
+   
+      out.close();
+    }
+
+    delete set;
+    free (map);
+    MEM_Release (&mem);
   }
 
   output_frame ++; 

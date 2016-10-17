@@ -479,7 +479,7 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 task void springs_task (uniform int span, uniform int sprnum, uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
-  uniform int sprdirup[], uniform REAL stroke0[],
+  uniform int sprdirup[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
@@ -491,7 +491,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
     uniform REAL o[3], v[3], x[3], X[3], L[9], Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3];
-    uniform REAL len, inv, stroke, velocity, spring_force, dashpot_force, total_force;
+    uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
     o[0] = angular[3][j];
@@ -630,17 +630,20 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       break;
     }
 
-    stroke = len - stroke0[i];
+    stroke[i] = len - stroke0[i];
 
     velocity = DOT (z, u);
 
-    spring_force = look_up (spring, spridx[i], spridx[i+1], stroke);
+    spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[i]);
 
     dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity);
 
     total_force = spring_force + (spring_force == 0.0 ? 0.0 : dashpot_force);
 
     SCALE (z, total_force);
+
+    sprfrc[0][i] = total_force;
+    sprfrc[1][i] = spring_force;
 
     force[0][j] += z[0];
     force[1][j] += z[1];
@@ -673,8 +676,8 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL step, uniform int sprnum, uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
-  uniform int sprdirup[], uniform REAL stroke0[], uniform REAL gravity[3],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+  uniform int sprdirup[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
+  uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   launch [threads] zero_force_and_torque (parnum/threads, parnum, force, torque);
 
@@ -688,6 +691,6 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   launch [threads] contacts_acc_task (parnum/threads, master, slave, parnum, position, mass, gravity, force, torque);
   sync;
 
-  launch [threads] springs_task (sprnum/threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx,
-                                 sprdir, sprdirup, stroke0, angular, linear, rotation, position, force, torque);
+  launch [threads] springs_task (sprnum/threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir,
+                             sprdirup, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque);
 }
