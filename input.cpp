@@ -92,6 +92,23 @@ static int is_string (PyObject *obj, const char *var)
   return 1;
 }
 
+/* string or list test */
+static int is_string_or_list (PyObject *obj, const char *var)
+{
+  if (obj)
+  {
+    if (!(PyString_Check (obj) || PyList_Check(obj)))
+    {
+      char buf [BUFLEN];
+      sprintf (buf, "'%s' must be a string or a list", var);
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 /* positive test */
 static int is_positive (double num, const char *var)
 {
@@ -2261,7 +2278,8 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("O|OO", &entities, &subset, &mode);
 
-  TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0) && is_string (mode, kwl[2]));
+  TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0) &&
+            is_string_or_list (mode, kwl[2]));
 
   int list_size = 0;
 
@@ -2325,43 +2343,99 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
-  outent[0][i] = outent[1][i] = 
-  outent[2][i] = outent[3][i] = 0;
-
-  int start = OUT_MODE_SPH, end = OUT_MODE_SD, j;
-
   if (mode)
   {
-    IFIS (mode, "SPH")
+    if (PyString_Check (mode))
     {
-      start = end = OUT_MODE_SPH;
+      IFIS (mode, "SPH")
+      {
+	if (subset) outmode[i] = OUT_MODE_SPH;
+	else outrest[1] = OUT_MODE_SPH;
+      }
+      ELIF (mode, "MESH")
+      {
+	if (subset) outmode[i] = OUT_MODE_MESH;
+	else outrest[1] = OUT_MODE_MESH;
+      }
+      ELIF (mode, "RB")
+      {
+	if (subset) outmode[i] = OUT_MODE_RB;
+	else outmode[1] = OUT_MODE_RB;
+      }
+      ELIF (mode, "CD")
+      {
+	if (subset) outmode[i] = OUT_MODE_CD;
+	else outmode[1] = OUT_MODE_CD;
+      }
+      ELIF (mode, "SD")
+      {
+	if (subset) outmode[i] = OUT_MODE_SD;
+	else outmode[i] = OUT_MODE_SD;
+      }
+      ELSE
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid mode");
+	return NULL;
+      }
     }
-    ELIF (mode, "MESH")
+    else
     {
-      start = end = OUT_MODE_MESH;
-    }
-    ELIF (mode, "RB")
-    {
-      start = end = OUT_MODE_RB;
-    }
-    ELIF (mode, "CD")
-    {
-      start = end = OUT_MODE_CD;
-    }
-    ELIF (mode, "SD")
-    {
-      start = end = OUT_MODE_SD;
-    }
-    ELIF (mode, "ALL")
-    {
-      start = OUT_MODE_SPH; end = OUT_MODE_SD;
-    }
-    ELSE
-    {
-      PyErr_SetString (PyExc_ValueError, "Invalid mode");
-      return NULL;
+      if (subset) outmode[i] = 0;
+      else outrest[1] = 0;
+
+      for (int j = 0; j < PyList_Size (mode); j ++)
+      {
+	PyObject *item = PyList_GetItem (mode, j);
+
+	if (PyString_Check (item))
+	{
+	  IFIS (item, "SPH")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_SPH;
+	    else outrest[1] |= OUT_MODE_SPH;
+	  }
+	  ELIF (item, "MESH")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_MESH;
+	    else outrest[1] |= OUT_MODE_MESH;
+	  }
+	  ELIF (item, "RB")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_RB;
+	    else outmode[1] |= OUT_MODE_RB;
+	  }
+	  ELIF (item, "CD")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_CD;
+	    else outmode[1] |= OUT_MODE_CD;
+	  }
+	  ELIF (item, "SD")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_SD;
+	    else outmode[i] |= OUT_MODE_SD;
+	  }
+	  ELSE
+	  {
+	    PyErr_SetString (PyExc_ValueError, "Invalid mode");
+	    return NULL;
+	  }
+	}
+	else
+	{
+	  PyErr_SetString (PyExc_TypeError, "mode list item is not a string");
+	  return NULL;
+	}
+      }
     }
   }
+  else
+  {
+    if (subset) outmode[i] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+    else outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD; 
+  }
+
+  if (subset) outent[i] = 0;
+  else outrest[0] = 0;
 
   for (int j = 0; j < PyList_Size (entities); j ++)
   {
@@ -2369,122 +2443,73 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
     IFIS (item, "NUMBER")
     {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_NUMBER;
-      }
+      if (subset) outent[i] |= OUT_NUMBER;
+      else outrest[0] |= OUT_NUMBER;
     }
     ELIF (item, "COLOR")
     {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_COLOR;
-      }
+      if (subset) outent[i] |= OUT_COLOR;
+      else outrest[0] |= OUT_COLOR;
     }
     ELIF (item, "DISPL")
     {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_DISPL;
-      }
-    }
-    ELIF (item, "LINVEL")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_LINVEL;
-      }
-    }
-    ELIF (item, "ANGVEL")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_ANGVEL;
-      }
-    }
-    ELIF (item, "FORCE")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_FORCE;
-      }
-    }
-    ELIF (item, "TORQUE")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_TORQUE;
-      }
-    }
-    ELIF (item, "F")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_F;
-      }
-    }
-    ELIF (item, "FN")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_FN;
-      }
-    }
-    ELIF (item, "FT")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_FT;
-      }
-    }
-    ELIF (item, "SF")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_SF;
-      }
-    }
-    ELIF (item, "SFN")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_SFN;
-      }
-    }
-    ELIF (item, "SFT")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_SFT;
-      }
-    }
-    ELIF (item, "AREA")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_AREA;
-      }
-    }
-    ELIF (item, "NORMAL")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_NORMAL;
-      }
-    }
-    ELIF (item, "PAIR")
-    {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_PAIR;
-      }
+      if (subset) outent[i] |= OUT_DISPL;
+      else outrest[0] |= OUT_DISPL;
     }
     ELIF (item, "ORIENT")
     {
-      for (j = start; j <= end; j ++)
-      {
-        outent[j][i] |= OUT_ORIENT;
-      }
+      if (subset) outent[i] |= OUT_ORIENT;
+      else outrest[0] |= OUT_ORIENT;
+    }
+    ELIF (item, "LINVEL")
+    {
+      if (subset) outent[i] |= OUT_LINVEL;
+      else outrest[0] |= OUT_LINVEL;
+    }
+    ELIF (item, "ANGVEL")
+    {
+      if (subset) outent[i] |= OUT_ANGVEL;
+      else outrest[0] |= OUT_ANGVEL;
+    }
+    ELIF (item, "FORCE")
+    {
+      if (subset) outent[i] |= OUT_FORCE;
+      else outrest[0] |= OUT_FORCE;
+    }
+    ELIF (item, "TORQUE")
+    {
+      if (subset) outent[i] |= OUT_TORQUE;
+      else outrest[0] |= OUT_TORQUE;
+    }
+    ELIF (item, "F")
+    {
+      if (subset) outent[i] |= OUT_F;
+      else outrest[0] |= OUT_F;
+    }
+    ELIF (item, "FN")
+    {
+      if (subset) outent[i] |= OUT_FN;
+      else outrest[0] |= OUT_FN;
+    }
+    ELIF (item, "FT")
+    {
+      if (subset) outent[i] |= OUT_FT;
+      else outrest[0] |= OUT_FT;
+    }
+    ELIF (item, "SF")
+    {
+      if (subset) outent[i] |= OUT_SF;
+      else outrest[0] |= OUT_SF;
+    }
+    ELIF (item, "AREA")
+    {
+      if (subset) outent[i] |= OUT_AREA;
+      else outrest[0] |= OUT_AREA;
+    }
+    ELIF (item, "PAIR")
+    {
+      if (subset) outent[i] |= OUT_PAIR;
+      else outrest[0] |= OUT_PAIR;
     }
     ELSE
     {

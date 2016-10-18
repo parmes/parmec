@@ -27,9 +27,9 @@ for i in range (0, 10):
 SPRING (parnum, (i+1, i+1, i+1), -1, (i+1, i+1, i+1), [-1,-1E7, 1,1E7], [-1, -8E5, 1, 8E5])
 
 GRAVITY (0, 0, -10)
-                                      # default output files --> ./tests/output0.vtk.*
-OUTPUT (['NUMBER', 'LINVEL'], [0, 1]) # output files --> ./tests/output1.vtk.*
-OUTPUT (['NUMBER', 'FORCE', 'TORQUE'], [5, 6, 7]) # output files --> ./tests/output2.vtk.*
+                                      # default output files --> ./tests/output0*.vtk.*
+OUTPUT (['NUMBER', 'LINVEL'], [0, 1]) # output files --> ./tests/output1*.vtk.*
+OUTPUT (['NUMBER', 'FORCE', 'TORQUE'], [5, 6, 7]) # output files --> ./tests/output2*.vtk.*
 
 h = 0.2 * CRITICAL()
 

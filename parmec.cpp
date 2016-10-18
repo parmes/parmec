@@ -156,10 +156,11 @@ int history_buffer_size; /* size of history buffer */
 int history_list_size; /* size of history particle lists buffer */
 
 int outnum; /* number of output lists */
+int *outmode; /* output mode */
 int *outpart; /* output particle lists */
 int *outidx; /* output particle list start index */
-int *outent[4]; /* output entities per output mode */
-int outrest[4]; /* default output entities for unlisted particles */
+int *outent; /* output entities per output mode */
+int outrest[2]; /* 0: default output entities for unlisted particles and, 1: default output mode */
 int output_buffer_size; /* size of output buffer */
 int output_list_size; /* size of output particle lists buffer */
 
@@ -838,15 +839,13 @@ int output_buffer_init ()
   output_buffer_size = 256;
   output_list_size = 1024;
 
+  outmode = aligned_int_alloc (output_buffer_size);
   outpart = aligned_int_alloc (output_list_size);
   outidx = aligned_int_alloc (output_buffer_size+1);
-  outent[0] = aligned_int_alloc (output_buffer_size);
-  outent[1] = aligned_int_alloc (output_buffer_size);
-  outent[2] = aligned_int_alloc (output_buffer_size);
-  outent[3] = aligned_int_alloc (output_buffer_size);
-  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|
-    OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_SFN|OUT_SFT|OUT_AREA|OUT_NORMAL|OUT_PAIR|OUT_ORIENT;
-  outrest[1] = outrest[2] = outrest[3] = outrest[0];
+  outent = aligned_int_alloc (output_buffer_size);
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
+               OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
+  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
 
   outnum = 0;
   outidx[outnum] = 0;
@@ -859,11 +858,9 @@ void output_buffer_grow (int list_size)
   {
     output_buffer_size *= 2;
 
+    integer_buffer_grow (outmode, outnum, output_buffer_size);
     integer_buffer_grow (outidx, outnum, output_buffer_size+1);
-    integer_buffer_grow (outent[0], outnum, output_buffer_size);
-    integer_buffer_grow (outent[1], outnum, output_buffer_size);
-    integer_buffer_grow (outent[2], outnum, output_buffer_size);
-    integer_buffer_grow (outent[3], outnum, output_buffer_size);
+    integer_buffer_grow (outent, outnum, output_buffer_size);
   }
 
   if (output_list_size < outidx[outnum] + list_size)
@@ -895,9 +892,9 @@ void reset_all_data ()
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
-  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|
-    OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_SFN|OUT_SFT|OUT_AREA|OUT_NORMAL|OUT_PAIR|OUT_ORIENT;
-  outrest[1] = outrest[2] = outrest[3] = outrest[0];
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
+               OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
+  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
 
   pair_reset();
 }

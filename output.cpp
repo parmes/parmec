@@ -473,29 +473,18 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
 
   out << "DATASET UNSTRUCTURED_GRID\n";
 
-  out << "POINTS " << 2*num << " float\n";
+  out << "POINTS " << num << " float\n";
   for (i = 0; i < num; i ++)
   {
     j = set[i];
-    out << sprpnt[0][0][j] << " " << sprpnt[0][1][j] << " " << sprpnt[0][2][j] << "\n";
-    out << sprpnt[1][0][j] << " " << sprpnt[1][1][j] << " " << sprpnt[1][2][j] << "\n";
-  }
-
-  out << "CELLS " << num << " " << num << "\n"; /* FIXME --> if points coincide this format is not robust (ParaView crush) */
-  for (i = 0; i < num; i ++)
-  {
-    out << 2 << " " << 2*i << " " << 2*i+1 << "\n";
-  }
-
-  out << "CELL_TYPES " << num << "\n";
-  for (i = 0; i < num; i ++)
-  {
-    out << 3 << "\n";
+    out << 0.5*(sprpnt[0][0][j]+sprpnt[1][0][j]) << " "
+        << 0.5*(sprpnt[0][1][j]+sprpnt[1][1][j]) << " "
+	<< 0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]) << "\n";
   }
 
   if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR))
   {
-    out << "CELL_DATA " << num << "\n";
+    out << "POINT_DATA " << num << "\n";
   }
 
   if (ent & OUT_NUMBER)
@@ -510,7 +499,7 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_DISPL)
   {
-    out << "SCALARS displ int\n";
+    out << "SCALARS displ float\n";
     out << "LOOKUP_TABLE default\n";
     for (i = 0; i < num; i ++)
     {
@@ -519,7 +508,39 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     }
   }
 
-  /* TODO --> F, SF (decide whether scalar or vector), PAIR */
+  if (ent & OUT_ORIENT)
+  {
+    out << "VECTORS orient float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << (sprpnt[1][0][j]-sprpnt[0][0][j]) << " "
+	  << (sprpnt[1][1][j]-sprpnt[0][1][j]) << " "
+	  << (sprpnt[1][2][j]-sprpnt[0][2][j]) << "\n";
+    }
+  }
+
+  if (ent & OUT_F)
+  {
+    out << "SCALARS F float\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << sprfrc[0][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_SF)
+  {
+    out << "SCALARS SF float\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << sprfrc[1][j] << "\n";
+    }
+  }
 }
 
 /* output files */
@@ -564,18 +585,17 @@ void output_files ()
 
     for (j = -1; j < outnum; j ++)
     {
-      oss.str("");
-      oss.clear();
-      oss << outpath << j+1 << "rb.vtk." << output_frame;
-      out.open (oss.str().c_str());
-
-
-      out << "# vtk DataFile Version 2.0\n";
-      out << "PARMEC rigid bodies output\n";
-      out << "ASCII\n";
-
-      if (j < 0) /* output unselected particles */
+      if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << "rb.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC rigid bodies output\n";
+	out << "ASCII\n";
+
 	for (num = i = 0; i < parnum; i ++)
 	{
 	  if (flags[i] & OUTREST)
@@ -584,14 +604,25 @@ void output_files ()
 	  }
 	}
 
-	output_rb_dataset (num, set, outrest[OUT_MODE_RB], out);
+	output_rb_dataset (num, set, outrest[0], out);
+
+        out.close();
       }
-      else /* output selected particles */
+      else if (outmode[j] & OUT_MODE_RB) /* output selected particles */
       {
-	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[OUT_MODE_RB][j], out);
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << "rb.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC rigid bodies output\n";
+	out << "ASCII\n";
+
+	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[j], out);
+
+        out.close();
       }
-   
-      out.close();
     }
 
     delete set;
@@ -605,18 +636,17 @@ void output_files ()
 
     for (j = -1; j < outnum; j ++)
     {
-      oss.str("");
-      oss.clear();
-      oss << outpath << j+1 << ".vtk." << output_frame;
-      out.open (oss.str().c_str());
-
-
-      out << "# vtk DataFile Version 2.0\n";
-      out << "PARMEC triangles output\n";
-      out << "ASCII\n";
-
-      if (j < 0) /* output unselected triangles */
+      if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
       {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << ".vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC triangles output\n";
+	out << "ASCII\n";
+
 	for (num = i = 0; i < trinum; i ++)
 	{
 	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
@@ -629,16 +659,27 @@ void output_files ()
 	  }
 	}
 
-	output_triangle_dataset (num, set, outrest[OUT_MODE_MESH], out);
+	output_triangle_dataset (num, set, outrest[0], out);
+
+	out.close();
       }
-      else /* output selected triangles */
+      else if (outmode[j] & OUT_MODE_MESH) /* output selected triangles */
       {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << ".vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC triangles output\n";
+	out << "ASCII\n";
+
 	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
-	if (num) output_triangle_dataset (num, set, outent[OUT_MODE_MESH][j], out);
+	if (num) output_triangle_dataset (num, set, outent[j], out);
+
+        out.close();
       }
-   
-      out.close();
     }
 
     delete set;
@@ -658,17 +699,17 @@ void output_files ()
 
     for (j = -1; j < outnum; j ++)
     {
-      oss.str("");
-      oss.clear();
-      oss << outpath << j+1 << "sd.vtk." << output_frame;
-      out.open (oss.str().c_str());
-
-      out << "# vtk DataFile Version 2.0\n";
-      out << "PARMEC springs output\n";
-      out << "ASCII\n";
-
-      if (j < 0) /* output springs attached to unselected particles */
+      if (j < 0 && (outrest[1] & OUT_MODE_SD)) /* output springs attached to unselected particles */
       {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << "sd.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC springs output\n";
+	out << "ASCII\n";
+
 	for (num = i = 0; i < sprnum; i ++)
 	{
 	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
@@ -681,10 +722,21 @@ void output_files ()
 	  if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
 	}
 
-	output_spring_dataset (num, set, outrest[OUT_MODE_SD], out);
+	output_spring_dataset (num, set, outrest[0], out);
+
+        out.close();
       }
-      else /* output springs attached to selected particles */
+      else if (outmode[j] & OUT_MODE_SD) /* output springs attached to selected particles */
       {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << "sd.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC springs output\n";
+	out << "ASCII\n";
+
 	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
 	{
 	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
@@ -693,10 +745,10 @@ void output_files ()
 	  }
 	}
 
-	if (num) output_spring_dataset (num, set, outent[OUT_MODE_SD][j], out);
+	if (num) output_spring_dataset (num, set, outent[j], out);
+
+        out.close();
       }
-   
-      out.close();
     }
 
     delete set;

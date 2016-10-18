@@ -1771,8 +1771,8 @@ OUTPUT (entities | subset, mode)
 entities
 \series default
  - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'ORIENT',
- 'LINVEL', 'ANGVEL', 'FORCE', 'TORQUE', 'F', 'FN', 'FT', 'SF', 'SFN', 'SFT',
- 'AREA', 'NORMAL', 'PAIR'] where:
+ 'LINVEL', 'ANGVEL', 'FORCE', 'TORQUE', 'F', 'FN', 'FT', 'SF', 'AREA', 'PAIR']
+ where:
 \end_layout
 
 \begin_deeper
@@ -1794,7 +1794,8 @@ entities
 
 \begin_layout Itemize
 'ORIENT' - three 3-component vector fields representing columns of rigid
- rotation matrix (orientation vectors) (modes: 'RB')
+ rotation matrix (orientation vectors) (modes: 'RB'), or 3-component vector
+ field of spring orientations (modes: 'SD')
 \end_layout
 
 \begin_layout Itemize
@@ -1818,8 +1819,8 @@ entities
 \end_layout
 
 \begin_layout Itemize
-'F' - 3-component vector field of total contact or spring forces (modes:
- 'CD', 'SD')
+'F' - 3-component vector field of total contact forces (modes: 'CD'), or
+ scalar field of total spring forces (modes: 'SD')
 \end_layout
 
 \begin_layout Itemize
@@ -1831,26 +1832,12 @@ entities
 \end_layout
 
 \begin_layout Itemize
-'SF' - 3-component vector field of spring forces, without dashpot contribution
+'SF' - scalar field of spring force magnitude, without dashpot contribution
  (modes: 'CD', 'SD')
 \end_layout
 
 \begin_layout Itemize
-'SFN' - 3-component vector field of normal spring forces, without dashpot
- contribution (modes: 'CD')
-\end_layout
-
-\begin_layout Itemize
-'SFT' - 3-component vector field of tangential spring forces, without dashpot
- contribution (modes: 'CD')
-\end_layout
-
-\begin_layout Itemize
 'AREA' - scalar field of contact area (modes: 'CD')
-\end_layout
-
-\begin_layout Itemize
-'NORMAL' - 3-component vector field of contact normals (modes: 'CD')
 \end_layout
 
 \begin_layout Itemize
@@ -1880,7 +1867,7 @@ i, j, ...
 \series bold
 mode
 \series default
- - optional mode: 'SPH' for sphere 
+ - optional output mode or list of output modes: 'SPH' for sphere 
 \begin_inset Note Note
 status open
 
@@ -1891,8 +1878,8 @@ and ellipsoid
 \end_inset
 
  output, 'MESH' for mesh output, 'RB' for rigid body output, 'CD' for contact
- data output, 'SD' for spring data output, 'ALL' for all output; default:
- 'ALL'
+ data output, 'SD' for spring data output; default: ['SPH', 'MESH', 'RB',
+ 'CD', 'SD']
 \end_layout
 
 \begin_layout Chapter

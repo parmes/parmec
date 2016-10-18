@@ -167,10 +167,11 @@ extern int history_list_size; /* size of history particle lists buffer */
 extern void history_buffer_grow (int list_size); /* grow buffer */
 
 extern int outnum; /* number of output lists */
+extern int *outmode; /* output mode */
 extern int *outpart; /* output particle lists */
 extern int *outidx; /* output particle list start index */
-extern int *outent[4]; /* output entities per output mode */
-extern int outrest[4]; /* default output entities for unlisted particles */
+extern int *outent; /* output entities per output mode */
+extern int outrest[2]; /* 0: default output entities for unlisted particles and, 1: default output mode */
 extern int output_buffer_size; /* size of output buffer */
 extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */
