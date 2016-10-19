@@ -1,7 +1,26 @@
+import os, sys
+
+def where(program):
+  for path in os.environ["PATH"].split(os.pathsep):
+    if os.path.exists(os.path.join(path, program)):
+      return path
+  return None
+
+path = where('parmec4')
+
+if path == None:
+  print 'ERROR: parmec4 not found in PATH!'
+  sys.exit(1)
+
+print '(Found parmec4 at:', path + ')'
+
 print '=================================='
 print 'PARMEC: acceleration sweep example'
 print '=================================='
-from math import sin, cos, pi
+
+sys.path.append(os.path.join (path, 'python'))
+
+from acc_sweep import *
 
 stop = 5.0   # duration of the simulation
 ostp = 0.05  # output step
@@ -14,12 +33,6 @@ l = 0.1      # length of one body
 w = 0.1      # widhth of one body
 h = 0.1      # height of one body
 gap = 0.002  # gap
-
-def linacc(t): # acceleration sweep function
-  a = amag * sin (2.0*pi*(lofq+(hifq-lofq)*t/stop)*t)
-  return (0, a, 0)
-
-def angvel(t): return (0, 0, 0) # prescribed angular velocity
 
 def nodes(x,y,z): # cube corner nodes
   return [x, y, z,
@@ -40,9 +53,6 @@ for i in range (0, nbod+2):
   j = MESH (nodes(0, i*(l+gap), 0), elements, matnum, i)
   parnum.append (j)
 
-PRESCRIBE (parnum[0], linacc, angvel, kind = 'av')
-PRESCRIBE (parnum[nbod+1], linacc, angvel, kind = 'av')
-
 spring = [-1.0-gap, -1E5, -gap, 0.0, 1.0, 0.0]
 damper = [-1.0, -0.9E3, 1.0, 0.9E3]
 
@@ -60,11 +70,32 @@ for i in range (0, nbod+1):
   p1 =  (0, (i+1)*(l+gap), h)
   SPRING (parnum[i], p0, parnum[i+1], p1, spring, damper, (0, 1, 0))
 
-t = HISTORY ('TIME')
-vx = HISTORY ('VX', parnum[1])
-dx = HISTORY ('DX', parnum[1])
+step = 0.2 * CRITICAL()
 
-step = 0.9 * CRITICAL()
+print 'Time step:', step
+
+(vt, vd, vv, va) = acc_sweep (step, stop, lofq, hifq, amag)
+
+try:
+  from scipy.interpolate import interp1d
+except:
+  print 'ERROR: SciPy interp1d failed to load -->'
+  print '       perhaps SciPy needs to be installed'
+  sys.exit(1)
+
+vel = interp1d(vt, vv) # acceleration sweep linear spline
+
+def linvel(t): # acceleration sweep function
+  return (0, vel(t), 0)
+
+def angvel(t): return (0, 0, 0) # prescribed angular velocity
+
+PRESCRIBE (parnum[0], linvel, angvel, kind = 'vv')
+PRESCRIBE (parnum[nbod+1], linvel, angvel, kind = 'vv')
+
+t = HISTORY ('TIME')
+vx = HISTORY ('VX', parnum[1]) # FIXME: these time histories are zero upon termination
+dx = HISTORY ('DX', parnum[1])
 
 DEM (stop, step, ostp)
 
