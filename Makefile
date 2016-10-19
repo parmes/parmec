@@ -14,14 +14,14 @@ ISPC_TARGETS=sse2,sse4,avx
 PYTHONINC=-I/usr/include/python2.7
 PYTHONLIB=-L/usr/lib -lpython2.7
 
-# Program name
-EXE=parmec
-
-# Floating point type
-REAL=float
-
 # Debug version
 DEBUG=yes
+
+# Library name
+LIB=libparmec
+
+# Program name
+EXE=parmec
 
 # Do the rest
 include common.mk

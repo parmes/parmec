@@ -1,4 +1,10 @@
+libparmec
 parmec
-objs/*
+objs4/*
+objs8/*
+parmec4.h
+parmec8.h
+condet4.h
+condet8.h
 *.swp
 *.pyc

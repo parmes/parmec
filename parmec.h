@@ -28,10 +28,10 @@ SOFTWARE.
 #ifndef __parmec__
 #define __parmec__
 
-/* === parmec.cpp === */
+#ifdef __cplusplus
+namespace parmec { /* namespace */
+#endif
 
-namespace parmec
-{
 typedef void* callback_t; /* generall Python callback */
 
 extern int threads; /* number of hardware threads */
@@ -176,19 +176,27 @@ extern int output_buffer_size; /* size of output buffer */
 extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */
 
-extern void reset_all_data (); /* reset all simulation data */
-
 extern void declare_analytical (int k); /* declare particle 'k' analytical */
-}
 
-/* === input.cpp === */
+/**************** library interface ****************/
+
+#ifdef __cplusplus
+extern "C"{ /* __cplusplus */
+#endif
+
+void init (); /* init memory */
+
+void reset (); /* reset all simulation data */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-/* === output.cpp === */
+REAL dem (REAL duration, REAL step, REAL interval[2], char *prefix, int verbose, int output); /* run DEM simulation (return timed duration) */
 
-void output_files (); /* output files */
+#ifdef __cplusplus
+} /* __cplusplus */
+#endif
 
-void output_history (); /* output time history */
-
+#ifdef __cplusplus
+} /* namespace */
+#endif
 #endif

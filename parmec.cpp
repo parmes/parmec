@@ -25,16 +25,37 @@ SOFTWARE.
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <omp.h>
 #include "macros.h"
 #include "parmec.h"
+#include "timer.h"
+#include "mesh.h"
+#include "input.h"
+#include "output.h"
+#include "constants.h"
 #include "parmec_ispc.h"
-#include "condet_ispc.h"
+#include "partition_ispc.h"
+#include "forces_ispc.h"
+#include "dynamics_ispc.h"
+#include "shapes_ispc.h"
+#include "obstacles_ispc.h"
+#include "constrain_ispc.h"
 
 using namespace parmec;
 using namespace ispc; /* ISPC calls are used below */
 
-namespace parmec
-{
+#ifdef __cplusplus
+namespace parmec { /* namespace */
+#endif
+
 char *outpath; /* output path */
 
 int threads; /* number of hardware threads */
@@ -870,35 +891,6 @@ void output_buffer_grow (int list_size)
   }
 }
 
-/* reset all data */
-void reset_all_data ()
-{
-  curtime = 0.0;
-
-  matnum = 0;
-  pairnum = 0;
-  ellnum = 0;
-  ellcon = 0;
-  parnum = 0;
-  trinum = 0;
-  tricon = 0;
-  nodnum = 0;
-  elenum = 0;
-  facnum = 0;
-  faccon = 0;
-  obsnum = 0;
-  sprnum = 0;
-  cnsnum = 0;
-  prsnum = 0;
-  hisnum = 0;
-  outnum = 0;
-  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
-               OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
-  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
-
-  pair_reset();
-}
-
 /* try shuffle ellipsoids */
 static int shuffle_ellipsoids (int k)
 {
@@ -1092,53 +1084,270 @@ void declare_analytical (int k)
   /* if no ellipsoids use this particle, try shuffle faces (and triangles) */
   if (!ok) shuffle_faces (k);
 }
-} /* end of namespace */
 
-int main (int argc, char *argv[])
+/* progress bar by Ross Hemsley;
+ * http://www.rosshemsley.co.uk/2011/02/creating-a-progress-bar-in-c-or-any-other-console-app/ */
+static void progressbar (unsigned int x, unsigned int n, unsigned int w = 50)
 {
-  if (argc == 1)
+  if (n < 100)
   {
-    printf ("SYNOPSIS: parmec [-threads n] path/to/file.py\n");
-    printf ("         -threads n: number of threads (default: hardware supported maximum)\n");
-    return 1;
-  }
-  else
-  {
-    material_buffer_init ();
-    pair_buffer_init ();
-    ellipsoid_buffer_init ();
-    particle_buffer_init ();
-    triangle_buffer_init ();
-    element_buffer_init ();
-    obstacle_buffer_init ();
-    spring_buffer_init ();
-    constrain_buffer_init ();
-    prescribe_buffer_init ();
-    history_buffer_init ();
-    output_buffer_init ();
-    reset_all_data ();
-
-    if (strcmp (argv[1], "-threads") == 0 && argc > 2)
-    {
-      threads = atoi (argv[2]);
-    }
-    else threads = ispc_num_cores();
-
-    int len = strlen (argv[argc-1]);
-    ERRMEM (outpath = new char [len+1]);
-    strcpy (outpath, argv[argc-1]);
-   
-    if (outpath[len-3] != '.' ||
-        outpath[len-2] != 'p' ||
-	outpath[len-1] != 'y')
-    {
-      fprintf (stderr, "ERROR: input file does not have '.py' extension!\n");
-      return 2;
-    }
-    else outpath[len-3] = '\0';
-
-    input (argv[argc-1]);
+    x *= 100/n;
+    n = 100;
   }
 
-  return 0;
+  if ((x != n) && (x % (n/100) != 0)) return;
+
+  using namespace std;
+       
+  float ratio  =  x/(float)n;
+  int c =  ratio * w;
+	        
+  cout << setw(3) << (int)(ratio*100) << "% [";
+  for (int x=0; x<c; x++) cout << "=";
+  for (int x=c; x<w; x++) cout << " ";
+  cout << "]\r" << flush;
 }
+
+/* temporary surface pairing */
+struct pair
+{
+  int color1;
+  int color2;
+  REAL iparam[NIPARAM];
+};
+
+/* material comparison by color pair */
+struct cmp
+{
+  bool operator() (const pair& a, const pair& b)
+  {
+    if (a.color1 == b.color1) return a.color2 < b.color2;
+    else return a.color1 < b.color1;
+  }
+};
+
+/* sort materials according to surface color pairs */
+static void sort_materials ()
+{
+  std::vector<pair> v;
+
+  v.reserve (pairnum);
+
+  for (int i = 0; i < pairnum; i++)
+  {
+    pair x;
+
+    x.color1 = pairs[2*i];
+    x.color2 = pairs[2*i+1];
+    for (int j = 0; j < NIPARAM; j ++) x.iparam[j] = iparam[j][i];
+
+    v.push_back (x);
+  }
+
+  std::sort (v.begin(), v.end(), cmp());
+
+  int i = 0;
+
+  for (std::vector<pair>::const_iterator p = v.begin(); p != v.end(); ++p, ++i)
+  {
+    pairs[2*i] = p->color1;
+    pairs[2*i+1] = p->color2;
+    for (int j = 0; j < NIPARAM; j ++) iparam[j][i] = p->iparam[j];
+  }
+}
+
+#ifdef __cplusplus
+extern "C"{ /* __cplusplus */
+#endif
+
+/* init parmec library */
+void init()
+{
+  material_buffer_init ();
+  pair_buffer_init ();
+  ellipsoid_buffer_init ();
+  particle_buffer_init ();
+  triangle_buffer_init ();
+  element_buffer_init ();
+  obstacle_buffer_init ();
+  spring_buffer_init ();
+  constrain_buffer_init ();
+  prescribe_buffer_init ();
+  history_buffer_init ();
+  output_buffer_init ();
+  reset ();
+}
+
+/* reset all data */
+void reset ()
+{
+  curtime = 0.0;
+
+  matnum = 0;
+  pairnum = 0;
+  ellnum = 0;
+  ellcon = 0;
+  parnum = 0;
+  trinum = 0;
+  tricon = 0;
+  nodnum = 0;
+  elenum = 0;
+  facnum = 0;
+  faccon = 0;
+  obsnum = 0;
+  sprnum = 0;
+  cnsnum = 0;
+  prsnum = 0;
+  hisnum = 0;
+  outnum = 0;
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
+               OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
+  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+
+  pair_reset();
+}
+
+/* run DEM simulation */
+REAL dem (REAL duration, REAL step, REAL interval[2], char *prefix, int verbose, int output)
+{
+  REAL time, t0, t1, dt;
+  timing tt;
+
+  timerstart (&tt);
+
+  if (prefix)
+  {
+    char *out;
+    int len, i;
+    len = strlen (outpath);
+    for (i = len-1; i >= 0; i --)
+    {
+      if (outpath[i] == '/' || /* unix */
+	  outpath[i] == '\\') break; /* windows */
+    }
+    len = (i+1) + strlen (prefix) + 1;
+    ERRMEM (out = new char [len]);
+    outpath[i+1] = '\0';
+    strcpy (out, outpath);
+    strcpy (out+i+1, prefix);
+    delete outpath;
+    outpath = out;
+  }
+
+  REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
+  REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
+  REAL *iorient[18] = {orient[0]+ellcon, orient[1]+ellcon, orient[2]+ellcon, orient[3]+ellcon, orient[4]+ellcon, orient[5]+ellcon,
+		       orient[6]+ellcon, orient[7]+ellcon, orient[8]+ellcon, orient[9]+ellcon, orient[10]+ellcon, orient[11]+ellcon,
+		       orient[12]+ellcon, orient[13]+ellcon, orient[14]+ellcon, orient[15]+ellcon, orient[16]+ellcon, orient[17]+ellcon};
+  REAL *itri[3][3] = {{tri[0][0]+tricon, tri[0][1]+tricon, tri[0][2]+tricon},
+		      {tri[1][0]+tricon, tri[1][1]+tricon, tri[1][2]+tricon},
+		      {tri[2][0]+tricon, tri[2][1]+tricon, tri[2][2]+tricon}};
+  int *ifacnod[3] = {facnod[0]+faccon, facnod[1]+faccon, facnod[2]+faccon};
+
+  sort_materials ();
+
+  if (curtime == 0.0)
+  {
+    output_files ();
+
+    output_history ();
+
+    euler (threads, parnum, angular, linear, rotation, position, 0.5*step);
+
+    shapes (threads, ellnum, part, center, radii, orient, nodnum, nodes,
+            nodpart, NULL, facnum, facnod, factri, tri, rotation, position);
+
+    obstaclev (obsnum, obsang, obslin, anghis, linhis, 0.5*step);
+
+    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
+  }
+
+  invert_inertia (threads, parnum, inertia, inverse, mass, invm);
+
+  constrain_velocities (threads, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+
+  partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
+
+  /* time stepping */
+  for (t0 = t1 = time = 0.0; time < duration; time += step)
+  {
+    if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
+    {
+      partitioning_destroy (tree);
+
+      tree = partitioning_create (threads, ellnum-ellcon, icenter);
+
+      ASSERT (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) == 0, "Repartitioning failed");
+    }
+
+    condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
+            icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
+
+    forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
+            mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step,
+            sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir, sprdirup, stroke0,
+	    stroke, sprfrc, gravity, force, torque);
+
+    constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
+
+    prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
+                            angkind, time, mass, inertia, force, torque);
+
+    dynamics (threads, master, slave, parnum, angular, linear, rotation,
+              position, inertia, inverse, mass, invm, force, torque, step);
+
+    prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
+                        angkind, time, rotation, linear, angular);
+
+    if (time >= t0 + interval[0]) /* full update, due to output */
+    {
+      shapes (threads, ellnum, part, center, radii, orient,
+	      nodnum, nodes, nodpart, NULL, facnum, facnod,
+	      factri, tri, rotation, position);
+    }
+    else /* partial update, skipping analytical particles */
+    {
+      shapes (threads, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
+	      nodnum, nodes, nodpart, flags, facnum-faccon, ifacnod,
+	      factri+faccon, tri, rotation, position);
+    }
+
+    obstaclev (obsnum, obsang, obslin, anghis, linhis, time+step);
+
+    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
+
+    if (output && time >= t0 + interval[0])
+    {
+      output_files ();
+
+      t0 += interval[0];
+    }
+
+    if (output && time >= t1 + interval[1])
+    {
+      output_history ();
+
+      t1 += interval[1];
+    }
+
+    if (verbose) progressbar (time/step, duration/step);
+
+    curtime += step;
+  }
+
+  partitioning_destroy (tree);
+
+  dt = timerend (&tt);
+
+  printf("[ ===             %10.3f sec                    === ]\n", dt);
+
+  return dt;
+}
+
+#ifdef __cplusplus
+} /* __cplusplus */
+#endif
+
+#ifdef __cplusplus
+} /* namespace */
+#endif
