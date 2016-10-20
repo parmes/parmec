@@ -1613,6 +1613,22 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
+/* set global damping */
+static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("linear", "angular");
+  PyObject *linear, *angular;
+
+  PARSEKEYS ("OO", &linear, &angular);
+
+  TYPETEST (is_callable (linear, kwl[0]) && is_callable (angular, kwl[1]));
+
+  lindamp = linear;
+  angdamp = angular;
+
+  Py_RETURN_NONE;
+}
+
 /* ISPC calls are used below */
 using namespace ispc;
 
@@ -1622,173 +1638,6 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
   REAL h = critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
 
   return PyFloat_FromDouble (h);
-}
-
-/* update obstacles time histories from callbacks */
-void obstaclev (int obsnum, REAL *obsang, REAL *obslin, callback_t anghis[], callback_t linhis[], REAL time)
-{
-  PyObject *result, *args;
-  int i;
-
-  args = Py_BuildValue ("(d)", time);
-
-  for (i = 0; i < obsnum; i ++, obsang += 3, obslin += 3)
-  {
-    if (anghis[i])
-    {
-      result = PyObject_CallObject ((PyObject*)anghis[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Obstacle angular velocity callback did not return a (ox, oy, oz) tuple");
-
-      obsang[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-      obsang[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-      obsang[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-      Py_DECREF (result);
-    }
-    else
-    {
-      SET (obsang, 0.0);
-    }
-
-    if (linhis[i])
-    {
-      result = PyObject_CallObject ((PyObject*)linhis[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Obstacle linear velocity callback did not return a (vx, vy, vz) tuple");
-
-      obslin[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-      obslin[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-      obslin[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-      Py_DECREF (result);
-    }
-    else
-    {
-      SET (obslin, 0.0);
-    }
-  }
-
-  Py_DECREF (args);
-}
-
-/* prescribe particle acceleration */
-void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
-  REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3])
-{
-  PyObject *result, *args;
-  int i, j;
-
-  args = Py_BuildValue ("(d)", time);
-
-  for (i = 0; i < prsnum; i ++)
-  {
-    j = prspart[i];
-
-    if (prslin[i] && linkind[i] == 1)
-    {
-      result = PyObject_CallObject ((PyObject*)prslin[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear acceleration callback did not return a (ax, ay, az) tuple");
-
-      REAL acc[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
-                     PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
-                     PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
-
-      REAL ma = mass[j];
-
-      force[0][j] = ma * acc[0];
-      force[1][j] = ma * acc[1];
-      force[2][j] = ma * acc[2];
-
-      Py_DECREF (result);
-    }
-
-    if (prsang[i] && angkind[i] == 1)
-    {
-      result = PyObject_CallObject ((PyObject*)prsang[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular acceleration callback did not return a (ox, oy, oz) tuple");
-
-      REAL acc[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
-                     PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
-                     PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
-
-      REAL in[9] = {inertia[0][j], inertia[1][j], inertia[2][j],
-                    inertia[3][j], inertia[4][j], inertia[5][j],
-		    inertia[6][j], inertia[7][j], inertia[8][j]};
-
-      REAL to[3];
-
-      NVMUL (in, acc, to);
-
-      torque[0][j] = to[0];
-      torque[1][j] = to[1];
-      torque[2][j] = to[2];
-
-      Py_DECREF (result);
-    }
-  }
-
-  Py_DECREF (args);
-}
-
-/* prescribe particle velocity */
-void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
-  REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6])
-{
-  PyObject *result, *args;
-  int i, j;
-
-  args = Py_BuildValue ("(d)", time);
-
-  for (i = 0; i < prsnum; i ++)
-  {
-    j = prspart[i];
-
-    if (prslin[i] && linkind[i] == 0)
-    {
-      result = PyObject_CallObject ((PyObject*)prslin[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear velocity callback did not return a (vx, vy, vz) tuple");
-
-      linear[0][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-      linear[1][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-      linear[2][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-      Py_DECREF (result);
-    }
-
-    if (prsang[i] && angkind[i] == 0)
-    {
-      result = PyObject_CallObject ((PyObject*)prsang[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular velocity callback did not return a (ox, oy, oz) tuple");
-
-      REAL o[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
-                   PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
-                   PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
-
-      REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
-                   rotation[3][j], rotation[4][j], rotation[5][j],
-		   rotation[6][j], rotation[7][j], rotation[8][j]};
-
-      REAL O[3];
-
-      TVMUL (L, o, O);
-
-      angular[0][j] = O[0];
-      angular[1][j] = O[1];
-      angular[2][j] = O[2];
-      angular[3][j] = o[0];
-      angular[4][j] = o[1];
-      angular[5][j] = o[2];
-
-      Py_DECREF (result);
-    }
-  }
-
-  Py_DECREF (args);
 }
 
 /* run DEM simulation */
@@ -1842,7 +1691,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else pre = NULL;
 
-  duration = dem (duration, step, dt, pre, 1, 1);
+  duration = dem (duration, step, dt, pre, 1);
 
   return Py_BuildValue ("d", duration); /* PyFloat_FromDouble (dt) */
 }
@@ -2344,6 +2193,7 @@ static PyMethodDef methods [] =
   {"PRESCRIBE", (PyCFunction)PRESCRIBE, METH_VARARGS|METH_KEYWORDS, "Prescribe particle motion"},
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
+  {"DAMPING", (PyCFunction)DAMPING, METH_VARARGS|METH_KEYWORDS, "Set global damping"},
   {"CRITICAL", (PyCFunction)CRITICAL, METH_NOARGS, "Estimate critical time step"},
   {"DEM", (PyCFunction)DEM, METH_VARARGS|METH_KEYWORDS, "Run DEM simulation"},
   {"HISTORY", (PyCFunction)HISTORY, METH_VARARGS|METH_KEYWORDS, "Time history output"},
@@ -2352,7 +2202,8 @@ static PyMethodDef methods [] =
 };
 
 namespace parmec
-{
+{ /* namespace */
+
 /* interpret an input file (return 0 on success) */
 int input (const char *path)
 {
@@ -2375,6 +2226,7 @@ int input (const char *path)
                       "from parmec import PRESCRIBE\n"
                       "from parmec import VELOCITY\n"
                       "from parmec import GRAVITY\n"
+                      "from parmec import DAMPING\n"
                       "from parmec import CRITICAL\n"
                       "from parmec import DEM\n"
                       "from parmec import HISTORY\n"
@@ -2389,4 +2241,214 @@ int input (const char *path)
 
   return error;
 }
+
+/* update obstacles time histories from callbacks */
+void obstaclev (int obsnum, REAL *obsang, REAL *obslin, callback_t anghis[], callback_t linhis[], REAL time)
+{
+  PyObject *result, *args;
+  int i;
+
+  args = Py_BuildValue ("(d)", time);
+
+  for (i = 0; i < obsnum; i ++, obsang += 3, obslin += 3)
+  {
+    if (anghis[i])
+    {
+      result = PyObject_CallObject ((PyObject*)anghis[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Obstacle angular velocity callback did not return a (ox, oy, oz) tuple");
+
+      obsang[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+      obsang[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+      obsang[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+      Py_DECREF (result);
+    }
+    else
+    {
+      SET (obsang, 0.0);
+    }
+
+    if (linhis[i])
+    {
+      result = PyObject_CallObject ((PyObject*)linhis[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Obstacle linear velocity callback did not return a (vx, vy, vz) tuple");
+
+      obslin[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+      obslin[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+      obslin[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+      Py_DECREF (result);
+    }
+    else
+    {
+      SET (obslin, 0.0);
+    }
+  }
+
+  Py_DECREF (args);
 }
+
+/* prescribe particle acceleration */
+void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
+  REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3])
+{
+  PyObject *result, *args;
+  int i, j;
+
+  args = Py_BuildValue ("(d)", time);
+
+  for (i = 0; i < prsnum; i ++)
+  {
+    j = prspart[i];
+
+    if (prslin[i] && linkind[i] == 1) /* prescribed acceleration --> set up force */
+    {
+      result = PyObject_CallObject ((PyObject*)prslin[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear acceleration callback did not return a (ax, ay, az) tuple");
+
+      REAL acc[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
+
+      REAL ma = mass[j];
+
+      force[0][j] = ma * acc[0];
+      force[1][j] = ma * acc[1];
+      force[2][j] = ma * acc[2];
+
+      Py_DECREF (result);
+    }
+    else if (prslin[i] && linkind[i] == 0) /* prescribed velocity --> zero force */
+    {
+      force[0][j] = 0.0;
+      force[1][j] = 0.0;
+      force[2][j] = 0.0;
+    }
+
+    if (prsang[i] && angkind[i] == 1) /* prescribed acceleration --> set up torque */
+    {
+      result = PyObject_CallObject ((PyObject*)prsang[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular acceleration callback did not return a (ox, oy, oz) tuple");
+
+      REAL acc[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
+                     PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
+
+      REAL in[9] = {inertia[0][j], inertia[1][j], inertia[2][j],
+                    inertia[3][j], inertia[4][j], inertia[5][j],
+		    inertia[6][j], inertia[7][j], inertia[8][j]};
+
+      REAL to[3];
+
+      NVMUL (in, acc, to);
+
+      torque[0][j] = to[0];
+      torque[1][j] = to[1];
+      torque[2][j] = to[2];
+
+      Py_DECREF (result);
+    }
+    else if (prsang[i] && angkind[i] == 0) /* prescribed velocity --> zero torque */
+    {
+      torque[0][j] = 0.0;
+      torque[1][j] = 0.0;
+      torque[2][j] = 0.0;
+    }
+  }
+
+  Py_DECREF (args);
+}
+
+/* prescribe particle velocity */
+void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
+  REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6])
+{
+  PyObject *result, *args;
+  int i, j;
+
+  args = Py_BuildValue ("(d)", time);
+
+  for (i = 0; i < prsnum; i ++)
+  {
+    j = prspart[i];
+
+    if (prslin[i] && linkind[i] == 0)
+    {
+      result = PyObject_CallObject ((PyObject*)prslin[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear velocity callback did not return a (vx, vy, vz) tuple");
+
+      linear[0][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+      linear[1][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+      linear[2][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+      Py_DECREF (result);
+    }
+
+    if (prsang[i] && angkind[i] == 0)
+    {
+      result = PyObject_CallObject ((PyObject*)prsang[i], args);
+
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular velocity callback did not return a (ox, oy, oz) tuple");
+
+      REAL o[3] = {PyFloat_AsDouble(PyTuple_GetItem (result, 0)),
+                   PyFloat_AsDouble(PyTuple_GetItem (result, 1)),
+                   PyFloat_AsDouble(PyTuple_GetItem (result, 2))};
+
+      REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
+                   rotation[3][j], rotation[4][j], rotation[5][j],
+		   rotation[6][j], rotation[7][j], rotation[8][j]};
+
+      REAL O[3];
+
+      TVMUL (L, o, O);
+
+      angular[0][j] = O[0];
+      angular[1][j] = O[1];
+      angular[2][j] = O[2];
+      angular[3][j] = o[0];
+      angular[4][j] = o[1];
+      angular[5][j] = o[2];
+
+      Py_DECREF (result);
+    }
+  }
+
+  Py_DECREF (args);
+}
+
+/* read global damping */
+void read_damping (REAL time, callback_t lindamp, callback_t angdamp, REAL damping[6])
+{
+  if (lindamp && angdamp)
+  {
+    PyObject *result, *args;
+
+    args = Py_BuildValue ("(d)", time);
+
+    result = PyObject_CallObject ((PyObject*)lindamp, args);
+    ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dvx, dvy, dvz) tuple");
+    damping[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+    damping[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+    damping[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+    Py_DECREF (result);
+
+    result = PyObject_CallObject ((PyObject*)angdamp, args);
+    ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dox, doy, doz) tuple");
+    damping[3] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+    damping[4] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+    damping[5] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+    Py_DECREF (result);
+
+    Py_DECREF (args);
+  }
+  else
+  {
+    damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;
+  }
+}
+} /* namespace */

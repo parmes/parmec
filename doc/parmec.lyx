@@ -1489,6 +1489,103 @@ gz
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "subsec:DAMPING"
+
+\end_inset
+
+DAMPING
+\end_layout
+
+\begin_layout Standard
+Set global damping, applied as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{force}=-m\left[\begin{array}{c}
+-d_{vx}v_{x}\\
+-d_{vy}v_{y}\\
+-d_{vz}v_{z}
+\end{array}\right],\text{ torque}=-\mathbf{\Lambda}\mathbf{J}\mathbf{\Lambda}^{T}\left[\begin{array}{c}
+-d_{\omega x}\omega_{x}\\
+-d_{\omega y}\omega_{y}\\
+-d_{\omega z}\omega_{z}
+\end{array}\right]
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $m$
+\end_inset
+
+ is scalar mass, 
+\begin_inset Formula $v$
+\end_inset
+
+ is linear velocity, 
+\begin_inset Formula $\mathbf{\Lambda}$
+\end_inset
+
+ is the rotation matrix, 
+\begin_inset Formula $\mathbf{J}$
+\end_inset
+
+ is the referential inertia matrix, and 
+\begin_inset Formula $\omega$
+\end_inset
+
+ is spatial angular velocity.
+\end_layout
+
+\begin_layout Subsection*
+DAMPING (linear, angular)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+linear
+\series default
+ - linear damping curve callback: 
+\begin_inset Formula $\left(d_{vx},d_{vy},d_{vz}\right)=$
+\end_inset
+
+ 
+\series bold
+linear
+\series default
+ 
+\begin_inset Formula $\left(t\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+angular
+\series default
+ - angular damping curve callback: 
+\begin_inset Formula $\left(d_{\omega x},d_{\omega y},d_{\omega z}\right)=$
+\end_inset
+
+ 
+\series bold
+angular
+\series default
+ 
+\begin_inset Formula $\left(t\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "subsec:CRITICAL"
 
 \end_inset

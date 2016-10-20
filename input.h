@@ -25,14 +25,21 @@ SOFTWARE.
 #ifndef __input__
 #define __input__
 
+namespace parmec
+{
 /* update obstacles time histories from callbacks */
-void obstaclev (int obsnum, REAL *obsang, REAL *obslin, parmec::callback_t anghis[], parmec::callback_t linhis[], REAL time);
+void obstaclev (int obsnum, REAL *obsang, REAL *obslin, callback_t anghis[], callback_t linhis[], REAL time);
 
 /* prescribe particle velocity */
-void prescribe_velocity (int prsnum, int prspart[], parmec::callback_t prslin[], int linkind[], parmec::callback_t prsang[], int angkind[],
+void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
   REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6]);
 
-void prescribe_acceleration (int prsnum, int prspart[], parmec::callback_t prslin[], int linkind[], parmec::callback_t prsang[], int angkind[],
+/* prescribe particle acceleration */
+void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
   REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3]);
+
+/* read global damping */
+void read_damping (REAL time, callback_t lindamp, callback_t angdamp, REAL damping[6]);
+}
 
 #endif

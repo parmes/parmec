@@ -53,22 +53,65 @@ for i in range (0, nbod+2):
   j = MESH (nodes(0, i*(l+gap), 0), elements, matnum, i)
   parnum.append (j)
 
-spring = [-1.0-gap, -1E5, -gap, 0.0, 1.0, 0.0]
+xy_spring = [-1.0-gap, -1E5, -gap, 0.0, 1.0, 0.0]
+z_spring = [-1.0, -1E5, 0.0, 0.0, 1.0, 0.0]
 damper = [-1.0, -0.9E3, 1.0, 0.9E3]
 
+# y direction springs
 for i in range (0, nbod+1):
   p0 =  (0, i*(l+gap)+l, 0)
   p1 =  (0, (i+1)*(l+gap), 0)
-  SPRING (parnum[i], p0, parnum[i+1], p1, spring, damper, (0, 1, 0))
+  SPRING (parnum[i], p0, parnum[i+1], p1, xy_spring, damper, (0, 1, 0))
   p0 =  (w, i*(l+gap)+l, 0)
   p1 =  (w, (i+1)*(l+gap), 0)
-  SPRING (parnum[i], p0, parnum[i+1], p1, spring, damper, (0, 1, 0))
+  SPRING (parnum[i], p0, parnum[i+1], p1, xy_spring, damper, (0, 1, 0))
   p0 =  (w, i*(l+gap)+l, h)
   p1 =  (w, (i+1)*(l+gap), h)
-  SPRING (parnum[i], p0, parnum[i+1], p1, spring, damper, (0, 1, 0))
+  SPRING (parnum[i], p0, parnum[i+1], p1, xy_spring, damper, (0, 1, 0))
   p0 =  (0, i*(l+gap)+l, h)
   p1 =  (0, (i+1)*(l+gap), h)
-  SPRING (parnum[i], p0, parnum[i+1], p1, spring, damper, (0, 1, 0))
+  SPRING (parnum[i], p0, parnum[i+1], p1, xy_spring, damper, (0, 1, 0))
+
+# x direction springs
+for i in range (1, nbod+1):
+  p0 =  (0, i*(l+gap)+0, 0)
+  p1 =  (0-gap, i*(l+gap)+0, 0)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (-1, 0, 0))
+  p0 =  (0, i*(l+gap)+l, 0)
+  p1 =  (0-gap, i*(l+gap)+l, 0)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (-1, 0, 0))
+  p0 =  (0, i*(l+gap)+l, h)
+  p1 =  (0-gap, i*(l+gap)+l, h)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (-1, 0, 0))
+  p0 =  (0, i*(l+gap)+0, h)
+  p1 =  (0-gap, i*(l+gap)+0, h)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (-1, 0, 0))
+  p0 =  (w, i*(l+gap)+0, 0)
+  p1 =  (w+gap, i*(l+gap)+0, 0)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (1, 0, 0))
+  p0 =  (w, i*(l+gap)+l, 0)
+  p1 =  (w+gap, i*(l+gap)+l, 0)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (1, 0, 0))
+  p0 =  (w, i*(l+gap)+l, h)
+  p1 =  (w+gap, i*(l+gap)+l, h)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (1, 0, 0))
+  p0 =  (w, i*(l+gap)+0, h)
+  p1 =  (w+gap, i*(l+gap)+0, h)
+  SPRING (parnum[i], p0, -1, p1, xy_spring, damper, (1, 0, 0))
+
+# z direction springs
+for i in range (1, nbod+1):
+  p =  (0, i*(l+gap)+0, 0)
+  SPRING (parnum[i], p, -1, p, z_spring, damper, (0, 0, -1))
+  p =  (w, i*(l+gap)+0, 0)
+  SPRING (parnum[i], p, -1, p, z_spring, damper, (0, 0, -1))
+  p =  (w, i*(l+gap)+l, 0)
+  SPRING (parnum[i], p, -1, p, z_spring, damper, (0, 0, -1))
+  p =  (0, i*(l+gap)+l, 0)
+  SPRING (parnum[i], p, -1, p, z_spring, damper, (0, 0, -1))
+
+# z gravity
+GRAVITY (0, 0, -10)
 
 step = 0.2 * CRITICAL()
 
@@ -84,20 +127,21 @@ except:
   sys.exit(1)
 
 vel = interp1d(vt, vv) # acceleration sweep linear spline
+def linvel(t): return (0, vel(t), 0) # velocity based on acceleration sweep function
+def angvel(t): return (0, 0, 0) # zero angular velocity
 
-def linvel(t): # acceleration sweep function
-  return (0, vel(t), 0)
-
-def angvel(t): return (0, 0, 0) # prescribed angular velocity
-
-PRESCRIBE (parnum[0], linvel, angvel, kind = 'vv')
-PRESCRIBE (parnum[nbod+1], linvel, angvel, kind = 'vv')
+PRESCRIBE (parnum[0], linvel, angvel) # first body
+PRESCRIBE (parnum[nbod+1], linvel, angvel) # last body
 
 t = HISTORY ('TIME')
-vx = HISTORY ('VX', parnum[1]) # FIXME: these time histories are zero upon termination
-dx = HISTORY ('DX', parnum[1])
+vx = HISTORY ('VY', parnum[1])
+dx = HISTORY ('DY', parnum[1])
+
+print 'Calculating...'
 
 DEM (stop, step, ostp)
+
+print 'Generating time history plots...'
 
 try:
   import matplotlib.pyplot as plt

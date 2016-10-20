@@ -185,6 +185,10 @@ int outrest[2]; /* 0: default output entities for unlisted particles and, 1: def
 int output_buffer_size; /* size of output buffer */
 int output_list_size; /* size of output particle lists buffer */
 
+REAL damping[6]; /* linear and angular damping */
+callback_t lindamp; /* linead damping callback */
+callback_t angdamp; /* angular damping callback */
+
 /* grow integer buffer */
 void integer_buffer_grow (int* &src, int num, int size)
 {
@@ -1200,15 +1204,25 @@ void reset ()
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
+
+  /* unselected particles default output flags */
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
                OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
   outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+
+  /* zero global damping by default */
+  damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;
+  lindamp = NULL;
+  angdamp = NULL;
+
+  /* zero gravity by default */
+  gravity[0] = gravity[1] = gravity[2] = 0.0;
 
   pair_reset();
 }
 
 /* run DEM simulation */
-REAL dem (REAL duration, REAL step, REAL interval[2], char *prefix, int verbose, int output)
+REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
 {
   REAL time, t0, t1, dt;
   timing tt;
@@ -1293,13 +1307,15 @@ REAL dem (REAL duration, REAL step, REAL interval[2], char *prefix, int verbose,
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
 
+    read_damping (time, lindamp, angdamp, damping);
+
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
-              position, inertia, inverse, mass, invm, force, torque, step);
+              position, inertia, inverse, mass, invm, damping, force, torque, step);
 
     prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
                         angkind, time, rotation, linear, angular);
 
-    if (time >= t0 + interval[0]) /* full update, due to output */
+    if (interval && time >= t0 + interval[0]) /* full update, due to output */
     {
       shapes (threads, ellnum, part, center, radii, orient,
 	      nodnum, nodes, nodpart, NULL, facnum, facnod,
@@ -1316,14 +1332,14 @@ REAL dem (REAL duration, REAL step, REAL interval[2], char *prefix, int verbose,
 
     obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
 
-    if (output && time >= t0 + interval[0])
+    if (interval && time >= t0 + interval[0])
     {
       output_files ();
 
       t0 += interval[0];
     }
 
-    if (output && time >= t1 + interval[1])
+    if (interval && time >= t1 + interval[1])
     {
       output_history ();
 

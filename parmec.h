@@ -176,6 +176,10 @@ extern int output_buffer_size; /* size of output buffer */
 extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */
 
+extern REAL damping[6]; /* linear and angular damping */
+extern callback_t lindamp; /* linead damping callback */
+extern callback_t angdamp; /* angular damping callback */
+
 extern void declare_analytical (int k); /* declare particle 'k' analytical */
 
 /**************** library interface ****************/
@@ -190,7 +194,7 @@ void reset (); /* reset all simulation data */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-REAL dem (REAL duration, REAL step, REAL interval[2], char *prefix, int verbose, int output); /* run DEM simulation (return timed duration) */
+REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose); /* run DEM simulation (return timed duration) */
 
 #ifdef __cplusplus
 } /* __cplusplus */

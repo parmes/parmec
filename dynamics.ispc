@@ -30,8 +30,8 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
-  uniform REAL mass[], uniform REAL invm[], uniform REAL * uniform force[3],
-  uniform REAL * uniform torque[3], uniform REAL step)
+  uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL step)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
@@ -39,7 +39,7 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
 
   foreach (i = start ... end) /* time integration */
   {
-    REAL O[3], o[3], v[3], L1[9], J[9], I[9], im, f[3], t[3], T[3], DL[9], L2[9], A[3], B[3];
+    REAL O[3], o[3], v[3], L1[9], J[9], I[9], ma, im, f[3], t[3], T[3], DL[9], L2[9], A[3], B[3];
 
     O[0] = angular[0][i];
     O[1] = angular[1][i];
@@ -80,6 +80,29 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
     I[8] = inverse[8][i];
 
     im = invm[i];
+
+    cif (damping[0] != 0.0 || damping[1] != 0.0 || damping[2] != 0.0)
+    {
+      ma = mass[i];
+
+      force[0][i] -= ma * damping[0] * v[0];
+      force[1][i] -= ma * damping[1] * v[1];
+      force[2][i] -= ma * damping[2] * v[2];
+    }
+    cif (damping[3] != 0.0 || damping[4] != 0.0 || damping[5] != 0.0)
+    {
+      o[0] = damping[3]*angular[3][i];
+      o[1] = damping[4]*angular[4][i];
+      o[2] = damping[5]*angular[5][i];
+
+      TVMUL (L1, o, t);
+      NVMUL (J, t, T);
+      NVMUL (L1, T, t);
+
+      torque[0][i] -= t[0];
+      torque[1][i] -= t[1];
+      torque[2][i] -= t[2];
+    }
 
     f[0] = force[0][i];
     f[1] = force[1][i];
@@ -145,9 +168,9 @@ export void dynamics (uniform int threads, uniform master_conpnt master[], unifo
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
-  uniform REAL mass[], uniform REAL invm[], uniform REAL * uniform force[3],
-  uniform REAL * uniform torque[3], uniform REAL step)
+  uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL step)
 {
   launch [threads] dynamics_task (parnum/threads, master, slave, parnum, angular, linear,
-          rotation, position, inertia, inverse, mass, invm, force, torque, step);
+          rotation, position, inertia, inverse, mass, invm, damping, force, torque, step);
 }
