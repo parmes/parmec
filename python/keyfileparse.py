@@ -102,6 +102,18 @@ CARDDEFINITIONS = {'TITLE':"""TITLE-A80""",
                                    ...""",
         
                  'MAT_SPRING_NONLINEAR_ELASTIC':"""MID-A LCD-I LCR-I""", #MID A8 in manual
+
+                 'DAMPING_GLOBAL':"""LCID-I VALDMP-F STX-F STY-F STZ-F SRX-F SRY-F SRZ-F""",
+
+                 'LOAD_BODY_X':"""LCID-I""",
+
+                 'LOAD_BODY_Y':"""LCID-I""",
+
+                 'LOAD_BODY_Z':"""LCID-I""",
+
+                 'CONTROL_TERMINATION':"""ENDTIM-F ENDCYC-I DTMIN-F ENDENG-F ENDMAS-F""",
+
+                 'CONTROL_TIMESTEP':"""DTINIT-F TSSFAC-F ISDO-I TSLIM-F DT2MS-F LCTM-I ERODE-I MS1ST-I""",
                  
                  'ELEMENT_DISCRETE':"""EID-I8 PID-I8 N1-I8 N2-I8 VID-I8 S-F16 PF-I8 OFFSET-F16""", # All default field len in manual n10 rather than n8)
         }

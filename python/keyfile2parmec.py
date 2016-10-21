@@ -44,7 +44,7 @@ mcnod2pid = {} # mass center node to part inertia mapping
 # define rigid bodies
 parmec.write ('\n')
 parmec.write ('#\n')
-parmec.write ('# define rigid bodies\n')
+parmec.write ('# rigid bodies\n')
 parmec.write ('#\n')
 for pi in keyfile['PART_INERTIA']:
 
@@ -181,7 +181,7 @@ for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_NODE']:
   elif dof == 6:
     parmec.write ('ACC%d_ANG_Y = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
   elif dof == 7:
-    parmec.write ('AC%dC_ANG_Z = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+    parmec.write ('ACC%d_ANG_Z = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
 
 parmec.write ('\n')
 parmec.write ('# prescribe acceleration\n')
@@ -204,7 +204,7 @@ for cxns in keyfile['CONSTRAINED_EXTRA_NODES_SET']:
 print 'Writing parmec file (spring curves)...'
 parmec.write ('\n')
 parmec.write ('#\n')
-parmec.write ('# define spring curves\n')
+parmec.write ('# spring curves\n')
 parmec.write ('#\n')
 curveset = Set()
 for ed in keyfile['ELEMENT_DISCRETE']:
@@ -248,7 +248,7 @@ parmec.write ('curve0 = [-1, 0, 1, 0]\n')
 print 'Writing parmec file (springs)...'
 parmec.write ('\n')
 parmec.write ('#\n')
-parmec.write ('# define springs\n')
+parmec.write ('# springs\n')
 parmec.write ('#\n')
 for ed in keyfile['ELEMENT_DISCRETE']:
   n1 = ed['N1']
@@ -287,6 +287,49 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
                (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, planar))
   parmec.write ('eid2num[%d] = num\n' % ed['EID'])
+
+lbz = keyfile.getcard('LOAD_BODY_Z')
+if lbz != None:
+  print 'Writing parmec file (gravity)...'
+  parmec.write ('#\n')
+  parmec.write ('# gravity\n')
+  parmec.write ('#\n')
+  lcid = lbz['LCID']
+  lc = keyfile.getcard('DEFINE_CURVE', LCID=lcid)
+  if lc == None:
+    print 'ERROR: DEFINE_CURVE card with ID = ', lcid, 'was not found'
+    sys.exit(1)
+  tt = lc['A1']
+  vv = lc['O1']
+  parmec.write ('gz = interp1d(%s, %s)\n' % (str(tt), str(vv)))
+  parmec.write ('GRAVITY (0, 0, gz)\n')
+
+gd = keyfile.getcard('DAMPING_GLOBAL')
+if gd != None:
+  print 'Writing parmec file (global damping)...'
+  parmec.write ('#\n')
+  parmec.write ('# global damping\n')
+  parmec.write ('#\n')
+  lcid = gd['LCID']
+  lc = keyfile.getcard('DEFINE_CURVE', LCID=lcid)
+  if lc == None:
+    print 'ERROR: DEFINE_CURVE card with ID = ', lcid, 'was not found'
+    sys.exit(1)
+  tt = lc['A1']
+  vv = lc['O1']
+  parmec.write ('dmp = interp1d(%s, %s)\n' % (str(tt), str(vv)))
+  parmec.write ('def dmplin(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['STX'], gd['STY'], gd['STZ']))
+  parmec.write ('def dmpang(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['SRX'], gd['SRY'], gd['SRZ']))
+  parmec.write ('DAMPING (dmplin, dmpang)\n')
+
+ct = keyfile.getcard('CONTROL_TERMINATION')
+ts = keyfile.getcard('CONTROL_TIMESTEP')
+if ct != None and ts != None:
+  print 'Writing parmec file (commented out simulation control)...'
+  parmec.write ('#\n')
+  parmec.write ('# run simulation\n')
+  parmec.write ('#\n')
+  parmec.write ('# DEM(%g, %g, %g/100)\n' % (ct['ENDTIM'], ts['DTINIT'], ct['ENDTIM']))
 
 parmec.close()
 

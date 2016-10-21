@@ -1602,13 +1602,51 @@ static PyObject* VELOCITY (PyObject *self, PyObject *args, PyObject *kwds)
 static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
 {
   KEYWORDS ("gx", "gy", "gz");
-  double gx, gy, gz;
+  PyObject *gx, *gy, *gz;
 
-  PARSEKEYS ("ddd", &gx, &gy, &gz);
+  PARSEKEYS ("OOO", &gx, &gy, &gz);
 
-  gravity[0] = gx;
-  gravity[1] = gy;
-  gravity[2] = gz;
+  if (PyCallable_Check (gx))
+  {
+    gravfunc[0] = gx;
+  }
+  else if (PyNumber_Check(gx))
+  {
+    gravity[0] = PyFloat_AsDouble(gx);
+  }
+  else
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid gx component");
+    return NULL;
+  }
+
+  if (PyCallable_Check (gy))
+  {
+    gravfunc[1] = gy;
+  }
+  else if (PyNumber_Check(gy))
+  {
+    gravity[1] = PyFloat_AsDouble(gy);
+  }
+  else
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid gy component");
+    return NULL;
+  }
+
+  if (PyCallable_Check (gz))
+  {
+    gravfunc[2] = gz;
+  }
+  else if (PyNumber_Check(gz))
+  {
+    gravity[2] = PyFloat_AsDouble(gz);
+  }
+  else
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid gz component");
+    return NULL;
+  }
 
   Py_RETURN_NONE;
 }
@@ -2421,9 +2459,26 @@ void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int lin
   Py_DECREF (args);
 }
 
-/* read global damping */
-void read_damping (REAL time, callback_t lindamp, callback_t angdamp, REAL damping[6])
+/* read gravity and global damping */
+void read_gravity_and_damping (REAL time, callback_t gravfunc[3], REAL gravity[3], callback_t lindamp, callback_t angdamp, REAL damping[6])
 {
+  for (int i = 0; i < 3; i ++)
+  {
+    if (gravfunc[i])
+    {
+      PyObject *result, *args;
+
+      args = Py_BuildValue ("(d)", time);
+
+      result = PyObject_CallObject ((PyObject*)gravfunc[i], args);
+      ASSERT (PyNumber_Check (result), "Gravity callback component %d did not return a number", i);
+      gravity[i] = PyFloat_AsDouble(result);
+      Py_DECREF (result);
+
+      Py_DECREF (args);
+    }
+  }
+
   if (lindamp && angdamp)
   {
     PyObject *result, *args;

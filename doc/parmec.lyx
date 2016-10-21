@@ -1467,7 +1467,7 @@ GRAVITY (gx, gy, gz)
 \series bold
 gx
 \series default
- - constant x component
+ - constant x component or callback gx(t)
 \end_layout
 
 \begin_layout Itemize
@@ -1475,7 +1475,7 @@ gx
 \series bold
 gy
 \series default
- - constant y component
+ - constant y component or callback gy(t)
 \end_layout
 
 \begin_layout Itemize
@@ -1483,7 +1483,7 @@ gy
 \series bold
 gz
 \series default
- - constant z component
+ - constant z component or callback gz(t)
 \end_layout
 
 \begin_layout Section
@@ -1612,77 +1612,6 @@ h
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "subsec:DEM"
-
-\end_inset
-
-DEM
-\end_layout
-
-\begin_layout Standard
-Run DEM simulation.
-\end_layout
-
-\begin_layout Subsection*
-t = DEM (duration, step | interval, prefix)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-t
-\series default
- - simulation runtime in seconds
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-duration
-\series default
- - simulation duration
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-step
-\series default
- - time step
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-interval
-\series default
- - output interval (default: time step); tuple 
-\begin_inset Formula $\left(dt_{\text{files}},dt_{\text{history}}\right)$
-\end_inset
-
- can be used to indicate different output frequencies of output files and
- time histories
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-prefix
-\series default
- - output file name prefix (default: input file name without the 
-\begin_inset Quotes eld
-\end_inset
-
-.py
-\begin_inset Quotes erd
-\end_inset
-
- extension)
-\end_layout
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
 name "subsec:HISTORY"
 
 \end_inset
@@ -1691,7 +1620,7 @@ HISTORY
 \end_layout
 
 \begin_layout Standard
-Request time history output.
+Before running a simulation, request time history output.
 \end_layout
 
 \begin_layout Subsection*
@@ -1703,7 +1632,8 @@ list = HISTORY (entity | source, point)
 \series bold
 list
 \series default
- - output time history list
+ - output time history list (empty upon initial request, populated during
+ simulation)
 \end_layout
 
 \begin_layout Itemize
@@ -1764,7 +1694,8 @@ OUTPUT
 \end_layout
 
 \begin_layout Standard
-Define scalar and/or vector entities included into the output file(s).
+Before running a simulation, define scalar and/or vector entities included
+ into the output file(s).
  PARMEC outputs:
 \end_layout
 
@@ -1977,6 +1908,77 @@ and ellipsoid
  output, 'MESH' for mesh output, 'RB' for rigid body output, 'CD' for contact
  data output, 'SD' for spring data output; default: ['SPH', 'MESH', 'RB',
  'CD', 'SD']
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:DEM"
+
+\end_inset
+
+DEM
+\end_layout
+
+\begin_layout Standard
+Run DEM simulation.
+\end_layout
+
+\begin_layout Subsection*
+t = DEM (duration, step | interval, prefix)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+t
+\series default
+ - simulation runtime in seconds
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+duration
+\series default
+ - simulation duration
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+step
+\series default
+ - time step
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+interval
+\series default
+ - output interval (default: time step); tuple 
+\begin_inset Formula $\left(dt_{\text{files}},dt_{\text{history}}\right)$
+\end_inset
+
+ can be used to indicate different output frequencies of output files and
+ time histories, respectively
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+prefix
+\series default
+ - output file name prefix (default: input file name without the 
+\begin_inset Quotes eld
+\end_inset
+
+.py
+\begin_inset Quotes erd
+\end_inset
+
+ extension)
 \end_layout
 
 \begin_layout Chapter

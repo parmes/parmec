@@ -40,8 +40,6 @@ extern char *outpath; /* output path */
 
 extern REAL curtime; /* current time */
 
-extern REAL gravity[3]; /* gravity vector */
-
 extern int matnum; /* number of materials */
 extern REAL *mparam[NMAT]; /* material parameters */
 extern int material_buffer_size; /* size of the buffer */
@@ -175,6 +173,9 @@ extern int outrest[2]; /* 0: default output entities for unlisted particles and,
 extern int output_buffer_size; /* size of output buffer */
 extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */
+
+extern REAL gravity[3]; /* gravity vector */
+extern callback_t gravfunc[3]; /* gravity callbacks */
 
 extern REAL damping[6]; /* linear and angular damping */
 extern callback_t lindamp; /* linead damping callback */

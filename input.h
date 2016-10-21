@@ -38,8 +38,8 @@ void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int lin
 void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
   REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3]);
 
-/* read global damping */
-void read_damping (REAL time, callback_t lindamp, callback_t angdamp, REAL damping[6]);
+/* read gravity and global damping */
+void read_gravity_and_damping (REAL time, callback_t gravfunc[3], REAL gravity[3], callback_t lindamp, callback_t angdamp, REAL damping[6]);
 }
 
 #endif

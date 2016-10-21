@@ -1,5 +1,7 @@
-libparmec
-parmec
+libparmec4.a
+libparmec8.a
+parmec4
+parmec8
 objs4/*
 objs8/*
 parmec4.h

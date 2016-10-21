@@ -62,8 +62,6 @@ int threads; /* number of hardware threads */
 
 REAL curtime; /* current time */
 
-REAL gravity[3]; /* gravity vector */
-
 int matnum; /* number of materials */
 REAL *mparam[NMAT]; /* material parameters */
 int material_buffer_size; /* size of the buffer */
@@ -184,6 +182,9 @@ int *outent; /* output entities per output mode */
 int outrest[2]; /* 0: default output entities for unlisted particles and, 1: default output mode */
 int output_buffer_size; /* size of output buffer */
 int output_list_size; /* size of output particle lists buffer */
+
+REAL gravity[3]; /* gravity vector */
+callback_t gravfunc[3]; /* gravity callbacks */
 
 REAL damping[6]; /* linear and angular damping */
 callback_t lindamp; /* linead damping callback */
@@ -1212,11 +1213,11 @@ void reset ()
 
   /* zero global damping by default */
   damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;
-  lindamp = NULL;
-  angdamp = NULL;
+  lindamp = angdamp = NULL;
 
   /* zero gravity by default */
   gravity[0] = gravity[1] = gravity[2] = 0.0;
+  gravfunc[0] = gravfunc[1] = gravfunc[2] = NULL;
 
   pair_reset();
 }
@@ -1297,6 +1298,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
     condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
+    read_gravity_and_damping (time, gravfunc, gravity, lindamp, angdamp, damping);
+
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step,
             sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir, sprdirup, stroke0,
@@ -1306,8 +1309,6 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
-
-    read_damping (time, lindamp, angdamp, damping);
 
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
               position, inertia, inverse, mass, invm, damping, force, torque, step);
