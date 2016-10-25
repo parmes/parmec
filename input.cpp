@@ -1401,6 +1401,18 @@ static PyObject* CONSTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
     cnslin[7][i] = dir[2][1];
     cnslin[8][i] = dir[2][2];
   }
+  else if (ang)
+  {
+    cnslin[0][i] = 0;
+    cnslin[1][i] = 0;
+    cnslin[2][i] = 0;
+    cnslin[3][i] = 0;
+    cnslin[4][i] = 0;
+    cnslin[5][i] = 0;
+    cnslin[6][i] = 0;
+    cnslin[7][i] = 0;
+    cnslin[8][i] = 0;
+  }
 
   if (ang)
   {
@@ -1469,6 +1481,18 @@ static PyObject* CONSTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
     cnsang[6][i] = dir[2][0];
     cnsang[7][i] = dir[2][1];
     cnsang[8][i] = dir[2][2];
+  }
+  else if (lin)
+  {
+    cnsang[0][i] = 0;
+    cnsang[1][i] = 0;
+    cnsang[2][i] = 0;
+    cnsang[3][i] = 0;
+    cnsang[4][i] = 0;
+    cnsang[5][i] = 0;
+    cnsang[6][i] = 0;
+    cnsang[7][i] = 0;
+    cnsang[8][i] = 0;
   }
 
   Py_RETURN_NONE;
