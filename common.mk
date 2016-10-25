@@ -1,9 +1,21 @@
 ifeq ($(DEBUG),yes)
-  CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG
+  CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG # += could be used for an existing variable
   ISPC=ispc -g -O0 --arch=x86-64 -DDEBUG
 else
   CFLAGS=-O2 -m64 -fopenmp
   ISPC=ispc -O2 --arch=x86-64 --woff
+endif
+
+ifeq ($(OS),Windows_NT) # operating system detection in case it is needed
+  TASKSYS=-DISPC_USE_OMP
+else
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Linux)
+    TASKSYS=-DISPC_USE_OMP
+  endif
+  ifeq ($(UNAME_S),Darwin)
+    TASKSYS=-DISPC_USE_OMP
+  endif
 endif
 
 ISPC_OBJS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
@@ -80,10 +92,10 @@ objs8/%_ispc.h objs8/%_ispc.o objs8/%_ispc_sse2.o objs8/%_ispc_sse4.o objs8/%_is
 	$(ISPC) -DREAL=8 -Iobjs8 --target=$(ISPC_TARGETS) $< -o objs8/$*_ispc.o -h objs8/$*_ispc.h
 
 objs4/tasksys.o: tasksys.cpp
-	$(CXX) $(CFLAGS) -D ISPC_USE_OMP $< -c -o $@
+	$(CXX) $(CFLAGS) $(TASKSYS) $< -c -o $@
 
 objs8/tasksys.o: tasksys.cpp
-	$(CXX) $(CFLAGS) -D ISPC_USE_OMP $< -c -o $@
+	$(CXX) $(CFLAGS) $(TASKSYS) $< -c -o $@
 
 objs4/%.o: %.cpp $(ISPC_HEADERS4)
 	$(CXX) -DREAL=4 -Iobjs4 -Iobjs4 $(CFLAGS) $< -c -o $@
