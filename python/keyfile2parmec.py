@@ -302,7 +302,7 @@ if lbz != None:
   tt = lc['A1']
   vv = lc['O1']
   parmec.write ('gz = interp1d(%s, %s)\n' % (str(tt), str(vv)))
-  parmec.write ('GRAVITY (0, 0, gz)\n')
+  parmec.write ('GRAVITY (0, 0, -gz)\n')
 
 gd = keyfile.getcard('DAMPING_GLOBAL')
 if gd != None:
