@@ -121,6 +121,7 @@ extern int obstacle_buffer_size; /* size of the buffer */
 extern int obstacle_buffer_grow (); /* grow buffer */
 
 extern int sprnum; /* number of spring constraints */
+extern int *sprid; /* spring number returned to user */
 extern int *sprpart[2]; /* spring constraint particle numbers */
 extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 extern REAL *spring[2]; /* spring force lookup tables */

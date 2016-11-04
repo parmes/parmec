@@ -135,6 +135,7 @@ callback_t *linhis; /* linear velocity history */
 int obstacle_buffer_size; /* size of the buffer */
 
 int sprnum; /* number of spring constraints */
+int *sprid; /* spring number returned to user */
 int *sprpart[2]; /* spring constraint particle numbers */
 REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 REAL *spring[2]; /* spring force lookup tables */
@@ -645,6 +646,7 @@ int spring_buffer_init ()
   spring_lookup_size = 1024;
   dashpot_lookup_size = 1024;
 
+  sprid = aligned_int_alloc (spring_buffer_size);
   sprpart[0] = aligned_int_alloc (spring_buffer_size);
   sprpart[1] = aligned_int_alloc (spring_buffer_size);
   sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
@@ -686,6 +688,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
   {
     spring_buffer_size *= 2;
 
+    integer_buffer_grow(sprid, sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[0], sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[1], sprnum, spring_buffer_size);
     real_buffer_grow(sprpnt[0][0], sprnum, spring_buffer_size);
@@ -1122,7 +1125,7 @@ struct pair
 };
 
 /* material comparison by color pair */
-struct cmp
+struct cmp_pair
 {
   bool operator() (const pair& a, const pair& b)
   {
@@ -1149,7 +1152,7 @@ static void sort_materials ()
     v.push_back (x);
   }
 
-  std::sort (v.begin(), v.end(), cmp());
+  std::sort (v.begin(), v.end(), cmp_pair());
 
   int i = 0;
 
@@ -1159,6 +1162,184 @@ static void sort_materials ()
     pairs[2*i+1] = p->color2;
     for (int j = 0; j < NIPARAM; j ++) iparam[j][i] = p->iparam[j];
   }
+}
+
+/* temporary spring data structure */
+struct spring_data
+{
+  int part[2];
+  int number;
+};
+
+/* spring comparison by particle index */
+struct cmp_spring
+{
+  bool operator() (const spring_data & a, const spring_data & b)
+  {
+    if (a.part[0] == b.part[0]) return a.part[1] < b.part[1];
+    else return a.part[0] < b.part[0];
+  }
+};
+
+/* sort springs according to particle indices */
+static void sort_springs ()
+{
+  std::vector<spring_data> v;
+
+  v.reserve (sprnum);
+
+  for (int i = 0; i < sprnum; i++)
+  {
+    spring_data x;
+
+    x.part[0] = sprpart[0][i];
+    x.part[1] = sprpart[0][i];
+    x.number = i;
+
+    v.push_back (x);
+  }
+
+  std::sort (v.begin(), v.end(), cmp_spring());
+
+  int sprnum; /* number of spring constraints */
+  int *sprid; /* spring number returned to user */
+  int *sprpart[2]; /* spring constraint particle numbers */
+  REAL *sprpnt[2][6]; /* spring constraint current and reference points */
+  REAL *spring[2]; /* spring force lookup tables */
+  int *spridx; /* spring force lookup start index */
+  REAL *dashpot[2]; /* dashpot force lookup tables */
+  int *dashidx; /* dashpot force lookup start index */
+  REAL *sprdir[3]; /* spring direction */
+  int *sprdirup; /* spring direction update flag */
+  REAL *stroke0; /* initial spring stroke */
+  REAL *stroke; /* current stroke */
+
+  sprid = aligned_int_alloc (spring_buffer_size);
+  sprpart[0] = aligned_int_alloc (spring_buffer_size);
+  sprpart[1] = aligned_int_alloc (spring_buffer_size);
+  sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][1] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][2] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][3] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][4] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[0][5] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][0] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][1] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][2] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][3] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][4] = aligned_real_alloc (spring_buffer_size);
+  sprpnt[1][5] = aligned_real_alloc (spring_buffer_size);
+  spring[0] = aligned_real_alloc (spring_lookup_size);
+  spring[1] = aligned_real_alloc (spring_lookup_size);
+  spridx = aligned_int_alloc (spring_buffer_size+1);
+  dashpot[0] = aligned_real_alloc (dashpot_lookup_size);
+  dashpot[1] = aligned_real_alloc (dashpot_lookup_size);
+  dashidx = aligned_int_alloc (spring_buffer_size+1);
+  sprdir[0] = aligned_real_alloc (spring_buffer_size);
+  sprdir[1] = aligned_real_alloc (spring_buffer_size);
+  sprdir[2] = aligned_real_alloc (spring_buffer_size);
+  sprdirup = aligned_int_alloc (spring_buffer_size);
+  stroke0 = aligned_real_alloc (spring_buffer_size);
+  stroke = aligned_real_alloc (spring_buffer_size);
+ 
+  int i = 0;
+
+  spridx[0] = dashidx[0] = 0;
+
+  for (std::vector<spring_data>::const_iterator x = v.begin(); x != v.end(); ++x, ++i)
+  {
+    sprid[i] = parmec::sprid[x->number];
+    sprpart[0][i] = parmec::sprpart[0][x->number];
+    sprpart[1][i] = parmec::sprpart[1][x->number];
+    sprpnt[0][0][i] = parmec::sprpnt[0][0][x->number];
+    sprpnt[0][1][i] = parmec::sprpnt[0][1][x->number];
+    sprpnt[0][2][i] = parmec::sprpnt[0][2][x->number];
+    sprpnt[0][3][i] = parmec::sprpnt[0][3][x->number];
+    sprpnt[0][4][i] = parmec::sprpnt[0][4][x->number];
+    sprpnt[0][5][i] = parmec::sprpnt[0][5][x->number];
+    sprpnt[1][0][i] = parmec::sprpnt[1][0][x->number];
+    sprpnt[1][1][i] = parmec::sprpnt[1][1][x->number];
+    sprpnt[1][2][i] = parmec::sprpnt[1][2][x->number];
+    sprpnt[1][3][i] = parmec::sprpnt[1][3][x->number];
+    sprpnt[1][4][i] = parmec::sprpnt[1][4][x->number];
+    sprpnt[1][5][i] = parmec::sprpnt[1][5][x->number];
+    sprdir[0][i] = parmec::sprdir[0][x->number];
+    sprdir[1][i] = parmec::sprdir[1][x->number];
+    sprdir[2][i] = parmec::sprdir[2][x->number];
+    sprdirup[i] = parmec::sprdirup[x->number];
+    stroke0[i] = parmec::stroke0[x->number];
+    stroke[i] = parmec::stroke[x->number];
+
+    spridx[i+1] = spridx[i] + parmec::spridx[i+1]-parmec::spridx[i];
+    for (int j = spridx[i], k = parmec::spridx[i]; j < spridx[i+1]; j ++, k ++)
+    {
+      spring[0][j] = parmec::spring[0][k];
+      spring[1][j] = parmec::spring[1][k];
+    }
+
+    dashidx[i+1] = dashidx[i] + parmec::dashidx[i+1]-parmec::dashidx[i];
+    for (int j = dashidx[i], k = parmec::dashidx[i]; j < dashidx[i+1]; j ++, k ++)
+    {
+      dashpot[0][j] = parmec::dashpot[0][k];
+      dashpot[1][j] = parmec::dashpot[1][k];
+    }
+  }
+
+  aligned_int_free (sprid);
+  aligned_int_free (sprpart[0]);
+  aligned_int_free (sprpart[1]);
+  aligned_real_free (sprpnt[0][0]);
+  aligned_real_free (sprpnt[0][1]);
+  aligned_real_free (sprpnt[0][2]);
+  aligned_real_free (sprpnt[0][3]);
+  aligned_real_free (sprpnt[0][4]);
+  aligned_real_free (sprpnt[0][5]);
+  aligned_real_free (sprpnt[1][0]);
+  aligned_real_free (sprpnt[1][1]);
+  aligned_real_free (sprpnt[1][2]);
+  aligned_real_free (sprpnt[1][3]);
+  aligned_real_free (sprpnt[1][4]);
+  aligned_real_free (sprpnt[1][5]);
+  aligned_real_free (spring[0]);
+  aligned_real_free (spring[1]);
+  aligned_int_free (spridx);
+  aligned_real_free (dashpot[0]);
+  aligned_real_free (dashpot[1]);
+  aligned_int_free (dashidx);
+  aligned_real_free (sprdir[0]);
+  aligned_real_free (sprdir[1]);
+  aligned_real_free (sprdir[2]);
+  aligned_int_free (sprdirup);
+  aligned_real_free (stroke0);
+  aligned_real_free (stroke);
+
+  parmec::sprid = sprid;
+  parmec::sprpart[0] = sprpart[0];
+  parmec::sprpart[1] = sprpart[1];
+  parmec::sprpnt[0][0] = sprpnt[0][0];
+  parmec::sprpnt[0][1] = sprpnt[0][1];
+  parmec::sprpnt[0][2] = sprpnt[0][2];
+  parmec::sprpnt[0][3] = sprpnt[0][3];
+  parmec::sprpnt[0][4] = sprpnt[0][4];
+  parmec::sprpnt[0][5] = sprpnt[0][5];
+  parmec::sprpnt[1][0] = sprpnt[1][0];
+  parmec::sprpnt[1][1] = sprpnt[1][1];
+  parmec::sprpnt[1][2] = sprpnt[1][2];
+  parmec::sprpnt[1][3] = sprpnt[1][3];
+  parmec::sprpnt[1][4] = sprpnt[1][4];
+  parmec::sprpnt[1][5] = sprpnt[1][5];
+  parmec::spring[0] = spring[0];
+  parmec::spring[1] = spring[1];
+  parmec::spridx = spridx;
+  parmec::dashpot[0] = dashpot[0];
+  parmec::dashpot[1] = dashpot[1];
+  parmec::dashidx = dashidx;
+  parmec::sprdir[0] = sprdir[0];
+  parmec::sprdir[1] = sprdir[1];
+  parmec::sprdir[2] = sprdir[2];
+  parmec::sprdirup = sprdirup;
+  parmec::stroke0 = stroke0;
+  parmec::stroke = stroke;
 }
 
 #ifdef __cplusplus
@@ -1260,6 +1441,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
   int *ifacnod[3] = {facnod[0]+faccon, facnod[1]+faccon, facnod[2]+faccon};
 
   sort_materials ();
+
+  sort_springs ();
 
   if (curtime == 0.0)
   {

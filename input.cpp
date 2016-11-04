@@ -1107,6 +1107,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   int i = sprnum ++;
 
+  sprid[i] = i;
+
   sprpart[0][i] = part1;
   sprpart[1][i] = part2;
 

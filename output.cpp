@@ -493,7 +493,8 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     out << "LOOKUP_TABLE default\n";
     for (i = 0; i < num; i ++)
     {
-      out << set[i] << "\n";
+      j = set[i];
+      out << sprid[j] << "\n";
     }
   }
 
