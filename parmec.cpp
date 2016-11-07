@@ -138,9 +138,9 @@ int sprnum; /* number of spring constraints */
 int *sprid; /* spring number returned to user */
 int *sprpart[2]; /* spring constraint particle numbers */
 REAL *sprpnt[2][6]; /* spring constraint current and reference points */
-REAL *spring[2]; /* spring force lookup tables */
+REAL *spring[3]; /* spring force lookup tables */
 int *spridx; /* spring force lookup start index */
-REAL *dashpot[2]; /* dashpot force lookup tables */
+REAL *dashpot[3]; /* dashpot force lookup tables */
 int *dashidx; /* dashpot force lookup start index */
 REAL *sprdir[3]; /* spring direction */
 int *sprdirup; /* spring direction update flag */
@@ -663,9 +663,11 @@ int spring_buffer_init ()
   sprpnt[1][5] = aligned_real_alloc (spring_buffer_size);
   spring[0] = aligned_real_alloc (spring_lookup_size);
   spring[1] = aligned_real_alloc (spring_lookup_size);
+  spring[2] = aligned_real_alloc (spring_lookup_size);
   spridx = aligned_int_alloc (spring_buffer_size+1);
   dashpot[0] = aligned_real_alloc (dashpot_lookup_size);
   dashpot[1] = aligned_real_alloc (dashpot_lookup_size);
+  dashpot[2] = aligned_real_alloc (dashpot_lookup_size);
   dashidx = aligned_int_alloc (spring_buffer_size+1);
   sprdir[0] = aligned_real_alloc (spring_buffer_size);
   sprdir[1] = aligned_real_alloc (spring_buffer_size);
@@ -720,6 +722,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
     spring_lookup_size = 2 * (spridx[sprnum] + spring_lookup);
     real_buffer_grow (spring[0], spridx[sprnum], spring_lookup_size);
     real_buffer_grow (spring[1], spridx[sprnum], spring_lookup_size);
+    real_buffer_grow (spring[2], spridx[sprnum], spring_lookup_size);
   }
 
   if (dashpot_lookup_size < dashidx[sprnum] + dashpot_lookup)
@@ -727,6 +730,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
     dashpot_lookup_size = 2 * (dashidx[sprnum] + dashpot_lookup);
     real_buffer_grow (dashpot[0], dashidx[sprnum], dashpot_lookup_size);
     real_buffer_grow (dashpot[1], dashidx[sprnum], dashpot_lookup_size);
+    real_buffer_grow (dashpot[2], dashidx[sprnum], dashpot_lookup_size);
   }
 }
 
@@ -1443,6 +1447,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
   sort_materials ();
 
   sort_springs ();
+
+  init_springs (sprnum, spring, spridx, dashpot, dashidx);
 
   if (curtime == 0.0)
   {
