@@ -33,3 +33,15 @@
    Memcheck:Addr8
    fun:PyObject_Realloc
 }
+
+{
+   dtoa
+   Memcheck:Cond
+   fun:__dtoa
+}
+
+{
+   PyEval_CallObjectWithKeywords
+   Memcheck:Cond
+   fun:_LSApplicationCheckIn
+}

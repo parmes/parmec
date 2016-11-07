@@ -481,10 +481,14 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
   uniform int sprdirup[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
-  uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+  uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform int lock[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
+
+  uniform REAL oj[3], vj[3], xj[3], Xj[3], Lj[9];
+  uniform int j0 = -1;
 
   /* update spring points and look up spring and dashpot forces */
   /* update global force and torque */
@@ -494,47 +498,52 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
     uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
-    o[0] = angular[3][j];
-    o[1] = angular[4][j];
-    o[2] = angular[5][j];
+    if (j0 != j) /* springs are sorted (j,k)-wise --> avoid repeated reads */
+    {
+      oj[0] = angular[3][j];
+      oj[1] = angular[4][j];
+      oj[2] = angular[5][j];
 
-    v[0] = linear[0][j];
-    v[1] = linear[1][j];
-    v[2] = linear[2][j];
+      vj[0] = linear[0][j];
+      vj[1] = linear[1][j];
+      vj[2] = linear[2][j];
 
-    x[0] = position[0][j];
-    x[1] = position[1][j];
-    x[2] = position[2][j];
+      xj[0] = position[0][j];
+      xj[1] = position[1][j];
+      xj[2] = position[2][j];
 
-    X[0] = position[3][j];
-    X[1] = position[4][j];
-    X[2] = position[5][j];
+      Xj[0] = position[3][j];
+      Xj[1] = position[4][j];
+      Xj[2] = position[5][j];
 
-    L[0] = rotation[0][j];
-    L[1] = rotation[1][j];
-    L[2] = rotation[2][j];
-    L[3] = rotation[3][j];
-    L[4] = rotation[4][j];
-    L[5] = rotation[5][j];
-    L[6] = rotation[6][j];
-    L[7] = rotation[7][j];
-    L[8] = rotation[8][j];
+      Lj[0] = rotation[0][j];
+      Lj[1] = rotation[1][j];
+      Lj[2] = rotation[2][j];
+      Lj[3] = rotation[3][j];
+      Lj[4] = rotation[4][j];
+      Lj[5] = rotation[5][j];
+      Lj[6] = rotation[6][j];
+      Lj[7] = rotation[7][j];
+      Lj[8] = rotation[8][j];
+    }
+
+    j0 = j;
 
     Y[0] = sprpnt[0][3][i];
     Y[1] = sprpnt[0][4][i];
     Y[2] = sprpnt[0][5][i];
 
-    SUB (Y, X, Y);
-    NVADDMUL (x, L, Y, p);
+    SUB (Y, Xj, Y);
+    NVADDMUL (xj, Lj, Y, p);
 
     sprpnt[0][0][i] = p[0];
     sprpnt[0][1][i] = p[1];
     sprpnt[0][2][i] = p[2];
 
-    COPY (v, u);
+    COPY (vj, u);
     SCALE(u, -1.0);
-    SUB (p, x, a);
-    PRODUCTSUB (o, a, u);
+    SUB (p, xj, a);
+    PRODUCTSUB (oj, a, u);
 
     if (k >= 0)
     {
@@ -645,23 +654,35 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
     sprfrc[0][i] = total_force;
     sprfrc[1][i] = spring_force;
 
+    PRODUCT (a, z, w);
+
+    while (lock[j] != taskIndex)
+      atomic_compare_exchange_global (&lock[j], -1, taskIndex); /* lock access to j force */
+
     force[0][j] += z[0];
     force[1][j] += z[1];
     force[2][j] += z[2];
-    PRODUCT (a, z, w);
     torque[0][j] += w[0];
     torque[1][j] += w[1];
     torque[2][j] += w[2];
 
+    lock[j] = -1; /* unlock */
+
     if (k >= 0)
     {
+      PRODUCT (b, z, w);
+
+      while (lock[k] != taskIndex)
+	atomic_compare_exchange_global (&lock[k], -1, taskIndex); /* lock access to k force */
+
       force[0][k] -= z[0];
       force[1][k] -= z[1];
       force[2][k] -= z[2];
-      PRODUCT (b, z, w);
       torque[0][k] -= w[0];
       torque[1][k] -= w[1];
       torque[2][k] -= w[2];
+
+      lock[k] = -1; /* unlock */
     }
   }
 }
@@ -691,6 +712,12 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   launch [threads] contacts_acc_task (parnum/threads, master, slave, parnum, position, mass, gravity, force, torque);
   sync;
 
+  uniform int * uniform lock = uniform new uniform int [parnum];
+  foreach (i = 0 ... parnum) lock[i] = -1;
+
   launch [threads] springs_task (sprnum/threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir,
-                             sprdirup, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque);
+                             sprdirup, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, lock);
+  sync;
+
+  delete lock;
 }

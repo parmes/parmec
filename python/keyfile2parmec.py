@@ -301,8 +301,11 @@ if lbz != None:
     sys.exit(1)
   tt = lc['A1']
   vv = lc['O1']
+  vl = list(vv)
+  for i in range(0,len(vl)): vl[i] = -vl[i]; # minus sign for gravity
+  vv = tuple(vl)
   parmec.write ('gz = interp1d(%s, %s)\n' % (str(tt), str(vv)))
-  parmec.write ('GRAVITY (0, 0, -gz)\n')
+  parmec.write ('GRAVITY (0, 0, gz)\n')
 
 gd = keyfile.getcard('DAMPING_GLOBAL')
 if gd != None:
