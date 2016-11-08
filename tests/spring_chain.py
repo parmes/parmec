@@ -31,7 +31,7 @@ GRAVITY (0, 0, -10)
 t = HISTORY ('TIME')
 z = HISTORY ('PZ', parnum)
 
-h = 0.2 * CRITICAL()
+h = 0.1 * CRITICAL()
 
 print 'Time step:', h
 

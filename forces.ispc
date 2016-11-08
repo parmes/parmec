@@ -394,21 +394,16 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 }
 
 /* look up table based linear spline interpolation */
-static inline uniform REAL look_up (uniform REAL * uniform tab[3], uniform int lo, uniform int hi, uniform REAL arg)
+static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg)
 {
-  if (arg < tab[0][lo]) return tab[1][lo];
-  else if (arg > tab[0][hi-1]) return tab[1][hi-1];
-  else
+  while (hi > lo+2)
   {
-    while (hi > lo+1)
-    {
-      uniform int mid = lo + (hi-lo)/2;
-      if (arg > tab[0][mid]) lo = mid;
-      else hi = mid;
-    }
-
-    return tab[1][lo] + tab[2][lo]*(arg-tab[0][lo]);
+    uniform int mid = lo + (hi-lo)/2;
+    if (arg > tab[0][mid]) lo = mid;
+    else hi = mid;
   }
+
+  return tab[1][lo] + (tab[1][lo+1]-tab[1][lo])*(arg-tab[0][lo])/(tab[0][lo+1]-tab[0][lo]);
 }
 
 /* contact (and gravity) forces accumulation task */
@@ -489,8 +484,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
 
-  uniform REAL oj[3], vj[3], xj[3], Xj[3], Lj[9];
-  uniform int j0 = -1;
+  uniform REAL oj[3], vj[3], xj[3], Xj[3], Lj[9], ok[3], vk[3], xk[3], Xk[3], Lk[9];
+  uniform int j0 = -1, k0 = -1;
 
   if (start > 0) /* start at sprpart[0][] change --> avoid atomic accumulation of force[][j] and torque[][j] below */
   {
@@ -507,8 +502,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
   /* update global force and torque */
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
-    uniform REAL o[3], v[3], x[3], X[3], L[9], Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3];
     uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
+    uniform REAL Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3];
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
     if (j0 != j) /* springs are sorted (j,k)-wise --> avoid repeated reads */
@@ -560,46 +555,51 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
 
     if (k >= 0)
     {
-      o[0] = angular[3][k];
-      o[1] = angular[4][k];
-      o[2] = angular[5][k];
+      if (k0 != k)
+      {
+	ok[0] = angular[3][k];
+	ok[1] = angular[4][k];
+	ok[2] = angular[5][k];
 
-      v[0] = linear[0][k];
-      v[1] = linear[1][k];
-      v[2] = linear[2][k];
+	vk[0] = linear[0][k];
+	vk[1] = linear[1][k];
+	vk[2] = linear[2][k];
 
-      x[0] = position[0][k];
-      x[1] = position[1][k];
-      x[2] = position[2][k];
+	xk[0] = position[0][k];
+	xk[1] = position[1][k];
+	xk[2] = position[2][k];
 
-      X[0] = position[3][k];
-      X[1] = position[4][k];
-      X[2] = position[5][k];
+	Xk[0] = position[3][k];
+	Xk[1] = position[4][k];
+	Xk[2] = position[5][k];
 
-      L[0] = rotation[0][k];
-      L[1] = rotation[1][k];
-      L[2] = rotation[2][k];
-      L[3] = rotation[3][k];
-      L[4] = rotation[4][k];
-      L[5] = rotation[5][k];
-      L[6] = rotation[6][k];
-      L[7] = rotation[7][k];
-      L[8] = rotation[8][k];
+	Lk[0] = rotation[0][k];
+	Lk[1] = rotation[1][k];
+	Lk[2] = rotation[2][k];
+	Lk[3] = rotation[3][k];
+	Lk[4] = rotation[4][k];
+	Lk[5] = rotation[5][k];
+	Lk[6] = rotation[6][k];
+	Lk[7] = rotation[7][k];
+	Lk[8] = rotation[8][k];
+      }
+
+      k0 = k;
 
       Y[0] = sprpnt[1][3][i];
       Y[1] = sprpnt[1][4][i];
       Y[2] = sprpnt[1][5][i];
 
-      SUB (Y, X, Y);
-      NVADDMUL (x, L, Y, q);
+      SUB (Y, Xk, Y);
+      NVADDMUL (xk, Lk, Y, q);
 
       sprpnt[1][0][i] = q[0];
       sprpnt[1][1][i] = q[1];
       sprpnt[1][2][i] = q[2];
 
-      ACC (v, u);
-      SUB (q, x, b);
-      PRODUCTADD (o, b, u);
+      ACC (vk, u);
+      SUB (q, xk, b);
+      PRODUCTADD (ok, b, u);
     }
     else
     {
@@ -703,8 +703,8 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL obslin[], uniform REAL obsang[], uniform int parmat[], uniform REAL * uniform mparam[NMAT],
   uniform int pairnum, uniform int pairs[], uniform int ikind[], uniform REAL * uniform iparam[NIPARAM],
   uniform REAL step, uniform int sprnum, uniform int * uniform sprpart[2],
-  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[3], uniform int spridx[],
-  uniform REAL * uniform dashpot[3], uniform int dashidx[], uniform REAL * uniform sprdir[3],
+  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
   uniform int sprdirup[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
@@ -728,20 +728,4 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   sync;
 
   delete lock;
-}
-
-/* initialize springs */
-export void init_springs (uniform int sprnum,
-  uniform REAL * uniform spring[3], uniform int spridx[],
-  uniform REAL * uniform dashpot[3], uniform int dashidx[])
-{
-  foreach (i = spridx[0] ... spridx[sprnum]) /* calculate spring ratios */
-  {
-    spring[2][i] = (spring[1][i+1]-spring[1][i])/(spring[0][i+1]-spring[0][i]);
-  }
-
-  foreach (i = dashidx[0] ... dashidx[sprnum]) /* calculate dashpot ratios */
-  {
-    dashpot[2][i] = (dashpot[1][i+1]-dashpot[1][i])/(dashpot[0][i+1]-dashpot[0][i]);
-  }
 }

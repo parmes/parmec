@@ -124,9 +124,9 @@ extern int sprnum; /* number of spring constraints */
 extern int *sprid; /* spring number returned to user */
 extern int *sprpart[2]; /* spring constraint particle numbers */
 extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
-extern REAL *spring[3]; /* spring force lookup tables */
+extern REAL *spring[2]; /* spring force lookup tables */
 extern int *spridx; /* spring force lookup start index */
-extern REAL *dashpot[3]; /* dashpot force lookup tables */
+extern REAL *dashpot[2]; /* dashpot force lookup tables */
 extern int *dashidx; /* dashpot force lookup start index */
 extern REAL *sprdir[3]; /* spring direction */
 extern int *sprdirup; /* spring direction update flag */
