@@ -52,7 +52,7 @@ enum {OUT_NUMBER = 1, OUT_COLOR = 2, OUT_DISPL = 4, OUT_ORIENT = 8, OUT_LINVEL =
 enum {SPRDIR_CONSTANT = 0, SPRDIR_PLANAR, SPRDIR_FOLLOWER}; /* spring direction types */
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

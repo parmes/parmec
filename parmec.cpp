@@ -1342,10 +1342,6 @@ static void sort_springs ()
   parmec::stroke = stroke;
 }
 
-#ifdef __cplusplus
-extern "C"{ /* __cplusplus */
-#endif
-
 /* init parmec library */
 void init()
 {
@@ -1543,10 +1539,6 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
 
   return dt;
 }
-
-#ifdef __cplusplus
-} /* __cplusplus */
-#endif
 
 #ifdef __cplusplus
 } /* namespace */

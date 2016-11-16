@@ -186,10 +186,6 @@ extern void declare_analytical (int k); /* declare particle 'k' analytical */
 
 /**************** library interface ****************/
 
-#ifdef __cplusplus
-extern "C"{ /* __cplusplus */
-#endif
-
 void init (); /* init memory */
 
 void reset (); /* reset all simulation data */
@@ -197,10 +193,6 @@ void reset (); /* reset all simulation data */
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
 REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose); /* run DEM simulation (return timed duration) */
-
-#ifdef __cplusplus
-} /* __cplusplus */
-#endif
 
 #ifdef __cplusplus
 } /* namespace */
