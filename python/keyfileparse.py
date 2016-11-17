@@ -103,6 +103,8 @@ CARDDEFINITIONS = {'TITLE':"""TITLE-A80""",
         
                  'MAT_SPRING_NONLINEAR_ELASTIC':"""MID-A LCD-I LCR-I""", #MID A8 in manual
 
+                 'MAT_SPRING_GENERAL_NONLINEAR':"""MID-A LCDL-I LCDU-I BETA-F TYI-F CYI-F""", #MID A8 in manual
+
                  'DAMPING_GLOBAL':"""LCID-I VALDMP-F STX-F STY-F STZ-F SRX-F SRY-F SRZ-F""",
 
                  'LOAD_BODY_X':"""LCID-I""",
