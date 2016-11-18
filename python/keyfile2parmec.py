@@ -134,6 +134,22 @@ parmec.write ('  print "'"ERROR: SciPy interp1d failed to load -->"'"\n')
 parmec.write ('  print "'"       perhaps SciPy needs to be installed"'"\n')
 parmec.write ('\n')
 
+#DEFINE_CURVE
+print 'Writing parmec file (load curves)...'
+parmec.write ('\n')
+parmec.write ('#\n')
+parmec.write ('# spring curves\n')
+parmec.write ('#\n')
+for lc in keyfile['DEFINE_CURVE']:
+  curve = []
+  for (t,v) in zip(lc['A1'], lc['O1']):
+    curve.append (t)
+    curve.append (v)
+  parmec.write ('curve%d = %s\n' % (lc['LCID'], str(curve)))
+parmec.write ('curve0 = [-1, 0, 1, 0]\n\n')
+
+#BOUNDARY_PRESCRIBED_MOTION_NODE
+print 'Writing parmec file (boundary conditions)...'
 if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
   pidset = Set()
   parmec.write ('# default zero signals\n')
@@ -165,24 +181,18 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
     if vad != 1:
       print 'ERROR: prescribed node motion VAD != 1 (acceleration)'
       sys.exit(1)
-    lc = keyfile.getcard('DEFINE_CURVE', LCID=lcid)
-    if lc == None:
-      print 'ERROR: DEFINE_CURVE card with ID = ', lcid, 'was not found'
-      sys.exit(1)
-    tt = lc['A1']
-    vv = lc['O1']
     if dof == 1:
-      parmec.write ('ACC%d_LIN_X = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+      parmec.write ('ACC%d_LIN_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
     elif dof == 2:
-      parmec.write ('ACC%d_LIN_Y = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+      parmec.write ('ACC%d_LIN_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid)) 
     elif dof == 3:
-      parmec.write ('ACC%d_LIN_Z = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+      parmec.write ('ACC%d_LIN_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
     elif dof == 5:
-      parmec.write ('ACC%d_ANG_X = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+      parmec.write ('ACC%d_ANG_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
     elif dof == 6:
-      parmec.write ('ACC%d_ANG_Y = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+      parmec.write ('ACC%d_ANG_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
     elif dof == 7:
-      parmec.write ('ACC%d_ANG_Z = interp1d(%s, %s)\n' % (pid, str(tt), str(vv)))
+      parmec.write ('ACC%d_ANG_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
 
   parmec.write ('\n')
   parmec.write ('# prescribe acceleration\n')
@@ -191,11 +201,65 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
     parmec.write ('  return (float(ACC%d_LIN_X(t)), float(ACC%d_LIN_Y(t)), float(ACC%d_LIN_Z(t)))\n' % (pid, pid, pid))
     parmec.write ('def ACC%d_ANG(t):\n' % pid)
     parmec.write ('  return (float(ACC%d_ANG_X(t)), float(ACC%d_ANG_Y(t)), float(ACC%d_ANG_Z(t)))\n' % (pid, pid, pid))
-    parmec.write ('\n')
     parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, "'"aa"'")\n' % (pid, pid, pid))
+    parmec.write ('\n')
 
+#BOUNDARY_PRESCRIBED_MOTION_SET
 if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
-  print 'BOUNDARY_PRESCRIBED_MOTION_SET --> to be implemented!' # TODO
+  pidset = Set()
+  parmec.write ('# default zero signals\n')
+  for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_SET']:
+    for nid in keyfile.SET_NODE_LISTS[bc['SID']]:
+      pid = mcnod2pid[nid]
+      if pid == None:
+	print 'ERROR: while prescribing nodal motion -->'
+	print '       node with ID =', nid, 'was not defined as a mass center in a PART_INERTIA card'
+	sys.exit(1)
+      if pid not in pidset:
+	parmec.write ('def ACC%d_LIN_X(t): return 0.0\n' % pid)
+	parmec.write ('def ACC%d_LIN_Y(t): return 0.0\n' % pid)
+	parmec.write ('def ACC%d_LIN_Z(t): return 0.0\n' % pid)
+	parmec.write ('def ACC%d_ANG_X(t): return 0.0\n' % pid)
+	parmec.write ('def ACC%d_ANG_Y(t): return 0.0\n' % pid)
+	parmec.write ('def ACC%d_ANG_Z(t): return 0.0\n' % pid)
+      pidset.add (pid)
+
+  parmec.write ('\n')
+  parmec.write ('# perscribed signals\n')
+  for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_SET']:
+    dof = bc['DOF']
+    vad = bc['VAD']
+    lcid = bc['LCID']
+    for nid in keyfile.SET_NODE_LISTS[bc['SID']]:
+      pid = mcnod2pid[nid]
+      if dof not in (1, 2, 3, 5, 6, 7):
+	print 'ERROR: prescribed node motion DOF not in (1, 2, 3, 5, 6, 7) set'
+	sys.exit(1)
+      if vad != 1:
+	print 'ERROR: prescribed node motion VAD != 1 (acceleration)'
+	sys.exit(1)
+      if dof == 1:
+	parmec.write ('ACC%d_LIN_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      elif dof == 2:
+	parmec.write ('ACC%d_LIN_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      elif dof == 3:
+	parmec.write ('ACC%d_LIN_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      elif dof == 5:
+	parmec.write ('ACC%d_ANG_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      elif dof == 6:
+	parmec.write ('ACC%d_ANG_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      elif dof == 7:
+	parmec.write ('ACC%d_ANG_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+
+    parmec.write ('\n')
+    parmec.write ('# prescribe acceleration\n')
+    for pid in pidset:
+      parmec.write ('def ACC%d_LIN(t):\n' % pid)
+      parmec.write ('  return (float(ACC%d_LIN_X(t)), float(ACC%d_LIN_Y(t)), float(ACC%d_LIN_Z(t)))\n' % (pid, pid, pid))
+      parmec.write ('def ACC%d_ANG(t):\n' % pid)
+      parmec.write ('  return (float(ACC%d_ANG_X(t)), float(ACC%d_ANG_Y(t)), float(ACC%d_ANG_Z(t)))\n' % (pid, pid, pid))
+      parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, "'"aa"'")\n' % (pid, pid, pid))
+      parmec.write ('\n')
 
 print "Mapping keyfile nodes to part inertia cards..."
 nod2pid = {} # node to part inertia mapping
@@ -205,77 +269,24 @@ for cxns in keyfile['CONSTRAINED_EXTRA_NODES_SET']:
   for i in keyfile.SET_NODE_LISTS[sid]:
     nod2pid[i] = pid
 
-print 'Writing parmec file (spring curves)...'
-parmec.write ('\n')
-parmec.write ('#\n')
-parmec.write ('# spring curves\n')
-parmec.write ('#\n')
-curveset = Set()
-for ed in keyfile['ELEMENT_DISCRETE']:
-  pid = ed['PID']
-  part = keyfile.getcard('PART', PID=ed['PID'])
-  if part == None:
-    print 'ERROR: did not find PART card with PID = ', ed['PID']
-    sys.exit(1)
+print "Mapping keyfile parts to material identifiesrs..."
+pid2mid = {} # part to material mapping
+for part in keyfile['PART']:
+  pid = part['PID']
   mid = part['MID']
-  mat = keyfile.getcard('MAT_SPRING_NONLINEAR_ELASTIC', MID=part['MID'])
-  if mat != None:
-    lcd = mat['LCD']
-    if lcd not in curveset:
-      lc = keyfile.getcard('DEFINE_CURVE', LCID=lcd)
-      if lc == None:
-	print 'ERROR: DEFINE_CURVE card with ID = ', lcd, 'was not found'
-	sys.exit(1)
-      curve = []
-      for (t,v) in zip(lc['A1'], lc['O1']):
-	curve.append (t)
-	curve.append (v)
-      parmec.write ('curve%d = %s\n' % (lcd, str(curve)))
-      curveset.add (lcd)
-    lcr = mat['LCR']
-    if lcr > 0 and lcr not in curveset:
-      lc = keyfile.getcard('DEFINE_CURVE', LCID=lcr)
-      if lc == None:
-	print 'ERROR: DEFINE_CURVE card with ID = ', lcr, 'was not found'
-	sys.exit(1)
-      curve = []
-      for (t,v) in zip(lc['A1'], lc['O1']):
-	curve.append (t)
-	curve.append (v)
-      parmec.write ('curve%d = %s\n' % (lcr, str(curve)))
-      curveset.add (lcr)
-  else:
-    mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=part['MID'])
-    if mat != None:
-      lcdl = mat['LCDL']
-      if lcdl not in curveset:
-	lc = keyfile.getcard('DEFINE_CURVE', LCID=lcdl)
-	if lc == None:
-	  print 'ERROR: DEFINE_CURVE card with ID = ', lcdl, 'was not found'
-	  sys.exit(1)
-	curve = []
-	for (t,v) in zip(lc['A1'], lc['O1']):
-	  curve.append (t)
-	  curve.append (v)
-	parmec.write ('curve%d = %s\n' % (lcdl, str(curve)))
-	curveset.add (lcdl)
-      lcdu = mat['LCDU']
-      if lcdu not in curveset:
-	lc = keyfile.getcard('DEFINE_CURVE', LCID=lcdu)
-	if lc == None:
-	  print 'ERROR: DEFINE_CURVE card with ID = ', lcdu, 'was not found'
-	  sys.exit(1)
-	curve = []
-	for (t,v) in zip(lc['A1'], lc['O1']):
-	  curve.append (t)
-	  curve.append (v)
-	parmec.write ('curve%d = %s\n' % (lcdu, str(curve)))
-	curveset.add (lcdu)
-    else:
-      print 'ERROR: did not find MAT_SPRING_NONLINEAR_ELASTIC or MAT_SPRING_GENERAL_NONLINEAR card with MID = ', mid
-      sys.exit(1)
-parmec.write ('curve0 = [-1, 0, 1, 0]\n')
+  pid2mid[pid] = mid
 
+print "Mapping orientation vectors..."
+vid2dso = {} # vector id to orientation card mapping
+for dso in keyfile['DEFINE_SD_ORIENTATION']:
+  vid2dso[dso['VID']] = dso
+
+print "Mapping materials..."
+mid2mat = {} # material id to material mapping
+for mat in keyfile['MAT_SPRING_NONLINEAR_ELASTIC']:
+  mid2mat[mat['MID']] = mat
+
+#ELEMENT_DISCRETE
 print 'Writing parmec file (springs)...'
 parmec.write ('\n')
 parmec.write ('#\n')
@@ -293,35 +304,40 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   pnt2 = keyfile.NODES[n2]
 
   vid = ed['VID']
-  dso = keyfile.getcard('DEFINE_SD_ORIENTATION', VID=vid)
-  if dso == None:
-    print 'ERROR: did not find DEFINE_SD_ORIENTATION card with VID = ', vid
-    sys.exit(1)
-  if dso['IOP'] == 0:
-    planar = 'OFF'
-  elif dso['IOP'] == 1:
-    planar = 'ON'
-  else:
-    print 'ERROR: unsupported IOP != (0 or 1) in DEFINE_SD_ORIENTATION card with VID = ', vid
-    sys.exit(1)
-  direct = (dso['XT'], dso['YT'], dso['ZT'])
+  if vid != 0:
+    dso = vid2dso[vid]
+    if dso == None:
+      print 'ERROR: did not find DEFINE_SD_ORIENTATION card with VID = ', vid
+      sys.exit(1)
+    if dso['IOP'] == 0:
+      planar = 'OFF'
+    elif dso['IOP'] == 1:
+      planar = 'ON'
+    else:
+      print 'ERROR: unsupported IOP != (0 or 1) in DEFINE_SD_ORIENTATION card with VID = ', vid
+      sys.exit(1)
+    direct = (dso['XT'], dso['YT'], dso['ZT']) # fixed direction
+  else: direct = None # direction = (pnt2-pnt1)/|pnt2-pnt1|
 
   pid = ed['PID']
-  part = keyfile.getcard('PART', PID=ed['PID'])
-  mid = part['MID']
-  mat = keyfile.getcard('MAT_SPRING_NONLINEAR_ELASTIC', MID=part['MID'])
-  if mat != None:
+  mid = pid2mid[pid]
+  try:
+    mat = mid2mat[mid] # this can give exception 'mid' is not MAT_SPRING_NONLINEAR_ELASTIC
     lcd = mat['LCD']
     lcr = mat['LCR']
     spring = 'curve%d' % lcd
     damper = 'curve%d' % lcr
-    parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
-		 (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, planar))
+    if direct != None:
+      parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
+		   (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, planar))
+    else:
+      parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s)\n' % \
+		   (pid1, str(pnt1), pid2, str(pnt2), spring, damper))
     parmec.write ('eid2num[%d] = num\n' % ed['EID'])
-  else:
-    mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=part['MID'])
+  except:
+    mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=mid) # TODO: optimize out by mapping
     if mat != None:
-      print 'MAT_SPRING_GENERAL_NONLINEAR --> to be implemented!' # TODO
+      print 'MAT_SPRING_GENERAL_NONLINEAR --> to be implemented!' # TODO: implement
 
 lbz = keyfile.getcard('LOAD_BODY_Z')
 if lbz != None:
@@ -330,16 +346,7 @@ if lbz != None:
   parmec.write ('# gravity\n')
   parmec.write ('#\n')
   lcid = lbz['LCID']
-  lc = keyfile.getcard('DEFINE_CURVE', LCID=lcid)
-  if lc == None:
-    print 'ERROR: DEFINE_CURVE card with ID = ', lcid, 'was not found'
-    sys.exit(1)
-  tt = lc['A1']
-  vv = lc['O1']
-  vl = list(vv)
-  for i in range(0,len(vl)): vl[i] = -vl[i]; # minus sign for gravity
-  vv = tuple(vl)
-  parmec.write ('gz = interp1d(%s, %s)\n' % (str(tt), str(vv)))
+  parmec.write ('gz = interp1d(curve%d[::2], [-g for g in curve%d[1::2]])\n' % (lcid, lcid))
   parmec.write ('GRAVITY (0, 0, gz)\n')
 
 gd = keyfile.getcard('DAMPING_GLOBAL')
@@ -349,13 +356,7 @@ if gd != None:
   parmec.write ('# global damping\n')
   parmec.write ('#\n')
   lcid = gd['LCID']
-  lc = keyfile.getcard('DEFINE_CURVE', LCID=lcid)
-  if lc == None:
-    print 'ERROR: DEFINE_CURVE card with ID = ', lcid, 'was not found'
-    sys.exit(1)
-  tt = lc['A1']
-  vv = lc['O1']
-  parmec.write ('dmp = interp1d(%s, %s)\n' % (str(tt), str(vv)))
+  parmec.write ('dmp = interp1d(curve%d[::2], curve%d[1::2])\n' % (lcid, lcid))
   parmec.write ('def dmplin(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['STX'], gd['STY'], gd['STZ']))
   parmec.write ('def dmpang(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['SRX'], gd['SRY'], gd['SRZ']))
   parmec.write ('DAMPING (dmplin, dmpang)\n')

@@ -89,6 +89,8 @@ CARDDEFINITIONS = {'TITLE':"""TITLE-A80""",
 
                  'BOUNDARY_PRESCRIBED_MOTION_NODE':"""NID-I DOF-I VAD-I LCID-I""",
 
+                 'BOUNDARY_PRESCRIBED_MOTION_SET':"""SID-I DOF-I VAD-I LCID-I""",
+
                  'DEFINE_SD_ORIENTATION':"""VID-I IOP-I XT-F YT-F ZT-F""",
                                        
                  'SET_NODE_LIST':"""SID-I
