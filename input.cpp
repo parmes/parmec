@@ -1234,6 +1234,157 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     stroke0[i] = LEN (dif);
   }
 
+  { /* XXX --> spring structure based input */
+
+  if (part1 < 0 || part1 > parnum)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid part1 index");
+    return NULL;
+  }
+
+  if (part2 >= 0 && part2 > parnum)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid part2 index");
+    return NULL;
+  }
+
+  int l, spring_inc[2] = {spring_lookup, 0};
+
+  ispc::master_spring *spr = newspring (&sprm[part1], -1, &l);
+
+  master_spring_alloc_data (spr, spring_inc, dashpot_lookup);
+
+  spr->sprid[l] = i;
+
+  spr->master[l] = part1;
+  spr->slave[l] = part2;
+
+  spr->mpnt[0][l] = PyFloat_AsDouble (PyTuple_GetItem (point1,0));
+  spr->mpnt[1][l] = PyFloat_AsDouble (PyTuple_GetItem (point1,1));
+  spr->mpnt[2][l] = PyFloat_AsDouble (PyTuple_GetItem (point1,2));
+  spr->mpnt[3][l] = spr->mpnt[0][l];
+  spr->mpnt[4][l] = spr->mpnt[1][l];
+  spr->mpnt[5][l] = spr->mpnt[2][l];
+  spr->spnt[0][l] = PyFloat_AsDouble (PyTuple_GetItem (point2,0));
+  spr->spnt[1][l] = PyFloat_AsDouble (PyTuple_GetItem (point2,1));
+  spr->spnt[2][l] = PyFloat_AsDouble (PyTuple_GetItem (point2,2));
+  spr->spnt[3][l] = spr->spnt[0][l];
+  spr->spnt[4][l] = spr->spnt[1][l];
+  spr->spnt[5][l] = spr->spnt[2][l];
+
+  int j = 0, k = spr->spridx[0][l];
+
+  for (; j < spring_lookup/2; j ++, k ++)
+  {
+    REAL stroke = PyFloat_AsDouble(PyList_GetItem(spring,2*j));
+    REAL force = PyFloat_AsDouble(PyList_GetItem(spring,2*j+1));
+    spr->spring[0][0][k] = stroke;
+    spr->spring[0][1][k] = force;
+  }
+  spr->spridx[0][l+1] = k;
+  spr->sprtype[l] = SPRFRC_NONLINEAR_ELASTIC; /* FIXME */
+  spr->spridx[1][l+1] = 0; /* FIXME */
+
+  if (dashpot)
+  {
+    for (j = 0, k = spr->dashidx[l]; j < dashpot_lookup/2; j ++, k ++)
+    {
+      REAL velocity = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j));
+      REAL force = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j+1));
+      spr->dashpot[0][k] = velocity;
+      spr->dashpot[1][k] = force;
+    }
+    spr->dashidx[l+1] = k;
+  }
+  else /* default zero force */
+  {
+    k = spr->dashidx[l];
+    spr->dashpot[0][k] = -REAL_MAX;
+    spr->dashpot[1][k] = 0.0;
+    spr->dashpot[0][k+1] = +REAL_MAX;
+    spr->dashpot[1][k+1] = 0.0;
+    spr->dashidx[l+1] = k+2;
+  }
+
+  if (direction)
+  {
+    REAL dir[3];
+
+    dir[0] = PyFloat_AsDouble(PyTuple_GetItem(direction,0));
+    dir[1] = PyFloat_AsDouble(PyTuple_GetItem(direction,1));
+    dir[2] = PyFloat_AsDouble(PyTuple_GetItem(direction,2));
+
+    REAL len = LEN(dir);
+
+    if (len == 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid zero direction");
+      return NULL;
+    }
+
+    REAL inv = 1.0/len;
+
+    dir[0] *= inv;
+    dir[1] *= inv;
+    dir[2] *= inv;
+
+    spr->dir[0][l] = dir[0];
+    spr->dir[1][l] = dir[1];
+    spr->dir[2][l] = dir[2];
+
+    if (planar)
+    {
+      IFIS (planar, "ON") /* direction in plane */
+      {
+	spr->dirup[l] = SPRDIR_PLANAR;
+      }
+      ELIF (planar, "OFF") /* constant direction */
+      {
+	spr->dirup[l] = SPRDIR_CONSTANT;
+      }
+      ELSE
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid planar switch");
+	return NULL;
+      }
+    }
+    else /* constant direction */
+    {
+      spr->dirup[l] = SPRDIR_CONSTANT;
+    }
+
+    REAL dif[3] = {spr->spnt[0][l] - spr->mpnt[0][l],
+                   spr->spnt[1][l] - spr->mpnt[1][l],
+                   spr->spnt[2][l] - spr->mpnt[2][l]};
+
+    if (spr->dirup[l] == SPRDIR_CONSTANT)
+    {
+      spr->stroke0[l] = DOT (dif, dir); /* stroke(0) = projection along direction */
+    }
+    else /* stroke(0) = length in orthogonal plane */
+    {
+      REAL dot = DOT (dif, dir);
+
+      dif[0] -= dot*dir[0];
+      dif[1] -= dot*dir[1];
+      dif[2] -= dot*dir[2];
+
+      spr->stroke0[l] = LEN (dif);
+    }
+  }
+  else /* direction = (p2 - p1)/|p2 - p1| */
+  {
+    spr->dirup[l] = SPRDIR_FOLLOWER;
+
+    REAL dif[3] = {spr->spnt[0][l] - spr->mpnt[0][l],
+                   spr->spnt[1][l] - spr->mpnt[1][l],
+                   spr->spnt[2][l] - spr->mpnt[2][l]};
+
+    spr->stroke0[l] = LEN (dif);
+  }
+
+  } /* XXX <-- spring structure based input */
+
   return PyInt_FromLong (i);
 }
 

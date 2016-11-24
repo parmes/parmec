@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 #include "condet_ispc.h"
+#include "spring_ispc.h"
 #include "constants.h"
 
 #ifndef __parmec__
@@ -79,6 +80,8 @@ extern REAL *torque[3]; /* total spatial torque */
 extern int *flags; /* particle flags */
 extern ispc::master_conpnt *master; /* master contact points */
 extern ispc::slave_conpnt *slave; /* slave contact points */
+extern ispc::master_spring *sprm; /* master springs */
+extern ispc::slave_spring *sprs; /* slave springs */
 extern int particle_buffer_size; /* size of the buffer */
 extern int particle_buffer_grow (); /* grow buffer */
 
