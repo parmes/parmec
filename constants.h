@@ -49,8 +49,6 @@ enum {OUT_MODE_SPH = 1, OUT_MODE_MESH = 2, OUT_MODE_RB = 4, OUT_MODE_CD = 8, OUT
 enum {OUT_NUMBER = 1, OUT_COLOR = 2, OUT_DISPL = 4, OUT_ORIENT = 8, OUT_LINVEL = 16, OUT_ANGVEL = 32, OUT_FORCE = 64,
       OUT_TORQUE = 128, OUT_F = 256, OUT_FN = 512, OUT_FT = 1024, OUT_SF = 2048, OUT_AREA = 4096, OUT_PAIR = 8192}; /* output entities */
 
-enum {SPRFRC_NONLINEAR_ELASTIC = 0, SPRFRC_GENERAL_NONLINEAR}; /* spring force types */
-
 enum {SPRDIR_CONSTANT = 0, SPRDIR_PLANAR, SPRDIR_FOLLOWER}; /* spring direction types */
 
 #ifdef __cplusplus

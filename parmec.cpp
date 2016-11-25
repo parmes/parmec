@@ -97,8 +97,6 @@ REAL *torque[3]; /* total spatial torque */
 int *flags; /* particle flags */
 ispc::master_conpnt *master; /* master contact points */
 ispc::slave_conpnt *slave; /* slave contact points */
-ispc::master_spring *sprm; /* master springs */
-ispc::slave_spring *sprs; /* slave springs */
 int particle_buffer_size; /* size of the buffer */
 
 int trinum; /* number of triangles */
@@ -429,8 +427,6 @@ void particle_buffer_init ()
   flags = aligned_int_alloc (particle_buffer_size);
   master = master_alloc (NULL, 0, particle_buffer_size);
   slave = slave_alloc (NULL, 0, particle_buffer_size);
-  sprm = master_spring_alloc (NULL, 0, particle_buffer_size);
-  sprs = slave_spring_alloc (NULL, 0, particle_buffer_size);
 
   parnum = 0;
 }
@@ -494,8 +490,6 @@ int particle_buffer_grow ()
   integer_buffer_grow (flags, parnum, particle_buffer_size);
   master = master_alloc (master, parnum, particle_buffer_size);
   slave = slave_alloc (slave, parnum, particle_buffer_size);
-  sprm = master_spring_alloc (sprm, parnum, particle_buffer_size);
-  sprs = slave_spring_alloc (sprs, parnum, particle_buffer_size);
 
   return particle_buffer_size;
 }
