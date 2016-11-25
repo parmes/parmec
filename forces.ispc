@@ -497,9 +497,14 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
     for (; end < sprnum-1 && sprpart[0][end] == sprpart[0][end+1]; end ++);
   }
 
+  uniform REAL fj[3], tj[3], fk[3], tk[3]; /* local force and torque accumulation buffers */
 
-  /* update spring points and look up spring and dashpot forces */
-  /* update global force and torque */
+  ZERO (fj);
+  ZERO (tj);
+  ZERO (fk);
+  ZERO (tk);
+
+  /* update spring points and spring forces; update global force and torque */
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
     uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
@@ -534,8 +539,6 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       Lj[7] = rotation[7][j];
       Lj[8] = rotation[8][j];
     }
-
-    j0 = j;
 
     Y[0] = sprpnt[0][3][i];
     Y[1] = sprpnt[0][4][i];
@@ -583,8 +586,6 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
 	Lk[7] = rotation[7][k];
 	Lk[8] = rotation[8][k];
       }
-
-      k0 = k;
 
       Y[0] = sprpnt[1][3][i];
       Y[1] = sprpnt[1][4][i];
@@ -669,29 +670,80 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
 
     PRODUCT (a, z, w);
 
-    force[0][j] += z[0];
-    force[1][j] += z[1];
-    force[2][j] += z[2];
-    torque[0][j] += w[0];
-    torque[1][j] += w[1];
-    torque[2][j] += w[2];
+    if (j0 != j && j0 >= 0) /* global acc previous and local reset current */
+    {
+      force[0][j0] += fj[0];
+      force[1][j0] += fj[1];
+      force[2][j0] += fj[2];
+      torque[0][j0] += tj[0];
+      torque[1][j0] += tj[1];
+      torque[2][j0] += tj[2];
+
+      COPY (z, fj);
+      COPY (w, tj);
+    }
+    else /* local acc current */
+    {
+      ACC (z, fj);
+      ACC (w, tj);
+    }
 
     if (k >= 0)
     {
       PRODUCT (b, z, w);
 
-      while (lock[k] != taskIndex)
-	atomic_compare_exchange_global (&lock[k], -1, taskIndex); /* lock access to k force */
+      if (k0 != k && k0 >= 0) /* global acc previous and local reset current */
+      {
+	while (lock[k0] != taskIndex)
+	  atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 force */
 
-      force[0][k] -= z[0];
-      force[1][k] -= z[1];
-      force[2][k] -= z[2];
-      torque[0][k] -= w[0];
-      torque[1][k] -= w[1];
-      torque[2][k] -= w[2];
+	force[0][k0] -= fk[0];
+	force[1][k0] -= fk[1];
+	force[2][k0] -= fk[2];
+	torque[0][k0] -= tk[0];
+	torque[1][k0] -= tk[1];
+	torque[2][k0] -= tk[2];
 
-      lock[k] = -1; /* unlock */
+	lock[k0] = -1; /* unlock */
+
+	COPY (z, fk);
+	COPY (w, tk);
+      }
+      else /* local acc current */
+      {
+	ACC (z, fk);
+	ACC (w, tk);
+      }
+
+      k0 = k;
     }
+
+    j0 = j;
+  }
+
+  if (j0 >= 0) /* final global acc */
+  {
+    force[0][j0] += fj[0];
+    force[1][j0] += fj[1];
+    force[2][j0] += fj[2];
+    torque[0][j0] += tj[0];
+    torque[1][j0] += tj[1];
+    torque[2][j0] += tj[2];
+  }
+
+  if (k0 >= 0) /* final global acc */
+  {
+    while (lock[k0] != taskIndex)
+      atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 force */
+
+    force[0][k0] -= fk[0];
+    force[1][k0] -= fk[1];
+    force[2][k0] -= fk[2];
+    torque[0][k0] -= tk[0];
+    torque[1][k0] -= tk[1];
+    torque[2][k0] -= tk[2];
+
+    lock[k0] = -1; /* unlock */
   }
 }
 

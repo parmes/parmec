@@ -68,7 +68,7 @@ static uniform master_conpnt * uniform newcon (uniform master_conpnt * uniform m
   else
   {
     uniform master_conpnt * uniform ptr = uniform new uniform master_conpnt;
-    ptr->size = 0;
+    ptr->size = 1; /* index zero already used up */
     ptr->next = NULL;
     con->next = ptr; /* append new item at the end */
     con = ptr; /* return new item */

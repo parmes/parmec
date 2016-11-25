@@ -344,7 +344,11 @@ SOFTWARE.
   (a) [2] = b;\
 }
 
+#define ZERO(a) SET(a, 0.0)
+
 #define SETN(a, n, b) for (REAL *x = (a), *y = x + (n); x != y; x ++) (*x) = (b)
+
+#define ZERON(a, n) SETN(a, n, 0.0)
 
 #define SETRAND(a, b)\
 {\
