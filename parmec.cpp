@@ -99,6 +99,12 @@ ispc::master_conpnt *master; /* master contact points */
 ispc::slave_conpnt *slave; /* slave contact points */
 int particle_buffer_size; /* size of the buffer */
 
+int looknum; /* number of lookup tables */
+REAL *lookup[2]; /* lookup tables */
+int *lookidx; /* lookup table table start index */
+int lookup_size; /* size of the buffer */
+int lookup_table_size; /* size of the lookup table buffers */
+
 int trinum; /* number of triangles */
 int tricon; /* index of the first triangle used in contact detection */
 int *tricol; /* triangle color */
@@ -492,6 +498,42 @@ int particle_buffer_grow ()
   slave = slave_alloc (slave, parnum, particle_buffer_size);
 
   return particle_buffer_size;
+}
+
+/* init lookup buffer */
+int lookup_buffer_init ()
+{
+  lookup_size = 128;
+  lookup_table_size = 1024;
+
+  lookup[0] = aligned_real_alloc (lookup_table_size);
+  lookup[1] = aligned_real_alloc (lookup_table_size);
+  lookidx = aligned_int_alloc (lookup_size+1);
+
+  lookup[0][0] = -REAL_MAX;
+  lookup[0][1] = +REAL_MAX;
+  lookup[1][0] = 0.0;
+  lookup[1][1] = 0.0;
+  lookidx[0] = 0;
+  lookidx[1] = 2;
+  looknum = 1; /* default zero line */
+}
+
+/* grow lookup buffer */
+void lookup_buffer_grow (int increment)
+{
+  if (looknum+1 >= lookup_size)
+  {
+    lookup_size *= 2;
+    integer_buffer_grow(lookidx, looknum+1, lookup_size+1);
+  }
+
+  if (lookup_table_size < lookidx[looknum] + increment)
+  {
+    lookup_table_size = 2 * (lookidx[looknum] + increment);
+    real_buffer_grow (lookup[0], lookidx[looknum], lookup_table_size);
+    real_buffer_grow (lookup[1], lookidx[looknum], lookup_table_size);
+  }
 }
 
 /* init triangle buffer */
@@ -1349,6 +1391,7 @@ void init()
   pair_buffer_init ();
   ellipsoid_buffer_init ();
   particle_buffer_init ();
+  lookup_buffer_init ();
   triangle_buffer_init ();
   element_buffer_init ();
   obstacle_buffer_init ();
