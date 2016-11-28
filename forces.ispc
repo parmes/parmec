@@ -473,10 +473,11 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 }
 
 /* update spring foces */
-task void springs_task (uniform int span, uniform int sprnum, uniform int * uniform sprpart[2],
+task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
-  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
-  uniform int sprdirup[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[],
+  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3],
+  uniform int sprflg[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform int lock[])
@@ -611,7 +612,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
 
     SUB (q, p, w);
 
-    switch (sprdirup[i])
+    switch (sprflg[i]&(SPRDIR_FOLLOWER|SPRDIR_CONSTANT|SPRDIR_PLANAR))
     {
     case SPRDIR_FOLLOWER:
 
@@ -653,11 +654,36 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int * unif
       break;
     }
 
-    stroke[i] = len - stroke0[i];
+    switch (sprtype[i])
+    {
+    case SPRING_NONLINEAR_ELASTIC:
+    {
+      stroke[i] = len - stroke0[i];
+
+      spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[i]);
+    }
+    break;
+    case SPRING_GENERAL_NONLINEAR:
+    {
+      uniform REAL s0 = stroke[i];
+
+      uniform REAL s1 = len - stroke0[i];
+
+      uniform REAL ds = s1-s0;
+
+      if (ds >= 0.0) /* loading */
+      {
+	/* TODO */
+      }
+      else /* unloading */
+      {
+	/* TODO */
+      }
+    }
+    break;
+    }
 
     velocity = DOT (z, u);
-
-    spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[i]);
 
     dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity);
 
@@ -754,10 +780,11 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[], uniform REAL obspnt[],
   uniform REAL obslin[], uniform REAL obsang[], uniform int parmat[], uniform REAL * uniform mparam[NMAT],
   uniform int pairnum, uniform int pairs[], uniform int ikind[], uniform REAL * uniform iparam[NIPARAM],
-  uniform REAL step, uniform int sprnum, uniform int * uniform sprpart[2],
+  uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
-  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprdir[3],
-  uniform int sprdirup[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
+  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3], uniform int sprflg[], uniform REAL stroke0[],
+  uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   launch [threads] zero_force_and_torque (parnum/threads, parnum, force, torque);
@@ -775,8 +802,8 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
-  launch [threads] springs_task (sprnum/threads, sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir,
-                             sprdirup, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, lock);
+  launch [threads] springs_task (sprnum/threads, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
+                                 sprdir, sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, lock);
   sync;
 
   delete lock;

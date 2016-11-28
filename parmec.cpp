@@ -136,20 +136,25 @@ int obstacle_buffer_size; /* size of the buffer */
 
 int sprnum; /* number of spring constraints */
 int *sprid; /* spring number returned to user */
+int *sprtype; /* spring type */
 int *sprpart[2]; /* spring constraint particle numbers */
 REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 REAL *spring[2]; /* spring force lookup tables */
 int *spridx; /* spring force lookup start index */
 REAL *dashpot[2]; /* dashpot force lookup tables */
 int *dashidx; /* dashpot force lookup start index */
+REAL *unload[2]; /* spring unloading lookup tables */
+int *unidx; /* spring unloading lookup start index */
+REAL *yield[2]; /* spring yield limits: 0 tension and 1 compression */
 REAL *sprdir[3]; /* spring direction */
-int *sprdirup; /* spring direction update flag */
+int *sprflg; /* spring flags */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke; /* current stroke */
 REAL *sprfrc[2]; /* total and spring force magnitude */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
+int unload_lookup_size; /* size of the unload force lookup tables */
 
 int cnsnum; /* number of constraints */
 int *cnspart; /* constrained particle numbers */
@@ -645,8 +650,10 @@ int spring_buffer_init ()
   spring_buffer_size = 256;
   spring_lookup_size = 1024;
   dashpot_lookup_size = 1024;
+  unload_lookup_size = 1024;
 
   sprid = aligned_int_alloc (spring_buffer_size);
+  sprtype = aligned_int_alloc (spring_buffer_size);
   sprpart[0] = aligned_int_alloc (spring_buffer_size);
   sprpart[1] = aligned_int_alloc (spring_buffer_size);
   sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
@@ -667,10 +674,15 @@ int spring_buffer_init ()
   dashpot[0] = aligned_real_alloc (dashpot_lookup_size);
   dashpot[1] = aligned_real_alloc (dashpot_lookup_size);
   dashidx = aligned_int_alloc (spring_buffer_size+1);
+  unload[0] = aligned_real_alloc (unload_lookup_size);
+  unload[1] = aligned_real_alloc (unload_lookup_size);
+  unidx = aligned_int_alloc (spring_buffer_size+1);
+  yield[0] = aligned_real_alloc (spring_buffer_size);
+  yield[1] = aligned_real_alloc (spring_buffer_size);
   sprdir[0] = aligned_real_alloc (spring_buffer_size);
   sprdir[1] = aligned_real_alloc (spring_buffer_size);
   sprdir[2] = aligned_real_alloc (spring_buffer_size);
-  sprdirup = aligned_int_alloc (spring_buffer_size);
+  sprflg = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke = aligned_real_alloc (spring_buffer_size);
   sprfrc[0] = aligned_real_alloc (spring_buffer_size);
@@ -679,16 +691,18 @@ int spring_buffer_init ()
   sprnum = 0;
   spridx[sprnum] = 0;
   dashidx[sprnum] = 0;
+  unidx[sprnum] = 0;
 }
 
 /* grow spring buffer */
-void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
+void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_lookup)
 {
   if (sprnum+1 >= spring_buffer_size)
   {
     spring_buffer_size *= 2;
 
     integer_buffer_grow(sprid, sprnum, spring_buffer_size);
+    integer_buffer_grow(sprtype, sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[0], sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[1], sprnum, spring_buffer_size);
     real_buffer_grow(sprpnt[0][0], sprnum, spring_buffer_size);
@@ -705,10 +719,13 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
     real_buffer_grow(sprpnt[1][5], sprnum, spring_buffer_size);
     integer_buffer_grow(spridx, sprnum+1, spring_buffer_size+1);
     integer_buffer_grow(dashidx, sprnum+1, spring_buffer_size+1);
+    integer_buffer_grow(unidx, sprnum+1, spring_buffer_size+1);
+    real_buffer_grow(yield[0], sprnum, spring_buffer_size);
+    real_buffer_grow(yield[1], sprnum, spring_buffer_size);
     real_buffer_grow(sprdir[0], sprnum, spring_buffer_size);
     real_buffer_grow(sprdir[1], sprnum, spring_buffer_size);
     real_buffer_grow(sprdir[2], sprnum, spring_buffer_size);
-    integer_buffer_grow(sprdirup, sprnum, spring_buffer_size);
+    integer_buffer_grow(sprflg, sprnum, spring_buffer_size);
     real_buffer_grow(stroke0, sprnum, spring_buffer_size);
     real_buffer_grow(stroke, sprnum, spring_buffer_size);
     real_buffer_grow(sprfrc[0], sprnum, spring_buffer_size);
@@ -727,6 +744,13 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup)
     dashpot_lookup_size = 2 * (dashidx[sprnum] + dashpot_lookup);
     real_buffer_grow (dashpot[0], dashidx[sprnum], dashpot_lookup_size);
     real_buffer_grow (dashpot[1], dashidx[sprnum], dashpot_lookup_size);
+  }
+
+  if (unload_lookup_size < unidx[sprnum] + unload_lookup)
+  {
+    unload_lookup_size = 2 * (unidx[sprnum] + unload_lookup);
+    real_buffer_grow (unload[0], unidx[sprnum], unload_lookup_size);
+    real_buffer_grow (unload[1], unidx[sprnum], unload_lookup_size);
   }
 }
 
@@ -1203,18 +1227,23 @@ static void sort_springs ()
 
   int sprnum; /* number of spring constraints */
   int *sprid; /* spring number returned to user */
+  int *sprtype; /* spring type */
   int *sprpart[2]; /* spring constraint particle numbers */
   REAL *sprpnt[2][6]; /* spring constraint current and reference points */
   REAL *spring[2]; /* spring force lookup tables */
   int *spridx; /* spring force lookup start index */
   REAL *dashpot[2]; /* dashpot force lookup tables */
   int *dashidx; /* dashpot force lookup start index */
+  REAL *unload[2]; /* unload force lookup tables */
+  int *unidx; /* unload force lookup start index */
+  REAL *yield[2]; /* spring yield limits */
   REAL *sprdir[3]; /* spring direction */
-  int *sprdirup; /* spring direction update flag */
+  int *sprflg; /* spring flags */
   REAL *stroke0; /* initial spring stroke */
   REAL *stroke; /* current stroke */
 
   sprid = aligned_int_alloc (spring_buffer_size);
+  sprtype = aligned_int_alloc (spring_buffer_size);
   sprpart[0] = aligned_int_alloc (spring_buffer_size);
   sprpart[1] = aligned_int_alloc (spring_buffer_size);
   sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
@@ -1235,20 +1264,26 @@ static void sort_springs ()
   dashpot[0] = aligned_real_alloc (dashpot_lookup_size);
   dashpot[1] = aligned_real_alloc (dashpot_lookup_size);
   dashidx = aligned_int_alloc (spring_buffer_size+1);
+  unload[0] = aligned_real_alloc (unload_lookup_size);
+  unload[1] = aligned_real_alloc (unload_lookup_size);
+  unidx = aligned_int_alloc (spring_buffer_size+1);
+  yield[0] = aligned_real_alloc (spring_buffer_size);
+  yield[1] = aligned_real_alloc (spring_buffer_size);
   sprdir[0] = aligned_real_alloc (spring_buffer_size);
   sprdir[1] = aligned_real_alloc (spring_buffer_size);
   sprdir[2] = aligned_real_alloc (spring_buffer_size);
-  sprdirup = aligned_int_alloc (spring_buffer_size);
+  sprflg = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke = aligned_real_alloc (spring_buffer_size);
  
   int i = 0;
 
-  spridx[0] = dashidx[0] = 0;
+  spridx[0] = dashidx[0] = unidx[0] = 0;
 
   for (std::vector<spring_data>::const_iterator x = v.begin(); x != v.end(); ++x, ++i)
   {
     sprid[i] = parmec::sprid[x->number];
+    sprtype[i] = parmec::sprtype[x->number];
     sprpart[0][i] = parmec::sprpart[0][x->number];
     sprpart[1][i] = parmec::sprpart[1][x->number];
     sprpnt[0][0][i] = parmec::sprpnt[0][0][x->number];
@@ -1263,10 +1298,12 @@ static void sort_springs ()
     sprpnt[1][3][i] = parmec::sprpnt[1][3][x->number];
     sprpnt[1][4][i] = parmec::sprpnt[1][4][x->number];
     sprpnt[1][5][i] = parmec::sprpnt[1][5][x->number];
+    yield[0][i] = parmec::yield[0][x->number];
+    yield[1][i] = parmec::yield[1][x->number];
     sprdir[0][i] = parmec::sprdir[0][x->number];
     sprdir[1][i] = parmec::sprdir[1][x->number];
     sprdir[2][i] = parmec::sprdir[2][x->number];
-    sprdirup[i] = parmec::sprdirup[x->number];
+    sprflg[i] = parmec::sprflg[x->number];
     stroke0[i] = parmec::stroke0[x->number];
     stroke[i] = parmec::stroke[x->number];
 
@@ -1283,9 +1320,17 @@ static void sort_springs ()
       dashpot[0][j] = parmec::dashpot[0][k];
       dashpot[1][j] = parmec::dashpot[1][k];
     }
+
+    unidx[i+1] = unidx[i] + parmec::unidx[i+1]-parmec::unidx[i];
+    for (int j = unidx[i], k = parmec::unidx[i]; j < unidx[i+1]; j ++, k ++)
+    {
+      unload[0][j] = parmec::unload[0][k];
+      unload[1][j] = parmec::unload[1][k];
+    }
   }
 
   aligned_int_free (parmec::sprid);
+  aligned_int_free (parmec::sprtype);
   aligned_int_free (parmec::sprpart[0]);
   aligned_int_free (parmec::sprpart[1]);
   aligned_real_free (parmec::sprpnt[0][0]);
@@ -1306,14 +1351,20 @@ static void sort_springs ()
   aligned_real_free (parmec::dashpot[0]);
   aligned_real_free (parmec::dashpot[1]);
   aligned_int_free (parmec::dashidx);
+  aligned_real_free (parmec::unload[0]);
+  aligned_real_free (parmec::unload[1]);
+  aligned_int_free (parmec::unidx);
+  aligned_real_free (parmec::yield[0]);
+  aligned_real_free (parmec::yield[1]);
   aligned_real_free (parmec::sprdir[0]);
   aligned_real_free (parmec::sprdir[1]);
   aligned_real_free (parmec::sprdir[2]);
-  aligned_int_free (parmec::sprdirup);
+  aligned_int_free (parmec::sprflg);
   aligned_real_free (parmec::stroke0);
   aligned_real_free (parmec::stroke);
 
   parmec::sprid = sprid;
+  parmec::sprtype = sprtype;
   parmec::sprpart[0] = sprpart[0];
   parmec::sprpart[1] = sprpart[1];
   parmec::sprpnt[0][0] = sprpnt[0][0];
@@ -1334,10 +1385,15 @@ static void sort_springs ()
   parmec::dashpot[0] = dashpot[0];
   parmec::dashpot[1] = dashpot[1];
   parmec::dashidx = dashidx;
+  parmec::unload[0] = unload[0];
+  parmec::unload[1] = unload[1];
+  parmec::unidx = unidx;
+  parmec::yield[0] = yield[0];
+  parmec::yield[1] = yield[1];
   parmec::sprdir[0] = sprdir[0];
   parmec::sprdir[1] = sprdir[1];
   parmec::sprdir[2] = sprdir[2];
-  parmec::sprdirup = sprdirup;
+  parmec::sprflg = sprflg;
   parmec::stroke0 = stroke0;
   parmec::stroke = stroke;
 }
@@ -1481,8 +1537,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
 
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step,
-            sprnum, sprpart, sprpnt, spring, spridx, dashpot, dashidx, sprdir, sprdirup, stroke0,
-	    stroke, sprfrc, gravity, force, torque);
+            sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
+	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque);
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 

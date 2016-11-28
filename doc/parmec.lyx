@@ -903,7 +903,17 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
- planar)
+ planar
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+, unload, yield, hardening
+\end_layout
+
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Itemize
@@ -969,6 +979,20 @@ spring
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+; used for both loading and unloading when the 
+\series bold
+unload
+\series default
+ table is not given
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Itemize
@@ -1004,7 +1028,7 @@ direction
 \series bold
 planar
 \series default
- - optional planar spring flag; when 'ON' spring direction 
+ - optional planar spring flag; when 'ON' spring direction
 \begin_inset Formula 
 \[
 \left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|
@@ -1017,6 +1041,55 @@ is projected onto a plane orthogonal to
 \end_inset
 
 ; default: 'OFF'
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Itemize
+
+\series bold
+unload
+\series default
+ - spring unloading lookup table 
+\begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+yield
+\series default
+ - tuple 
+\begin_inset Formula $\left(f_{yt},f_{yc}\right)$
+\end_inset
+
+ defining the tension, 
+\begin_inset Formula $f_{yt}>0$
+\end_inset
+
+, and compression, 
+\begin_inset Formula $f_{yc}<0$
+\end_inset
+
+, yield limits respectively
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+hardening
+\series default
+ - hardening behavior: TODO
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section

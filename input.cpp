@@ -1103,7 +1103,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   int dashpot_lookup = dashpot ? PyList_Size (dashpot) : 4;
 
-  spring_buffer_grow (spring_lookup, dashpot_lookup);
+  spring_buffer_grow (spring_lookup, dashpot_lookup, 0);
 
   int i = sprnum ++;
 
@@ -1157,6 +1157,12 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     dashidx[sprnum] = k+2;
   }
 
+  parmec::unidx[sprnum] = 0; /* TODO --> value based existance of unload lookup table */
+
+  parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
+
+  /* TODO --> check curves slope correctness based on spring type and hardening rule */
+
   if (direction)
   {
     REAL dir[3];
@@ -1187,11 +1193,11 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       IFIS (planar, "ON") /* direction in plane */
       {
-	sprdirup[i] = SPRDIR_PLANAR;
+	sprflg[i] = SPRDIR_PLANAR;
       }
       ELIF (planar, "OFF") /* constant direction */
       {
-	sprdirup[i] = SPRDIR_CONSTANT;
+	sprflg[i] = SPRDIR_CONSTANT;
       }
       ELSE
       {
@@ -1201,14 +1207,14 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     }
     else /* constant direction */
     {
-      sprdirup[i] = SPRDIR_CONSTANT;
+      sprflg[i] = SPRDIR_CONSTANT;
     }
 
     REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
                    sprpnt[1][1][i] - sprpnt[0][1][i],
                    sprpnt[1][2][i] - sprpnt[0][2][i]};
 
-    if (sprdirup[i] == SPRDIR_CONSTANT)
+    if (sprflg[i] == SPRDIR_CONSTANT)
     {
       stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
     }
@@ -1225,7 +1231,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else /* direction = (p2 - p1)/|p2 - p1| */
   {
-    sprdirup[i] = SPRDIR_FOLLOWER;
+    sprflg[i] = SPRDIR_FOLLOWER;
 
     REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
                    sprpnt[1][1][i] - sprpnt[0][1][i],

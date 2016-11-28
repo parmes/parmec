@@ -122,21 +122,26 @@ extern int obstacle_buffer_grow (); /* grow buffer */
 
 extern int sprnum; /* number of spring constraints */
 extern int *sprid; /* spring number returned to user */
+extern int *sprtype; /* spring type */
 extern int *sprpart[2]; /* spring constraint particle numbers */
 extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 extern REAL *spring[2]; /* spring force lookup tables */
 extern int *spridx; /* spring force lookup start index */
 extern REAL *dashpot[2]; /* dashpot force lookup tables */
 extern int *dashidx; /* dashpot force lookup start index */
+extern REAL *unload[2]; /* spring unloading lookup tables */
+extern int *unidx; /* spring unloading lookup start index */
+extern REAL *yield[2]; /* spring yield limits: 0 tension and 1 compression */
 extern REAL *sprdir[3]; /* spring direction */
-extern int *sprdirup; /* spring direction update flag */
+extern int *sprflg; /* spring flags */
 extern REAL *stroke0; /* initial spring stroke */
 extern REAL *stroke; /* current stroke */
 extern REAL *sprfrc[2]; /* total and spring force magnitude */
 extern int spring_buffer_size; /* size of the spring constraint buffer */
 extern int spring_lookup_size; /* size of the spring force lookup tables */
 extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */
-extern void spring_buffer_grow (int spring_lookup, int dashpot_lookup); /* grow buffer */
+extern int unload_lookup_size; /* size of the unload force lookup tables */
+extern void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_lookup); /* grow buffer */
 
 extern int cnsnum; /* number of constraints */
 extern int *cnspart; /* constrained particle numbers */
