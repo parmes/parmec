@@ -82,13 +82,6 @@ extern ispc::slave_conpnt *slave; /* slave contact points */
 extern int particle_buffer_size; /* size of the buffer */
 extern int particle_buffer_grow (); /* grow buffer */
 
-extern int looknum; /* number of lookup tables */
-extern REAL *lookup[2]; /* lookup tables */
-extern int *lookidx; /* lookup table table start index */
-extern int lookup_size; /* size of the buffer */
-extern int lookup_table_size; /* size of the lookup table buffers */
-extern void lookup_buffer_grow (int increment); /* grow buffer */
-
 extern int trinum; /* number of triangles */
 extern int tricon; /* index of the first triangle used in contact detection */
 extern int *tricol; /* triangle color */

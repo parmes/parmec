@@ -812,81 +812,6 @@ angular
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "sec:LOOKUP"
-
-\end_inset
-
-LOOKUP
-\end_layout
-
-\begin_layout Standard
-Create lookup table.
- Lookup tables are used to define functions 
-\begin_inset Formula $y=f\left(x\right)$
-\end_inset
-
-, interpolated linearly between points 
-\begin_inset Formula $\left(x_{1},y_{1}\right)$
-\end_inset
-
-, 
-\begin_inset Formula $\left(x_{2},y_{2}\right)$
-\end_inset
-
-, ..., 
-\begin_inset Formula $\left(x_{n},y_{n}\right)$
-\end_inset
-
-, and extended linearly beyond 
-\begin_inset Formula $x<x_{1}$
-\end_inset
-
- and 
-\begin_inset Formula $x>x_{n}$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Subsection*
-looknum = LOOKUP (x, y)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-looknum
-\series default
- - lookup table number
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-x
-\series default
- - list 
-\begin_inset Formula $\left[x_{1},...,x_{n}\right]$
-\end_inset
-
- of x coordinates
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-y
-\series default
- - list 
-\begin_inset Formula $\left[y_{1},...,y_{n}\right]$
-\end_inset
-
- of y coordinates
-\end_layout
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
 name "subsec:SPRING"
 
 \end_inset
@@ -978,17 +903,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
- planar
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-, unload, yield, beta
-\end_layout
-
-\end_inset
-
-)
+ planar)
 \end_layout
 
 \begin_layout Itemize
@@ -1053,20 +968,6 @@ spring
 \begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
 \end_inset
 
-; 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-used for both loading and unloading when 
-\series bold
-unload
-\series default
- table is not given
-\end_layout
-
-\end_inset
-
 
 \end_layout
 
@@ -1116,43 +1017,6 @@ is projected onto a plane orthogonal to
 \end_inset
 
 ; default: 'OFF'
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Itemize
-
-\series bold
-unload
-\series default
- - unloading force lookup table
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-yield
-\series default
- - tuple 
-\begin_inset Formula $\left(f_{yt},f_{yc}\right)$
-\end_inset
-
- of yield limits in tension and compression, respectively
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-beta
-\series default
- - hardening parameter
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section

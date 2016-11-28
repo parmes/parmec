@@ -1063,40 +1063,6 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
-/* create lookup table */
-static PyObject* LOOKUP (PyObject *self, PyObject *args, PyObject *kwds)
-{
-  KEYWORDS ("x", "y");
-  PyObject *x, *y;
-
-  PARSEKEYS ("OO", &x, &y);
-
-  TYPETEST (is_list (x, kwl[0], 0) && is_list (y, kwl[1], 0));
-
-  int len = PyList_Size (x);
-
-  if (len != PyList_Size (y))
-  {
-    PyErr_SetString (PyExc_ValueError, "x and y list lengths do not match");
-    return NULL;
-  }
-
-  lookup_buffer_grow (len);
-
-  int k, j, i = looknum ++;
-
-  for (j = 0, k = lookidx[i]; j < len; j ++, k ++)
-  {
-    REAL xj = PyFloat_AsDouble(PyList_GetItem(x,j));
-    REAL yj = PyFloat_AsDouble(PyList_GetItem(y,j));
-    lookup[0][k] = xj;
-    lookup[1][k] = yj;
-  }
-  lookidx[looknum] = k;
-
-  return PyInt_FromLong (i);
-}
-
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -2285,7 +2251,6 @@ static PyMethodDef methods [] =
   {"MESH", (PyCFunction)MESH, METH_VARARGS|METH_KEYWORDS, "Create meshed particle"},
   {"ANALYTICAL", (PyCFunction)::ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
-  {"LOOKUP", (PyCFunction)::LOOKUP, METH_VARARGS|METH_KEYWORDS, "Create lookup table"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"CONSTRAIN", (PyCFunction)CONSTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
@@ -2319,7 +2284,6 @@ int input (const char *path)
                       "from parmec import MESH\n"
                       "from parmec import ANALYTICAL\n"
                       "from parmec import OBSTACLE\n"
-                      "from parmec import LOOKUP\n"
                       "from parmec import SPRING\n"
                       "from parmec import GRANULAR\n"
                       "from parmec import CONSTRAIN\n"
