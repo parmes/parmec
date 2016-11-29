@@ -726,6 +726,10 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	      df = f2-f0;
 	    }
 	  }
+	  else /* loading */
+	  {
+	    df = f1 - f0;
+	  }
 	}
 	else /* unloading */
 	{
