@@ -1066,20 +1066,24 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar");
-  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar;
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar", "unload", "yield", "hardening");
+  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar, *unload, *yield, *hardening;
   int part1, part2;
 
   direction = NULL;
   dashpot = NULL;
   planar = NULL;
+  unload = NULL;
+  yield = NULL;
+  hardening = NULL;
 
-  PARSEKEYS ("iOiOO|OOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar);
+  PARSEKEYS ("iOiOO|OOOOOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar, &unload, &yield, &hardening);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
 	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3) &&
-	    is_string (planar, kwl[6]));
+	    is_string (planar, kwl[6]) && is_list (unload, kwl[7], 0) &&
+	    is_tuple (yield, kwl[8], 2) && is_string (hardening, kwl[9]));
 
   if (part2 < -1)
   {
@@ -1099,11 +1103,19 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
+  if (unload && (PyList_Size (unload) < 4 || PyList_Size (unload) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid dashpot unload table list length");
+    return NULL;
+  }
+
   int spring_lookup = PyList_Size (spring);
 
   int dashpot_lookup = dashpot ? PyList_Size (dashpot) : 4;
 
-  spring_buffer_grow (spring_lookup, dashpot_lookup, 0);
+  int unload_lookup = unload ? PyList_Size (unload) : 0;
+
+  spring_buffer_grow (spring_lookup, dashpot_lookup, unload_lookup);
 
   int i = sprnum ++;
 
@@ -1125,6 +1137,29 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   sprpnt[1][4][i] = sprpnt[1][1][i];
   sprpnt[1][5][i] = sprpnt[1][2][i];
 
+  sprflg[i] = 0;
+
+  if (hardening)
+  {
+    IFIS (hardening, "KINEMATIC")
+    {
+      sprflg[i] |= SPRING_KINEMATIC;
+    }
+    ELIF (hardening, "ISOTROPIC")
+    {
+      sprflg[i] |= SPRING_ISOTROPIC;
+    }
+    ELSE
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid hardening string");
+      return NULL;
+    }
+  }
+  else
+  {
+    sprflg[i] |= SPRING_KINEMATIC;
+  }
+
   int j = 0, k = spridx[i];
 
   for (; j < spring_lookup/2; j ++, k ++)
@@ -1133,6 +1168,16 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     REAL force = PyFloat_AsDouble(PyList_GetItem(spring,2*j+1));
     parmec::spring[0][k] = stroke;
     parmec::spring[1][k] = force;
+
+    if (unload && yield && (sprflg[i] & SPRING_ISOTROPIC))
+    {
+      REAL slope = (force-parmec::spring[1][k-1])/(stroke-parmec::spring[0][k-1]);
+      if (slope < 0.0) /* isotropic loading curve must be monotonic */
+      {
+	PyErr_SetString (PyExc_ValueError, "Spring slope must be non-negative when isotropic hardening is used");
+	return NULL;
+      }
+    }
   }
   spridx[sprnum] = k;
 
@@ -1157,11 +1202,33 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     dashidx[sprnum] = k+2;
   }
 
-  parmec::unidx[sprnum] = 0; /* TODO --> value based existance of unload lookup table */
+  if (unload)
+  {
+    for (j = 0, k = unidx[i]; j < unload_lookup/2; j ++, k ++)
+    {
+      REAL stroke = PyFloat_AsDouble(PyList_GetItem(unload,2*j));
+      REAL force = PyFloat_AsDouble(PyList_GetItem(unload,2*j+1));
+      parmec::unload[0][k] = stroke;
+      parmec::unload[1][k] = force;
 
-  parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
-
-  /* TODO --> check curves slope correctness based on spring type and hardening rule */
+      if (j)
+      {
+	REAL slope = (force-parmec::unload[1][k-1])/(stroke-parmec::unload[0][k-1]);
+	if (slope <= 0.0) /* unloading curve must be monotonic --> (x,y) slope search */
+	{
+	  PyErr_SetString (PyExc_ValueError, "Unloading curve must be monotonically increasing");
+	  return NULL;
+	}
+      }
+    }
+    unidx[sprnum] = k;
+    parmec::sprtype[i] = SPRING_GENERAL_NONLINEAR;
+  }
+  else
+  {
+    parmec::unidx[sprnum] = 0; /* TODO --> value based existance of unload lookup table */
+    parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
+  }
 
   if (direction)
   {
@@ -1193,11 +1260,11 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       IFIS (planar, "ON") /* direction in plane */
       {
-	sprflg[i] = SPRDIR_PLANAR;
+	sprflg[i] |= SPRDIR_PLANAR;
       }
       ELIF (planar, "OFF") /* constant direction */
       {
-	sprflg[i] = SPRDIR_CONSTANT;
+	sprflg[i] |= SPRDIR_CONSTANT;
       }
       ELSE
       {
@@ -1207,14 +1274,14 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     }
     else /* constant direction */
     {
-      sprflg[i] = SPRDIR_CONSTANT;
+      sprflg[i] |= SPRDIR_CONSTANT;
     }
 
     REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
                    sprpnt[1][1][i] - sprpnt[0][1][i],
                    sprpnt[1][2][i] - sprpnt[0][2][i]};
 
-    if (sprflg[i] == SPRDIR_CONSTANT)
+    if (sprflg[i] & SPRDIR_CONSTANT)
     {
       stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
     }
@@ -1231,13 +1298,36 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else /* direction = (p2 - p1)/|p2 - p1| */
   {
-    sprflg[i] = SPRDIR_FOLLOWER;
+    sprflg[i] |= SPRDIR_FOLLOWER;
 
     REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
                    sprpnt[1][1][i] - sprpnt[0][1][i],
                    sprpnt[1][2][i] - sprpnt[0][2][i]};
 
     stroke0[i] = LEN (dif);
+  }
+
+  if (yield)
+  {
+    parmec::yield[0][i] = PyFloat_AsDouble (PyTuple_GetItem (yield,0));
+    parmec::yield[1][i] = PyFloat_AsDouble (PyTuple_GetItem (yield,1));
+
+    if (parmec::yield[0][i] > 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Compressive yield limit must be <= 0.0");
+      return NULL;
+    }
+
+    if (parmec::yield[1][i] < 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Tensile yield limit must be >= 0.0");
+      return NULL;
+    }
+  }
+  else
+  {
+    parmec::yield[0][i] = -1E3;
+    parmec::yield[1][i] = +1E3;
   }
 
   return PyInt_FromLong (i);

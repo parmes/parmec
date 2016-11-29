@@ -406,6 +406,19 @@ static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int l
   return tab[1][lo] + (tab[1][lo+1]-tab[1][lo])*(arg-tab[0][lo])/(tab[0][lo+1]-tab[0][lo]);
 }
 
+/* look up table based linear spline slope based on (x,y)-search (i == 0 -> x; i == 1 -> y) */
+static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg)
+{
+  while (hi > lo+2)
+  {
+    uniform int mid = lo + (hi-lo)/2;
+    if (arg > tab[i][mid]) lo = mid;
+    else hi = mid;
+  }
+
+  return (tab[1][lo+1]-tab[1][lo])/(tab[0][lo+1]-tab[0][lo]);
+}
+
 /* contact (and gravity) forces accumulation task */
 task void contacts_acc_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform position[6], uniform REAL mass[], uniform REAL gravity[3],
@@ -477,7 +490,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[],
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3],
-  uniform int sprflg[], uniform REAL stroke0[], uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
+  uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[2], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform int lock[])
@@ -658,26 +671,97 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
     {
     case SPRING_NONLINEAR_ELASTIC:
     {
-      stroke[i] = len - stroke0[i];
+      stroke[0][i] = len - stroke0[i];
 
-      spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[i]);
+      spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i]);
     }
     break;
     case SPRING_GENERAL_NONLINEAR:
     {
-      uniform REAL s0 = stroke[i];
-
-      uniform REAL s1 = len - stroke0[i];
-
-      uniform REAL ds = s1-s0;
-
-      if (ds >= 0.0) /* loading */
+      if ((sprflg[i]&SPRING_YIELDED) == 0) /* elastic */
       {
-	/* TODO */
+	stroke[0][i] = len - stroke0[i];
+
+	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i]);
+
+	if (spring_force < yield[0][i] || spring_force > yield[1][i])
+	{
+	  sprflg[i] |= SPRING_YIELDED;
+
+	  stroke[1][i] = 0.0; /* plastic stroke is zero --> yielded for the first time */
+	}
       }
-      else /* unloading */
+      else if (sprflg[i]&SPRING_KINEMATIC) /* yielded --> kinematic hardening */
       {
-	/* TODO */
+	uniform REAL s0 = stroke[0][i];
+
+	uniform REAL s1 = len - stroke0[i];
+
+	uniform REAL ds = abs(s1)-abs(s0);
+
+	uniform REAL f0 = sprfrc[1][i];
+
+	stroke[0][i] = s1;
+
+	uniform REAL df = 0.0;
+
+	if (ds > 0) /* loading or re-loading */
+	{
+	  uniform REAL f1 = look_up (spring, spridx[i], spridx[i+1], s1-stroke[1][i]);
+
+	  if (sprflg[i]&SPRING_UNLOADING)
+	  {
+            uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0);
+
+	    uniform REAL f2 = f0 + dfds*ds;
+
+	    if (f2 > f1) /* back to loading */
+	    {
+	      df = f1-f0;
+
+	      sprflg[i] &= ~SPRING_UNLOADING;
+	    }
+	    else /* re-loading */
+	    {
+	      df = f2-f0;
+	    }
+	  }
+	}
+	else /* unloading */
+	{
+          uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0);
+
+	  df = dfds*ds;
+
+	  sprflg[i] |= SPRING_UNLOADING;
+	}
+
+	spring_force = f0 + df;
+
+	if (spring_force * f0 <= 0.0) /* transition from compression into tension or vice versa */
+	{
+	  stroke[1][i] = s0 - f0*(s1 - s0)/df; /* record plastic stroke at zero crossing of (s0,f0)---(s1,f1) */
+	}
+
+	/* TODO --> completely untested */
+      }
+      else if (sprflg[i]&SPRING_ISOTROPIC) /* yielded --> isotropic hardening */
+      {
+	print ("ERROR: isotropic hardening has not been implemented --> using elastic spring\n");
+
+	stroke[0][i] = len - stroke0[i];
+
+	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i]);
+
+	/* TODO --> implement */
+      }
+      else /* error */
+      {
+	print ("ERROR: hardening rule not set for a general nonlinear spring --> using elastic spring\n");
+
+	stroke[0][i] = len - stroke0[i];
+
+	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i]);
       }
     }
     break;
@@ -784,7 +868,7 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3], uniform int sprflg[], uniform REAL stroke0[],
-  uniform REAL stroke[], uniform REAL * uniform sprfrc[2],
+  uniform REAL * uniform stroke[2], uniform REAL * uniform sprfrc[2],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   launch [threads] zero_force_and_torque (parnum/threads, parnum, force, torque);

@@ -903,17 +903,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
- planar
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-, unload, yield, hardening
-\end_layout
-
-\end_inset
-
-)
+ planar, unload, yield, hardening)
 \end_layout
 
 \begin_layout Itemize
@@ -978,21 +968,15 @@ spring
 \begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
 \end_inset
 
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
 ; used for both loading and unloading when the 
 \series bold
 unload
 \series default
- table is not given
-\end_layout
-
-\end_inset
-
-
+ table and the 
+\series bold
+yield
+\series default
+ limits are not given
 \end_layout
 
 \begin_layout Itemize
@@ -1043,10 +1027,6 @@ is projected onto a plane orthogonal to
 ; default: 'OFF'
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
 \begin_layout Itemize
 
 \series bold
@@ -1056,7 +1036,7 @@ unload
 \begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
 \end_inset
 
-
+; must be monotonically increasing
 \end_layout
 
 \begin_layout Itemize
@@ -1065,18 +1045,18 @@ unload
 yield
 \series default
  - tuple 
-\begin_inset Formula $\left(f_{yt},f_{yc}\right)$
+\begin_inset Formula $\left(f_{yc},f_{yt}\right)$
 \end_inset
 
- defining the tension, 
-\begin_inset Formula $f_{yt}>0$
-\end_inset
-
-, and compression, 
+ defining the compression, 
 \begin_inset Formula $f_{yc}<0$
 \end_inset
 
-, yield limits respectively
+, and tension, 
+\begin_inset Formula $f_{yt}>0$
+\end_inset
+
+, yield limits; default: (-1E3, 1E3)
 \end_layout
 
 \begin_layout Itemize
@@ -1084,7 +1064,28 @@ yield
 \series bold
 hardening
 \series default
- - hardening behavior: TODO
+ - hardening behavior: 'KINEMATIC' (default) or 'ISOTROPIC' (
+\begin_inset Formula $f_{yt}=-f_{yc}$
+\end_inset
+
+; only positive stroke parts of 
+\series bold
+spring
+\series default
+ and 
+\series bold
+unload
+\series default
+ tables are used)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: include figures like in LS-DYNA manuals and change formulas in order
+ to reflect the general nonlinear model
 \end_layout
 
 \end_inset
