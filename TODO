@@ -1,0 +1,3 @@
+* tests/spring_contact.py got unstable after local accumulation spring optimization
+
+* tests/spring_chain.py seems to behave too differently in single and double precision

@@ -396,7 +396,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 /* look up table based linear spline interpolation */
 static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg)
 {
-  while (hi > lo+2)
+  while (hi > lo+1)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[0][mid]) lo = mid;
@@ -697,7 +697,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	uniform REAL s1 = len - stroke0[i];
 
-	uniform REAL ds = abs(s1)-abs(s0);
+	uniform REAL ds = s1 - s0;
 
 	uniform REAL f0 = sprfrc[1][i];
 
@@ -705,7 +705,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	uniform REAL df = 0.0;
 
-	if (ds > 0) /* loading or re-loading */
+	if (f0 * ds > 0) /* loading or re-loading */
 	{
 	  uniform REAL f1 = look_up (spring, spridx[i], spridx[i+1], s1-stroke[1][i]);
 
@@ -715,20 +715,26 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	    uniform REAL f2 = f0 + dfds*ds;
 
-	    if (f2 > f1) /* back to loading */
+	    if (abs(f2) > abs(f1)) /* back to loading */
 	    {
 	      df = f1-f0;
 
 	      sprflg[i] &= ~SPRING_UNLOADING;
+
+	      //print ("re-loading --> to --> loading \n");
 	    }
 	    else /* re-loading */
 	    {
 	      df = f2-f0;
+
+	      //print ("re-loading\n");
 	    }
 	  }
 	  else /* loading */
 	  {
 	    df = f1 - f0;
+
+	    //print ("loading\n");
 	  }
 	}
 	else /* unloading */
@@ -738,6 +744,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	  df = dfds*ds;
 
 	  sprflg[i] |= SPRING_UNLOADING;
+
+	  //print ("unloading\n");
 	}
 
 	spring_force = f0 + df;
@@ -745,9 +753,13 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	if (spring_force * f0 <= 0.0) /* transition from compression into tension or vice versa */
 	{
 	  stroke[1][i] = s0 - f0*(s1 - s0)/df; /* record plastic stroke at zero crossing of (s0,f0)---(s1,f1) */
+
+	  sprflg[i] &= ~SPRING_UNLOADING;
+
+	  //print ("crossing zero --> 0 <-- zero crossing\n");
 	}
 
-	/* TODO --> completely untested */
+	/* TODO --> more testing */
       }
       else if (sprflg[i]&SPRING_ISOTROPIC) /* yielded --> isotropic hardening */
       {

@@ -42,7 +42,8 @@ enum {HIS_LIST = 1, HIS_SPHERE = 2, HIS_BOX = 4, HIS_POINT = 8}; /* history kind
 
 enum {HIS_PX, HIS_PY, HIS_PZ, HIS_PL, HIS_DX, HIS_DY, HIS_DZ, HIS_DL,
       HIS_VX, HIS_VY, HIS_VZ, HIS_VL, HIS_OX, HIS_OY, HIS_OZ, HIS_OL,
-      HIS_FX, HIS_FY, HIS_FZ, HIS_FL, HIS_TX, HIS_TY, HIS_TZ, HIS_TL, HIS_TIME}; /* history entities */
+      HIS_FX, HIS_FY, HIS_FZ, HIS_FL, HIS_TX, HIS_TY, HIS_TZ, HIS_TL, 
+      HIS_STROKE, HIS_STF, HIS_SF, HIS_TIME}; /* history entities */
 
 enum {OUT_MODE_SPH = 1, OUT_MODE_MESH = 2, OUT_MODE_RB = 4, OUT_MODE_CD = 8, OUT_MODE_SD = 16}; /* output modes */
 

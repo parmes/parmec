@@ -121,7 +121,8 @@ extern int obstacle_buffer_size; /* size of the buffer */
 extern int obstacle_buffer_grow (); /* grow buffer */
 
 extern int sprnum; /* number of spring constraints */
-extern int *sprid; /* spring number returned to user */
+extern int *sprid; /* spring id --> number returned to user */
+extern int *sprmap; /* map of spring ids to spring indices */
 extern int *sprtype; /* spring type */
 extern int *sprpart[2]; /* spring constraint particle numbers */
 extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
@@ -160,8 +161,8 @@ extern int prescribe_buffer_size; /* size of prescribed particle motion buffer *
 extern int prescribe_buffer_grow (); /* grow buffer */
 
 extern int hisnum; /* number of time histories */
-extern int *hispart; /* history particle lists */
-extern int *hisidx; /* history particle list start index */
+extern int *hislst; /* history source lists */
+extern int *hisidx; /* history source list start index */
 extern int *hisent; /* history entity */
 extern int *hiskind; /* history kind */
 extern REAL *source[6]; /* source sphere or box definition or optional point */

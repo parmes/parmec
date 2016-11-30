@@ -903,7 +903,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
- planar, unload, yield, hardening)
+ planar, unload, ylim, hardening)
 \end_layout
 
 \begin_layout Itemize
@@ -1042,7 +1042,7 @@ unload
 \begin_layout Itemize
 
 \series bold
-yield
+ylim
 \series default
  - tuple 
 \begin_inset Formula $\left(f_{yc},f_{yt}\right)$
@@ -1715,10 +1715,12 @@ list
 \series bold
 entity
 \series default
- - entity name; one of: (output time) 'TIME', (position) 'PX', 'PY', 'PZ',
- '|P|', (displacement) 'DX', 'DY', 'DZ', '|D|', (linear velocity) 'VX',
- 'VY', 'VZ', '|V|', (angular velocity) 'OX', 'OY', 'OZ', '|O|', (body force)
- 'FX', 'FY', 'FZ', '|F|', (body torque) 'TX', 'TY', 'TZ', '|T|'
+ - entity name; global entities: (output time) 'TIME'; particle entities:
+ (position) 'PX', 'PY', 'PZ', '|P|', (displacement) 'DX', 'DY', 'DZ', '|D|',
+ (linear velocity) 'VX', 'VY', 'VZ', '|V|', (angular velocity) 'OX', 'OY',
+ 'OZ', '|O|', (body force) 'FX', 'FY', 'FZ', '|F|', (body torque) 'TX',
+ 'TY', 'TZ', '|T|'; spring entities: (spring stroke) 'STROKE', (spring total
+ force) 'STF', (spring force without damping) 'SF';
 \end_layout
 
 \begin_layout Itemize
@@ -1745,7 +1747,8 @@ i, j, ...
 ; in case of a list of particle numbers the output entity is averaged over
  the set of particles; in case of a spatial sphere or box the output entity
  is averaged over the set of particles passing through it; default: 0 (useful
- when entity is 'TIME')
+ when entity is 'TIME'); spring number or a list of numbers can be used
+ as a source in case of spring entities
 \end_layout
 
 \begin_layout Itemize

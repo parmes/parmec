@@ -1066,24 +1066,24 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar", "unload", "yield", "hardening");
-  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar, *unload, *yield, *hardening;
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar", "unload", "ylim", "hardening");
+  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *hardening;
   int part1, part2;
 
   direction = NULL;
   dashpot = NULL;
   planar = NULL;
   unload = NULL;
-  yield = NULL;
+  ylim = NULL;
   hardening = NULL;
 
-  PARSEKEYS ("iOiOO|OOOOOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar, &unload, &yield, &hardening);
+  PARSEKEYS ("iOiOO|OOOOOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar, &unload, &ylim, &hardening);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
 	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3) &&
 	    is_string (planar, kwl[6]) && is_list (unload, kwl[7], 0) &&
-	    is_tuple (yield, kwl[8], 2) && is_string (hardening, kwl[9]));
+	    is_tuple (ylim, kwl[8], 2) && is_string (hardening, kwl[9]));
 
   if (part2 < -1)
   {
@@ -1119,7 +1119,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   int i = sprnum ++;
 
-  sprid[i] = i;
+  sprid[i] = sprmap[i] = i;
 
   sprpart[0][i] = part1;
   sprpart[1][i] = part2;
@@ -1169,7 +1169,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::spring[0][k] = stroke;
     parmec::spring[1][k] = force;
 
-    if (unload && yield && (sprflg[i] & SPRING_ISOTROPIC))
+    if (unload && ylim && (sprflg[i] & SPRING_ISOTROPIC))
     {
       REAL slope = (force-parmec::spring[1][k-1])/(stroke-parmec::spring[0][k-1]);
       if (slope < 0.0) /* isotropic loading curve must be monotonic */
@@ -1307,10 +1307,10 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     stroke0[i] = LEN (dif);
   }
 
-  if (yield)
+  if (ylim)
   {
-    parmec::yield[0][i] = PyFloat_AsDouble (PyTuple_GetItem (yield,0));
-    parmec::yield[1][i] = PyFloat_AsDouble (PyTuple_GetItem (yield,1));
+    parmec::yield[0][i] = PyFloat_AsDouble (PyTuple_GetItem (ylim,0));
+    parmec::yield[1][i] = PyFloat_AsDouble (PyTuple_GetItem (ylim,1));
 
     if (parmec::yield[0][i] > 0.0)
     {
@@ -1862,7 +1862,8 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   KEYWORDS ("entity", "source", "point");
   PyObject *entity, *source, *point;
   REAL s[6] = {0., 0., 0., 0., 0., 0.};
-  int list_size, *list, kind;
+  int list_size, *list, kind, hisent;
+  int srckind = 0; /* 0: partilce, 1: spring */
 
   point = NULL;
   source = NULL;
@@ -1870,6 +1871,127 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("O|OO", &entity, &source, &point);
 
   TYPETEST (is_string (entity, kwl[0]) && is_tuple (point, kwl[2], 3));
+
+  IFIS (entity, "TIME")
+  {
+    hisent = HIS_TIME;
+  }
+  ELIF (entity, "PX")
+  {
+    hisent = HIS_PX;
+  }
+  ELIF (entity, "PY")
+  {
+    hisent = HIS_PY;
+  }
+  ELIF (entity, "PZ")
+  {
+    hisent = HIS_PZ;
+  }
+  ELIF (entity, "|P|")
+  {
+    hisent = HIS_PL;
+  }
+  ELIF (entity, "DX")
+  {
+    hisent = HIS_DX;
+  }
+  ELIF (entity, "DY")
+  {
+    hisent = HIS_DY;
+  }
+  ELIF (entity, "DZ")
+  {
+    hisent = HIS_DZ;
+  }
+  ELIF (entity, "|D|")
+  {
+    hisent = HIS_DL;
+  }
+  ELIF (entity, "VX")
+  {
+    hisent = HIS_VX;
+  }
+  ELIF (entity, "VY")
+  {
+    hisent = HIS_VY;
+  }
+  ELIF (entity, "VZ")
+  {
+    hisent = HIS_VZ;
+  }
+  ELIF (entity, "|V|")
+  {
+    hisent = HIS_VL;
+  }
+  ELIF (entity, "OX")
+  {
+    hisent = HIS_OX;
+  }
+  ELIF (entity, "OY")
+  {
+    hisent = HIS_OY;
+  }
+  ELIF (entity, "OZ")
+  {
+    hisent = HIS_OZ;
+  }
+  ELIF (entity, "|O|")
+  {
+    hisent = HIS_OL;
+  }
+  ELIF (entity, "FX")
+  {
+    hisent = HIS_FX;
+  }
+  ELIF (entity, "FY")
+  {
+    hisent = HIS_FY;
+  }
+  ELIF (entity, "FZ")
+  {
+    hisent = HIS_FZ;
+  }
+  ELIF (entity, "|F|")
+  {
+    hisent = HIS_FL;
+  }
+  ELIF (entity, "TX")
+  {
+    hisent = HIS_TX;
+  }
+  ELIF (entity, "TY")
+  {
+    hisent = HIS_TY;
+  }
+  ELIF (entity, "TZ")
+  {
+    hisent = HIS_TZ;
+  }
+  ELIF (entity, "|T|")
+  {
+    hisent = HIS_TL;
+  }
+  ELIF (entity, "STROKE")
+  {
+    hisent = HIS_STROKE;
+    srckind = 1;
+  }
+  ELIF (entity, "STF")
+  {
+    hisent = HIS_STF;
+    srckind = 1;
+  }
+  ELIF (entity, "SF")
+  {
+    hisent = HIS_SF;
+    srckind = 1;
+  }
+  ELSE
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid entity");
+    return NULL;
+  }
 
   if (source == NULL) /* useful when entity is 'TIME' */
   {
@@ -1888,9 +2010,14 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     list_size = 1;
     list = new int;
     list [0] = PyInt_AsLong (source);
-    if (list[0] < 0 || list[0] >= parnum)
+    if (srckind == 0 && (list[0] < 0 || list[0] >= parnum))
     {
       PyErr_SetString (PyExc_ValueError, "Particle index out of range");
+      return NULL;
+    }
+    if (srckind == 1 && (list[0] < 0 || list[0] >= sprnum))
+    {
+      PyErr_SetString (PyExc_ValueError, "Spring index out of range");
       return NULL;
     }
     kind = HIS_LIST;
@@ -1902,9 +2029,14 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     for (int j = 0; j < list_size; j ++)
     {
       list[j] = PyInt_AsLong (PyList_GetItem(source, j));
-      if (list[j] < 0 || list[j] >= parnum)
+      if (srckind == 0 && (list[j] < 0 || list[j] >= parnum))
       {
 	PyErr_SetString (PyExc_ValueError, "Particle index out of range");
+	return NULL;
+      }
+      if (srckind == 1 && (list[j] < 0 || list[j] >= sprnum))
+      {
+	PyErr_SetString (PyExc_ValueError, "Spring index out of range");
 	return NULL;
       }
     }
@@ -1912,6 +2044,12 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else if (PyTuple_Check (source))
   {
+    if (srckind == 1)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid source kind for a spring entity");
+      return NULL;
+    }
+
     list_size = 0;
     list = NULL;
 
@@ -1921,6 +2059,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
       s[1] = PyFloat_AsDouble(PyTuple_GetItem (source, 1));
       s[2] = PyFloat_AsDouble(PyTuple_GetItem (source, 2));
       s[3] = PyFloat_AsDouble(PyTuple_GetItem (source, 3));
+      kind = HIS_SPHERE;
     }
     else if (PyTuple_Size(source) == 6)
     {
@@ -1930,6 +2069,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
       s[3] = PyFloat_AsDouble(PyTuple_GetItem (source, 3));
       s[4] = PyFloat_AsDouble(PyTuple_GetItem (source, 4));
       s[5] = PyFloat_AsDouble(PyTuple_GetItem (source, 5));
+      kind = HIS_BOX;
     }
     else
     {
@@ -1946,7 +2086,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   {
     for (int j = 0; j < list_size; j ++)
     {
-      hispart[hisidx[i]+j] = list[j];
+      hislst[hisidx[i]+j] = list[j];
     }
     hisidx[i+1] = hisidx[i]+list_size;
     delete list;
@@ -1956,111 +2096,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     hisidx[i+1] = hisidx[i];
   }
 
-  IFIS (entity, "TIME")
-  {
-    hisent[i] = HIS_TIME;
-  }
-  ELIF (entity, "PX")
-  {
-    hisent[i] = HIS_PX;
-  }
-  ELIF (entity, "PY")
-  {
-    hisent[i] = HIS_PY;
-  }
-  ELIF (entity, "PZ")
-  {
-    hisent[i] = HIS_PZ;
-  }
-  ELIF (entity, "|P|")
-  {
-    hisent[i] = HIS_PL;
-  }
-  ELIF (entity, "DX")
-  {
-    hisent[i] = HIS_DX;
-  }
-  ELIF (entity, "DY")
-  {
-    hisent[i] = HIS_DY;
-  }
-  ELIF (entity, "DZ")
-  {
-    hisent[i] = HIS_DZ;
-  }
-  ELIF (entity, "|D|")
-  {
-    hisent[i] = HIS_DL;
-  }
-  ELIF (entity, "VX")
-  {
-    hisent[i] = HIS_VX;
-  }
-  ELIF (entity, "VY")
-  {
-    hisent[i] = HIS_VY;
-  }
-  ELIF (entity, "VZ")
-  {
-    hisent[i] = HIS_VZ;
-  }
-  ELIF (entity, "|V|")
-  {
-    hisent[i] = HIS_VL;
-  }
-  ELIF (entity, "OX")
-  {
-    hisent[i] = HIS_OX;
-  }
-  ELIF (entity, "OY")
-  {
-    hisent[i] = HIS_OY;
-  }
-  ELIF (entity, "OZ")
-  {
-    hisent[i] = HIS_OZ;
-  }
-  ELIF (entity, "|O|")
-  {
-    hisent[i] = HIS_OL;
-  }
-  ELIF (entity, "FX")
-  {
-    hisent[i] = HIS_FX;
-  }
-  ELIF (entity, "FY")
-  {
-    hisent[i] = HIS_FY;
-  }
-  ELIF (entity, "FZ")
-  {
-    hisent[i] = HIS_FZ;
-  }
-  ELIF (entity, "|F|")
-  {
-    hisent[i] = HIS_FL;
-  }
-  ELIF (entity, "TX")
-  {
-    hisent[i] = HIS_TX;
-  }
-  ELIF (entity, "TY")
-  {
-    hisent[i] = HIS_TY;
-  }
-  ELIF (entity, "TZ")
-  {
-    hisent[i] = HIS_TZ;
-  }
-  ELIF (entity, "|T|")
-  {
-    hisent[i] = HIS_TL;
-  }
-  ELSE
-  {
-    PyErr_SetString (PyExc_ValueError, "Invalid entity");
-    return NULL;
-  }
+  parmec::hisent[i] = hisent;
 
   if (kind == HIS_LIST && list_size == 1 && point)
   {

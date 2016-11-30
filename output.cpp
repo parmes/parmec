@@ -505,7 +505,7 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     for (i = 0; i < num; i ++)
     {
       j = set[i];
-      out << stroke[j] << "\n";
+      out << stroke[0][j] << "\n";
     }
   }
 
@@ -777,7 +777,7 @@ void output_history ()
     {
       if (hiskind[i] & HIS_POINT) /* one particle point based */
       {
-	k = hispart[hisidx[i]];
+	k = hislst[hisidx[i]];
 
 	REAL x[3] = {position[0][k], position[1][k], position[2][k]};
 	REAL X[3] = {position[3][k], position[4][k], position[5][k]};
@@ -885,13 +885,13 @@ void output_history ()
 
         PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
       }
-      else /* particle list based */
+      else /* particle or spring list based */
       {
 	REAL value = 0.0;
 
 	for (j = hisidx[i]; j < hisidx[i+1]; j ++)
 	{
-	  k = hispart[j];
+	  k = hislst[j];
 
 	  switch (hisent[i])
 	  {
@@ -983,6 +983,24 @@ void output_history ()
 	  {
 	    REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
 	    value += LEN(q);
+	  }
+	  break;
+	  case HIS_STROKE:
+	  {
+	    int l = sprmap[k];
+	    value += stroke[0][l];
+	  }
+	  break;
+	  case HIS_STF:
+	  {
+	    int l = sprmap[k];
+	    value += sprfrc[0][l];
+	  }
+	  break;
+	  case HIS_SF:
+	  {
+	    int l = sprmap[k];
+	    value += sprfrc[1][l];
 	  }
 	  break;
 	  }

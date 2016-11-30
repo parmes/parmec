@@ -135,7 +135,8 @@ callback_t *linhis; /* linear velocity history */
 int obstacle_buffer_size; /* size of the buffer */
 
 int sprnum; /* number of spring constraints */
-int *sprid; /* spring number returned to user */
+int *sprid; /* spring id --> number returned to user */
+int *sprmap; /* map of spring ids to spring indices */
 int *sprtype; /* spring type */
 int *sprpart[2]; /* spring constraint particle numbers */
 REAL *sprpnt[2][6]; /* spring constraint current and reference points */
@@ -171,8 +172,8 @@ int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-accelerat
 int prescribe_buffer_size; /* size of prescribed particle motion buffer */
 
 int hisnum; /* number of time histories */
-int *hispart; /* history particle lists */
-int *hisidx; /* history particle list start index */
+int *hislst; /* history source lists */
+int *hisidx; /* history source list start index */
 int *hisent; /* history entity */
 int *hiskind; /* history kind */
 REAL *source[6]; /* source sphere or box definition or optional point */
@@ -653,6 +654,7 @@ int spring_buffer_init ()
   unload_lookup_size = 1024;
 
   sprid = aligned_int_alloc (spring_buffer_size);
+  sprmap = aligned_int_alloc (spring_buffer_size);
   sprtype = aligned_int_alloc (spring_buffer_size);
   sprpart[0] = aligned_int_alloc (spring_buffer_size);
   sprpart[1] = aligned_int_alloc (spring_buffer_size);
@@ -703,6 +705,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
     spring_buffer_size *= 2;
 
     integer_buffer_grow(sprid, sprnum, spring_buffer_size);
+    integer_buffer_grow(sprmap, sprnum, spring_buffer_size);
     integer_buffer_grow(sprtype, sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[0], sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[1], sprnum, spring_buffer_size);
@@ -846,7 +849,7 @@ int history_buffer_init ()
   history_buffer_size = 256;
   history_list_size = 1024;
 
-  hispart = aligned_int_alloc (history_list_size);
+  hislst = aligned_int_alloc (history_list_size);
   hisidx = aligned_int_alloc (history_buffer_size+1);
   hisent = aligned_int_alloc (history_buffer_size);
   hiskind = aligned_int_alloc (history_buffer_size);
@@ -884,7 +887,7 @@ void history_buffer_grow (int list_size)
   if (history_list_size < hisidx[hisnum] + list_size)
   {
     history_list_size = 2 * (hisidx[hisnum] + list_size);
-    integer_buffer_grow (hispart, hisidx[hisnum], history_list_size);
+    integer_buffer_grow (hislst, hisidx[hisnum], history_list_size);
   }
 }
 
@@ -1228,7 +1231,7 @@ static void sort_springs ()
   std::sort (v.begin(), v.end(), cmp_spring());
 
   int sprnum; /* number of spring constraints */
-  int *sprid; /* spring number returned to user */
+  int *sprid; /* spring id --> number returned to user */
   int *sprtype; /* spring type */
   int *sprpart[2]; /* spring constraint particle numbers */
   REAL *sprpnt[2][6]; /* spring constraint current and reference points */
@@ -1289,6 +1292,7 @@ static void sort_springs ()
   for (std::vector<spring_data>::const_iterator x = v.begin(); x != v.end(); ++x, ++i)
   {
     sprid[i] = parmec::sprid[x->number];
+    parmec::sprmap[sprid[i]] = i; /* reverse mapping --> id to current index */
     sprtype[i] = parmec::sprtype[x->number];
     sprpart[0][i] = parmec::sprpart[0][x->number];
     sprpart[1][i] = parmec::sprpart[1][x->number];
