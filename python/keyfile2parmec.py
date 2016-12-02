@@ -337,7 +337,19 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   except:
     mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=mid) # TODO: optimize out by mapping
     if mat != None:
-      print 'MAT_SPRING_GENERAL_NONLINEAR --> to be implemented!' # TODO: implement
+      lcdl = mat['LCDL']
+      lcdu = mat['LCDU']
+      spring = 'curve%d' % lcdl
+      unload = 'curve%d' % lcdu
+      if direct != None:
+	parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, direction=%s, planar="'"%s"'", unload=%s)\n' % \
+		     (pid1, str(pnt1), pid2, str(pnt2), spring, direct, planar, unload))
+      else:
+	parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, unload=%s)\n' % \
+		     (pid1, str(pnt1), pid2, str(pnt2), spring, unload))
+      parmec.write ('eid2num[%d] = num\n' % ed['EID'])
+    else:
+      print 'ERROR: MAT_SPRING_GENERAL_NONLINEAR with MID', mid, 'has not been found'
 
 lbz = keyfile.getcard('LOAD_BODY_Z')
 if lbz != None:

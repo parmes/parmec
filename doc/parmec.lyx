@@ -903,7 +903,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
- planar, unload, ylim, hardening)
+ planar, unload, ylim)
 \end_layout
 
 \begin_layout Itemize
@@ -1056,27 +1056,8 @@ ylim
 \begin_inset Formula $f_{yt}>0$
 \end_inset
 
-, yield limits; default: (-1E3, 1E3)
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-hardening
-\series default
- - hardening behavior: 'KINEMATIC' (default) or 'ISOTROPIC' (
-\begin_inset Formula $f_{yt}=-f_{yc}$
-\end_inset
-
-; only positive stroke parts of 
-\series bold
-spring
-\series default
- and 
-\series bold
-unload
-\series default
- tables are used)
+, yield limits; the unloading curve begins to be used once either of these
+ limits is crossed; default: (0, 0)
 \end_layout
 
 \begin_layout Standard

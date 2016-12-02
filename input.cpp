@@ -1066,8 +1066,8 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar", "unload", "ylim", "hardening");
-  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *hardening;
+  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar", "unload", "ylim");
+  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar, *unload, *ylim;
   int part1, part2;
 
   direction = NULL;
@@ -1075,15 +1075,14 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   planar = NULL;
   unload = NULL;
   ylim = NULL;
-  hardening = NULL;
 
-  PARSEKEYS ("iOiOO|OOOOOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar, &unload, &ylim, &hardening);
+  PARSEKEYS ("iOiOO|OOOOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar, &unload, &ylim);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
 	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3) &&
 	    is_string (planar, kwl[6]) && is_list (unload, kwl[7], 0) &&
-	    is_tuple (ylim, kwl[8], 2) && is_string (hardening, kwl[9]));
+	    is_tuple (ylim, kwl[8], 2));
 
   if (part2 < -1)
   {
@@ -1139,27 +1138,6 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   sprflg[i] = 0;
 
-  if (hardening)
-  {
-    IFIS (hardening, "KINEMATIC")
-    {
-      sprflg[i] |= SPRING_KINEMATIC;
-    }
-    ELIF (hardening, "ISOTROPIC")
-    {
-      sprflg[i] |= SPRING_ISOTROPIC;
-    }
-    ELSE
-    {
-      PyErr_SetString (PyExc_ValueError, "Invalid hardening string");
-      return NULL;
-    }
-  }
-  else
-  {
-    sprflg[i] |= SPRING_KINEMATIC;
-  }
-
   int j = 0, k = spridx[i];
 
   for (; j < spring_lookup/2; j ++, k ++)
@@ -1168,16 +1146,6 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     REAL force = PyFloat_AsDouble(PyList_GetItem(spring,2*j+1));
     parmec::spring[0][k] = stroke;
     parmec::spring[1][k] = force;
-
-    if (unload && ylim && (sprflg[i] & SPRING_ISOTROPIC))
-    {
-      REAL slope = (force-parmec::spring[1][k-1])/(stroke-parmec::spring[0][k-1]);
-      if (slope < 0.0) /* isotropic loading curve must be monotonic */
-      {
-	PyErr_SetString (PyExc_ValueError, "Spring slope must be non-negative when isotropic hardening is used");
-	return NULL;
-      }
-    }
   }
   spridx[sprnum] = k;
 
@@ -1226,7 +1194,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else
   {
-    parmec::unidx[sprnum] = 0; /* TODO --> value based existance of unload lookup table */
+    parmec::unidx[sprnum] = 0;
     parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
   }
 
@@ -1309,16 +1277,16 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (ylim)
   {
-    parmec::yield[0][i] = PyFloat_AsDouble (PyTuple_GetItem (ylim,0));
-    parmec::yield[1][i] = PyFloat_AsDouble (PyTuple_GetItem (ylim,1));
+    yield[0][i] = PyFloat_AsDouble (PyTuple_GetItem (ylim,0));
+    yield[1][i] = PyFloat_AsDouble (PyTuple_GetItem (ylim,1));
 
-    if (parmec::yield[0][i] > 0.0)
+    if (yield[0][i] > 0.0)
     {
       PyErr_SetString (PyExc_ValueError, "Compressive yield limit must be <= 0.0");
       return NULL;
     }
 
-    if (parmec::yield[1][i] < 0.0)
+    if (yield[1][i] < 0.0)
     {
       PyErr_SetString (PyExc_ValueError, "Tensile yield limit must be >= 0.0");
       return NULL;
@@ -1326,8 +1294,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else
   {
-    parmec::yield[0][i] = -1E3;
-    parmec::yield[1][i] = +1E3;
+    parmec::yield[0][i] = 0.0;
+    parmec::yield[1][i] = 0.0;
   }
 
   return PyInt_FromLong (i);

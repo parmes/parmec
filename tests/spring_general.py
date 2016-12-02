@@ -20,8 +20,7 @@ parnum = MESH (nodes, elements, matnum, colors)
 spring = [-1, -2E7, -0.05, -1E7, 0, 0, 0.05, 2E7, 1, 4E7]
 unload = [-0.05, -1E7, 0, 0, 0.05, 2E7]
 
-# general nonlinear spring with kinematic hardening
-sprkin = SPRING (parnum, (0.5, 0.5, 0.5), -1, (0.5, 0.5, 0.5), spring, direction = (-1, 0, 0), unload=unload, ylim=(-1E7, 2E7))
+sprnum = SPRING (parnum, (0.5, 0.5, 0.5), -1, (0.5, 0.5, 0.5), spring, direction = (-1, 0, 0), unload=unload, ylim=(-1E7, 2E7))
 
 try:
   from scipy.interpolate import interp1d
@@ -45,9 +44,9 @@ def linvel(t): return (float(fv(t)), 0.0, 0.0)
 PRESCRIBE (parnum, linvel);
 
 t = HISTORY('TIME') 
-dx = HISTORY ('DX', sprkin)
-stroke = HISTORY ('STROKE', sprkin)
-force = HISTORY ('SF', sprkin)
+dx = HISTORY ('DX', sprnum)
+stroke = HISTORY ('STROKE', sprnum)
+force = HISTORY ('SF', sprnum)
 
 h = 0.001 #0.9 * CRITICAL()
 
