@@ -407,13 +407,20 @@ static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int l
 }
 
 /* look up table based linear spline slope based on (x,y)-search (i == 0 -> x; i == 1 -> y) */
-static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg)
+static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform at)
 {
   while (hi > lo+2)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[i][mid]) lo = mid;
     else hi = mid;
+  }
+
+  if (at)
+  {
+    uniform int j = (i == 0 ? 1 : 0);
+
+    at[0] = tab[j][lo] + (tab[j][lo+1]-tab[j][lo])*(arg-tab[i][lo])/(tab[i][lo+1]-tab[i][lo]);
   }
 
   return (tab[1][lo+1]-tab[1][lo])/(tab[0][lo+1]-tab[0][lo]);
@@ -720,7 +727,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	{
 	  if (sprflg[i]&SPRING_UNLOADING)
 	  {
-            uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0);
+            uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, NULL);
 
 	    spring_force = f0 + dfds*ds;
 
@@ -731,7 +738,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	      goto loading;
 	    }
 
-	    //print ("re-loading\n");
+	    //print ("re-loading at force %\n", spring_force);
 	  }
 	  else /* loading */
 	  {
@@ -756,14 +763,25 @@ loading:
 	      yield[1][i] = spring_force;
 	    }
 
-	    //print ("loading\n");
+	    //print ("loading at force %\n", spring_force);
 	  }
 	}
 	else /* unloading */
 	{
-          uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0);
+	  uniform REAL at;
+
+          uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, &at);
 
 	  spring_force = f0 + dfds*ds;
+
+	  if (spring_force * f0 < 0.0) /* zero crossing */
+	  {
+	    //print ("instead of overshooting to % --> crossing zero from % ", spring_force, f0);
+
+	    spring_force = look_up (unload, unidx[i], unidx[i+1], ds+at); /* rather than overshooting by linear extrapolation
+	                                                                     find an actual value on the other side */
+	    //print ("to %\n", spring_force);
+	  }
 
 	  if (spring_force < yield[0][i] || spring_force > yield[1][i])
 	  {
@@ -776,7 +794,7 @@ loading:
 	    sprflg[i] |= SPRING_UNLOADING;
 	  }
 
-	  //print ("unloading\n");
+	  //print ("unloading at force %\n", spring_force);
 	}
       }
     }
