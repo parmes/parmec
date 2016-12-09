@@ -1774,6 +1774,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   KEYWORDS ("duration", "step", "interval", "prefix");
   PyObject *prefix, *interval;
   double duration, step;
+  callback_t dt_func[2];
   REAL dt[2];
   char *pre;
 
@@ -1794,23 +1795,56 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 	return NULL;
       }
 
-      dt[0] = PyFloat_AsDouble (PyTuple_GetItem (interval, 0));
-      dt[1] = PyFloat_AsDouble (PyTuple_GetItem (interval, 1));
+      PyObject *dt0 = PyTuple_GetItem (interval, 0);
+
+      if (PyCallable_Check (dt0))
+      {
+	dt[0] = 0.0;
+	dt_func[0] = dt0;
+      }
+      else
+      {
+	dt[0] = PyFloat_AsDouble (dt0);
+	dt_func[0] = NULL;
+      }
+
+      PyObject *dt1 = PyTuple_GetItem (interval, 1);
+
+      if (PyCallable_Check (dt1))
+      {
+	dt[1] = 0.0;
+	dt_func[1] = dt1;
+      }
+      else
+      {
+	dt[1] = PyFloat_AsDouble (dt1);
+	dt_func[1] = NULL;
+      }
     }
     else 
     {
-      dt[0] = dt[1] = PyFloat_AsDouble (interval);
-
-      if (dt[0] <= 0.0)
+      if (PyCallable_Check (interval))
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid output interval");
-	return NULL;
+	dt_func[0] = dt_func[1] = interval;
+        dt[0] = dt[1] = 0.0;
       }
+      else
+      {
+        dt[0] = dt[1] = PyFloat_AsDouble (interval);
+	dt_func[0] = dt_func[1] = NULL;
+      }
+    }
+
+    if (dt[0] < 0.0 || dt[1] < 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+      return NULL;
     }
   }
   else
   {
     dt[0] = dt[1] = step;
+    dt_func[0] = dt_func[1] = NULL;
   }
 
   if (prefix)
@@ -1819,7 +1853,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else pre = NULL;
 
-  duration = dem (duration, step, dt, pre, 1);
+  duration = dem (duration, step, dt, dt_func, pre, 1);
 
   return Py_BuildValue ("d", duration); /* PyFloat_FromDouble (dt) */
 }
@@ -2631,5 +2665,22 @@ void read_gravity_and_damping (REAL time, callback_t gravfunc[3], REAL gravity[3
   {
     damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;
   }
+}
+
+/* call interval callback */
+REAL current_interval (callback_t func, REAL time)
+{
+  PyObject *result, *args;
+  REAL dt;
+
+  args = Py_BuildValue ("(d)", time);
+
+  result = PyObject_CallObject ((PyObject*)func, args);
+
+  dt = PyFloat_AsDouble(result);
+
+  Py_DECREF (result);
+
+  return dt;
 }
 } /* namespace */

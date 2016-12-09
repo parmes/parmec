@@ -1481,7 +1481,7 @@ void reset ()
 }
 
 /* run DEM simulation */
-REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
+REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose)
 {
   REAL time, t0, t1, dt;
   timing tt;
@@ -1575,6 +1575,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose)
 
     prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
                         angkind, time, rotation, linear, angular);
+
+    if (interval && interval_func)
+    {
+      if (interval_func[0]) interval[0] = current_interval(interval_func[0], time);
+      if (interval_func[1]) interval[1] = current_interval(interval_func[1], time);
+    }
 
     if (interval && time >= t0 + interval[0]) /* full update, due to output */
     {

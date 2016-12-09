@@ -40,6 +40,9 @@ void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int
 
 /* read gravity and global damping */
 void read_gravity_and_damping (REAL time, callback_t gravfunc[3], REAL gravity[3], callback_t lindamp, callback_t angdamp, REAL damping[6]);
+
+/* call interval callback */
+REAL current_interval (callback_t func, REAL time);
 }
 
 #endif

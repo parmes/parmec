@@ -198,7 +198,7 @@ void reset (); /* reset all simulation data */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-REAL dem (REAL duration, REAL step, REAL *interval, char *prefix, int verbose); /* run DEM simulation (return timed duration) */
+REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose); /* run DEM simulation (return timed duration) */
 
 #ifdef __cplusplus
 } /* namespace */

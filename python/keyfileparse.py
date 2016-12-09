@@ -118,6 +118,10 @@ CARDDEFINITIONS = {'TITLE':"""TITLE-A80""",
                  'CONTROL_TERMINATION':"""ENDTIM-F ENDCYC-I DTMIN-F ENDENG-F ENDMAS-F""",
 
                  'CONTROL_TIMESTEP':"""DTINIT-F TSSFAC-F ISDO-I TSLIM-F DT2MS-F LCTM-I ERODE-I MS1ST-I""",
+
+                 'DATABASE_BINARY_D3PLOT':"""(DT-F) LCDT-I (BEAM-I) (NPLTC-I)""",
+
+                 'DATABASE_BINARY_D3THDT':"""(DT-F) LCDT-I (BEAM-I) (NPLTC-I)""",
                  
                  'ELEMENT_DISCRETE':"""EID-I8 PID-I8 N1-I8 N2-I8 VID-I8 S-F16 PF-I8 OFFSET-F16""", # All default field len in manual n10 rather than n8)
         }

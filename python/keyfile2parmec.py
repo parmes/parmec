@@ -373,6 +373,22 @@ if gd != None:
   parmec.write ('def dmpang(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['SRX'], gd['SRY'], gd['SRZ']))
   parmec.write ('DAMPING (dmplin, dmpang)\n')
 
+print 'Writing parmec file (output intervals)...'
+parmec.write ('#\n')
+parmec.write ('# output intervals\n')
+parmec.write ('#\n')
+d3plot = keyfile.getcard('DATABASE_BINARY_D3PLOT')
+if d3plot != None:
+  lcdt = d3plot['LCDT']
+  parmec.write ('dt_files = interp1d(curve%d[::2], curve%d[1::2])\n' % (lcdt, lcdt))
+else: parmec.write ('dt_fiels = 0\n')
+
+d3thdt = keyfile.getcard('DATABASE_BINARY_D3THDT')
+if d3thdt != None:
+  lcdt = d3thdt['LCDT']
+  parmec.write ('dt_hist = interp1d(curve%d[::2], curve%d[1::2])\n' % (lcdt, lcdt))
+else: parmec.write ('dt_hist = 0\n')
+
 ct = keyfile.getcard('CONTROL_TERMINATION')
 ts = keyfile.getcard('CONTROL_TIMESTEP')
 if ct != None and ts != None:
@@ -380,7 +396,7 @@ if ct != None and ts != None:
   parmec.write ('#\n')
   parmec.write ('# run simulation\n')
   parmec.write ('#\n')
-  parmec.write ('# DEM(%g, %g, %g/100)\n' % (ct['ENDTIM'], ts['DTINIT'], ct['ENDTIM']))
+  parmec.write ('# DEM(%g, %g, (dt_files, dt_hist))\n' % (ct['ENDTIM'], ts['DTINIT']))
 
 parmec.close()
 

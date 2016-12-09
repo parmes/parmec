@@ -594,7 +594,7 @@ void output_files ()
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC rigid bodies output\n";
+	out << "PARMEC rigid bodies output at time " << curtime << "\n";
 	out << "ASCII\n";
 
 	for (num = i = 0; i < parnum; i ++)
@@ -617,7 +617,7 @@ void output_files ()
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC rigid bodies output\n";
+	out << "PARMEC rigid bodies output at time " << curtime << "\n";
 	out << "ASCII\n";
 
 	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[j], out);
@@ -645,7 +645,7 @@ void output_files ()
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC triangles output\n";
+	out << "PARMEC triangles output at time " << curtime << "\n";
 	out << "ASCII\n";
 
 	for (num = i = 0; i < trinum; i ++)
@@ -672,7 +672,7 @@ void output_files ()
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC triangles output\n";
+	out << "PARMEC triangles output at time " << curtime << "\n";
 	out << "ASCII\n";
 
 	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
@@ -708,7 +708,7 @@ void output_files ()
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC springs output\n";
+	out << "PARMEC springs output at time " << curtime << "\n";
 	out << "ASCII\n";
 
 	for (num = i = 0; i < sprnum; i ++)
@@ -735,7 +735,7 @@ void output_files ()
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC springs output\n";
+	out << "PARMEC springs output at time " << curtime << "\n";
 	out << "ASCII\n";
 
 	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)

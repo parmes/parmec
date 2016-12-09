@@ -2020,7 +2020,16 @@ interval
 \end_inset
 
  can be used to indicate different output frequencies of output files and
- time histories, respectively
+ time histories, respectively; callback functions can also be used, e.g.
+ 
+\begin_inset Formula $dt_{\text{files}}=\text{dt\_fiels}\left(t\right)$
+\end_inset
+
+ and 
+\begin_inset Formula $dt_{\text{history}}=\text{dt\_history}\left(t\right)$
+\end_inset
+
+ prescribing variable interval frequencies, depending on current time;
 \end_layout
 
 \begin_layout Itemize
