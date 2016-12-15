@@ -1224,7 +1224,7 @@ static void sort_springs ()
     spring_data x;
 
     x.part[0] = sprpart[0][i];
-    x.part[1] = sprpart[0][i];
+    x.part[1] = sprpart[1][i];
     x.number = i;
 
     v.push_back (x);
@@ -1421,6 +1421,32 @@ static void sort_springs ()
   parmec::stroke[2] = stroke[2];
   parmec::sprfrc[0] = sprfrc[0];
   parmec::sprfrc[1] = sprfrc[1];
+
+#if DEBUG /* print spring statistics */
+  int j_avg = 0, n_j = 0;
+  int k_avg = 0, n_k = 0;
+
+  for (i = 0; i < parmec::sprnum; i ++)
+  {
+    int j = 0, k = 0;
+
+    if (i)
+    {
+      if (parmec::sprpart[0][i-1] == parmec::sprpart[0][i]) j_avg ++;
+      else n_j ++;
+
+      if (parmec::sprpart[1][i-1] == parmec::sprpart[1][i]) k_avg ++;
+      else n_k ++;
+    }
+
+    /* printf ("spring %d particles = (%d, %d)\n", i, parmec::sprpart[0][i], parmec::sprpart[1][i]); */
+  }
+
+  j_avg /= n_j;
+  k_avg /= n_k;
+
+  printf ("Average number of particles per spring = (%d, %d)\n", j_avg, k_avg);
+#endif
 }
 
 /* init parmec library */
