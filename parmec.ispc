@@ -34,7 +34,9 @@ export uniform int ispc_num_cores ()
 /* aligned real allocator */
 export uniform REAL * uniform  aligned_real_alloc (uniform int n)
 {
-  return uniform new uniform REAL [n];
+  uniform REAL * uniform ptr = uniform new uniform REAL [n];
+  memset (ptr, 0, n * sizeof (uniform REAL));
+  return ptr;
 }
 
 export void aligned_real_free (uniform REAL * uniform ptr)
@@ -45,7 +47,9 @@ export void aligned_real_free (uniform REAL * uniform ptr)
 /* aligned int allocator */
 export uniform int * uniform  aligned_int_alloc (uniform int n)
 {
-  return uniform new uniform int [n];
+  uniform int * uniform ptr = uniform new uniform int [n];
+  memset (ptr, 0, n * sizeof(uniform int));
+  return ptr;
 }
 
 export void aligned_int_free (uniform int * uniform ptr)
