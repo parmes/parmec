@@ -31,11 +31,13 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
   uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL step)
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform REAL step0, uniform REAL step1)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
-  uniform REAL half = 0.5*step;
+  uniform REAL half = 0.5*step0;
+  uniform REAL step = 0.5*(step0+step1);
 
   foreach (i = start ... end) /* time integration */
   {
@@ -124,10 +126,10 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
     NVMUL (J, A, B);
     PRODUCTSUB (A, B, T); /* T - O(t+h/2) x J O(t+h/2) */
 
-    SCALE (T, step);
+    SCALE (T, step0);
     NVADDMUL (O, I, T, O); /* O(t+h) */
 
-    im *= step;
+    im *= step0;
     ADDMUL (v, im, f, v); /* v(t+h) */
 
     expmap (step*O[0], step*O[1], step*O[2], DL[0], DL[1], DL[2], DL[3], DL[4], DL[5], DL[6], DL[7], DL[8]);
@@ -169,8 +171,9 @@ export void dynamics (uniform int threads, uniform master_conpnt master[], unifo
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
   uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL step)
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform REAL step0, uniform REAL step1)
 {
   launch [threads] dynamics_task (parnum/threads, master, slave, parnum, angular, linear,
-          rotation, position, inertia, inverse, mass, invm, damping, force, torque, step);
+          rotation, position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
 }

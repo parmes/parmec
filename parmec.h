@@ -39,6 +39,7 @@ extern int threads; /* number of hardware threads */
 extern char *outpath; /* output path */
 
 extern REAL curtime; /* current time */
+extern REAL curstep; /* current step */
 
 extern int matnum; /* number of materials */
 extern REAL *mparam[NMAT]; /* material parameters */
@@ -76,6 +77,9 @@ extern REAL *mass; /* scalar mass */
 extern REAL *invm; /* inverse scalar mass */
 extern REAL *force[3]; /* total spatial force */
 extern REAL *torque[3]; /* total spatial torque */
+extern int *kact; /* time step control --> number of active constraints per particle */
+extern REAL *kmax; /* time step control --> maximum linear stiffness coefficient per particle */
+extern REAL *krot[6]; /* time step control --> symmetric rotational unit stiffness matrix per particle */
 extern int *flags; /* particle flags */
 extern ispc::master_conpnt *master; /* master contact points */
 extern ispc::slave_conpnt *slave; /* slave contact points */

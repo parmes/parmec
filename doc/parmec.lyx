@@ -2007,7 +2007,7 @@ duration
 \series bold
 step
 \series default
- - time step
+ - initial time step
 \end_layout
 
 \begin_layout Itemize

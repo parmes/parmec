@@ -26,8 +26,10 @@ SOFTWARE.
 #include "condet.h"
 #include "constants.h"
 
-/* zero force and torque */
-task void zero_force_and_torque (uniform int span, uniform int parnum, uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+/* zero force, torque, kmax */
+task void zero_force_torque_kmax (uniform int span, uniform int parnum,
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform REAL kmax[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
@@ -40,6 +42,7 @@ task void zero_force_and_torque (uniform int span, uniform int parnum, uniform R
     torque[0][i] = 0.0;
     torque[1][i] = 0.0;
     torque[2][i] = 0.0;
+    kmax[i] = 0;
   }
 }
 
@@ -119,7 +122,7 @@ static inline int pairing (uniform int nummat, uniform int pairs[], int i, int j
 /* granular material force */
 inline static int granural_force (REAL n[3], REAL vij[3], REAL oij[3], REAL depth, uniform int i, int j,
   uniform REAL mass[], uniform REAL invm[], uniform REAL * uniform iparam[NIPARAM], int ij, REAL state[NSTATE],
-  uniform REAL step, REAL f[3])
+  uniform REAL step, REAL f[4])
 {
   REAL ma;
 
@@ -136,6 +139,7 @@ inline static int granural_force (REAL n[3], REAL vij[3], REAL oij[3], REAL dept
   f[0] = fn*n[0];
   f[1] = fn*n[1];
   f[2] = fn*n[2];
+  f[3] = kn;
 
   /* sliding friction */
 
@@ -281,7 +285,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 
 	int ij = pairing (pairnum, pairs, con->color[0][k], con->color[1][k]);
 
-	REAL state[NSTATE], f[3];
+	REAL state[NSTATE], f[4];
 
 	for (uniform int l = 0; l < NSTATE; l ++)
 	{
@@ -306,6 +310,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 	con->force[0][k] = f[0];
 	con->force[1][k] = f[1];
 	con->force[2][k] = f[2];
+	con->kcur[k] = f[3];
 
 	for (uniform int l = 0; l < NSTATE; l ++)
 	{
@@ -340,6 +345,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 	    con->force[0][k] = con->force[0][j];
 	    con->force[1][k] = con->force[1][j];
 	    con->force[2][k] = con->force[2][j];
+	    con->kcur[k] = con->kcur[j];
 
 	    gone[j] = -1; /* not to be used again */
 	  }
@@ -394,7 +400,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 }
 
 /* look up table based linear spline interpolation */
-static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg)
+static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform slope)
 {
   while (hi > lo+1)
   {
@@ -403,7 +409,9 @@ static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int l
     else hi = mid;
   }
 
-  return tab[1][lo] + (tab[1][lo+1]-tab[1][lo])*(arg-tab[0][lo])/(tab[0][lo+1]-tab[0][lo]);
+  *slope = (tab[1][lo+1]-tab[1][lo])/(tab[0][lo+1]-tab[0][lo]);
+
+  return tab[1][lo] + (*slope)*(arg-tab[0][lo]);
 }
 
 /* look up table based linear spline slope based on (x,y)-search (i == 0 -> x; i == 1 -> y) */
@@ -427,17 +435,28 @@ static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform 
 }
 
 /* contact (and gravity) forces accumulation task */
-task void contacts_acc_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[],
-  uniform int parnum, uniform REAL * uniform position[6], uniform REAL mass[], uniform REAL gravity[3],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+task void contacts_acc_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[], uniform int parnum,
+  uniform REAL * uniform rotation[9], uniform REAL * uniform position[6], uniform REAL mass[], uniform REAL gravity[3],
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
 
   for (uniform int i = start; i < end; i ++) /* force accumulation */
   {
-    REAL f[3], a[3], fs[3], ts[3];
-    uniform REAL po[3], ma;
+    REAL A[3], f[3], a[3], fs[3], ts[3], dot, krot0[6], kmax0, kcur;
+    uniform REAL L[9], po[3], ma;
+    uniform int kact0;
+
+    L[0] = rotation[0][i];
+    L[1] = rotation[1][i];
+    L[2] = rotation[2][i];
+    L[3] = rotation[3][i];
+    L[4] = rotation[4][i];
+    L[5] = rotation[5][i];
+    L[6] = rotation[6][i];
+    L[7] = rotation[7][i];
+    L[8] = rotation[8][i];
 
     po[0] = position[0][i];
     po[1] = position[1][i];
@@ -447,6 +466,9 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
     SET (fs, 0.0);
     SET (ts, 0.0);
+    kact0 = 0;
+    SET6 (krot0, 0.0);
+    kmax0 = 0.0;
 
     for (uniform master_conpnt * uniform m = &master[i]; m; m = m->next)
     {
@@ -462,7 +484,21 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
 	ACC (f, fs);
 	PRODUCTADD (a, f, ts);
+
+	kcur = m->kcur[j];
+	kmax0 = max(kcur, kmax0);
+
+	NVMUL (L, a, A);
+	dot = DOT(A, A);
+	krot0[0] += kcur*(dot - A[0]*A[0]);
+	krot0[1] += kcur*(dot - A[1]*A[1]);
+	krot0[2] += kcur*(dot - A[2]*A[2]);
+	krot0[3] += -kcur*(A[0]*A[1]);
+	krot0[4] += -kcur*(A[0]*A[2]);
+	krot0[5] += -kcur*(A[1]*A[2]);
       }
+
+      kact0 += m->size;
     }
 
     for (uniform slave_conpnt * uniform s = &slave[i]; s; s = s->next)
@@ -479,7 +515,21 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
 	ACC (f, fs);
 	PRODUCTADD (a, f, ts);
+        
+	kcur = s->kcur[j];
+	kmax0 = max(kcur, kmax0);
+
+	NVMUL (L, a, A);
+	dot = DOT(A, A);
+	krot0[0] += kcur*(dot - A[0]*A[0]);
+	krot0[1] += kcur*(dot - A[1]*A[1]);
+	krot0[2] += kcur*(dot - A[2]*A[2]);
+	krot0[3] += -kcur*(A[0]*A[1]);
+	krot0[4] += -kcur*(A[0]*A[2]);
+	krot0[5] += -kcur*(A[1]*A[2]);
       }
+
+      kact0 += s->size;
     }
 
     force[0][i] = reduce_add (fs[0]) + ma * gravity[0];
@@ -489,6 +539,17 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
     torque[0][i] = reduce_add (ts[0]);
     torque[1][i] = reduce_add (ts[1]);
     torque[2][i] = reduce_add (ts[2]);
+
+    krot[0][i] = reduce_add (krot0[0]);
+    krot[1][i] = reduce_add (krot0[1]);
+    krot[2][i] = reduce_add (krot0[2]);
+    krot[3][i] = reduce_add (krot0[3]);
+    krot[4][i] = reduce_add (krot0[4]);
+    krot[5][i] = reduce_add (krot0[5]);
+    
+    kact[i] = kact0;
+
+    kmax[i] = reduce_max (kmax0);
   }
 }
 
@@ -500,7 +561,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int lock[])
+  uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6], uniform int lock[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
@@ -527,11 +588,16 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   ZERO (fk);
   ZERO (tk);
 
+  uniform int kact_j = 0.0, kact_k = 0.0;
+  uniform REAL kmax_j = 0.0, kmax_k = 0.0;
+  uniform REAL krot_j[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+               krot_k[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
   /* update spring points and spring forces; update global force and torque */
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
     uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
-    uniform REAL Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3];
+    uniform REAL Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3], slope, temp;
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
     if (j0 != j) /* springs are sorted (j,k)-wise --> avoid repeated reads */
@@ -682,7 +748,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
     {
       stroke[0][i] = len - stroke0[i];
 
-      spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i]);
+      spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &slope);
     }
     break;
     case SPRING_GENERAL_NONLINEAR:
@@ -691,7 +757,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       {
 	stroke[0][i] = len - stroke0[i];
 
-	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i]);
+	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &slope);
 
 	if (spring_force < yield[0][i] || spring_force > yield[1][i])
 	{
@@ -752,7 +818,7 @@ loading:
 	      stroke[2][i] += ds;
 	    }
 
-	    spring_force = look_up (spring, spridx[i], spridx[i+1], ds < 0 ? stroke[1][i] : stroke[2][i]);
+	    spring_force = look_up (spring, spridx[i], spridx[i+1], ds < 0 ? stroke[1][i] : stroke[2][i], &slope);
 
 	    if (ds < 0)
 	    {
@@ -772,14 +838,16 @@ loading:
 
           uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, &at);
 
+	  slope = dfds;
+
 	  spring_force = f0 + dfds*ds;
 
 	  if (spring_force * f0 < 0.0) /* zero crossing */
 	  {
 	    //print ("instead of overshooting to % --> crossing zero from % ", spring_force, f0);
 
-	    spring_force = look_up (unload, unidx[i], unidx[i+1], ds+at); /* rather than overshooting by linear extrapolation
-	                                                                     find an actual value on the other side */
+	    spring_force = look_up (unload, unidx[i], unidx[i+1], ds+at, &slope); /* rather than overshooting by linear extrapolation
+	                                                                             find an actual value on the other side */
 	    //print ("to %\n", spring_force);
 	  }
 
@@ -803,7 +871,7 @@ loading:
 
     velocity = DOT (z, u);
 
-    dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity);
+    dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity, &temp);
 
     total_force = spring_force + (spring_force == 0.0 ? 0.0 : dashpot_force);
 
@@ -823,13 +891,50 @@ loading:
       torque[1][j0] += tj[1];
       torque[2][j0] += tj[2];
 
+      kact[j0] += kact_j;
+      kmax[j0] += kmax_j;
+      krot[0][j0] += krot_j[0];
+      krot[1][j0] += krot_j[1];
+      krot[2][j0] += krot_j[2];
+      krot[3][j0] += krot_j[3];
+      krot[4][j0] += krot_j[4];
+      krot[5][j0] += krot_j[5];
+
       COPY (z, fj);
       COPY (w, tj);
+
+      kact_j = 0;
+      kmax_j = 0.0;
+      krot_j[0] = 0.0;
+      krot_j[1] = 0.0;
+      krot_j[2] = 0.0;
+      krot_j[3] = 0.0;
+      krot_j[4] = 0.0;
+      krot_j[5] = 0.0;
     }
     else /* local acc current */
     {
       ACC (z, fj);
       ACC (w, tj);
+    }
+
+    if (total_force != 0.0)
+    {
+      kact_j ++;
+
+      slope = abs(slope);
+
+      if (slope > kmax_j) kmax_j = slope;
+
+      uniform REAL A[3], dot;
+      TVMUL (Lj, a, A);
+      dot = DOT(A,A);
+      krot_j[0] += slope*(dot-A[0]*A[0]);
+      krot_j[1] += slope*(dot-A[1]*A[1]);
+      krot_j[2] += slope*(dot-A[2]*A[2]);
+      krot_j[3] += -slope*(A[0]*A[1]);
+      krot_j[4] += -slope*(A[0]*A[2]);
+      krot_j[5] += -slope*(A[1]*A[2]);
     }
 
     if (k >= 0)
@@ -848,15 +953,52 @@ loading:
 	torque[1][k0] -= tk[1];
 	torque[2][k0] -= tk[2];
 
+	kact[k0] += kact_k;
+	kmax[k0] += kmax_k;
+	krot[0][k0] += krot_k[0];
+	krot[1][k0] += krot_k[1];
+	krot[2][k0] += krot_k[2];
+	krot[3][k0] += krot_k[3];
+	krot[4][k0] += krot_k[4];
+	krot[5][k0] += krot_k[5];
+
 	lock[k0] = -1; /* unlock */
 
 	COPY (z, fk);
 	COPY (w, tk);
+
+	kact_k = 0;
+	kmax_k = 0.0;
+	krot_k[0] = 0.0;
+	krot_k[1] = 0.0;
+	krot_k[2] = 0.0;
+	krot_k[3] = 0.0;
+	krot_k[4] = 0.0;
+	krot_k[5] = 0.0;
       }
       else /* local acc current */
       {
 	ACC (z, fk);
 	ACC (w, tk);
+      }
+
+      if (total_force != 0.0)
+      {
+	kact_k ++;
+
+	slope = abs(slope);
+
+	if (slope > kmax_k) kmax_k = slope;
+
+	uniform REAL B[3], dot;
+	TVMUL (Lj, b, B);
+	dot = DOT(B,B);
+	krot_k[0] += slope*(dot-B[0]*B[0]);
+	krot_k[1] += slope*(dot-B[1]*B[1]);
+	krot_k[2] += slope*(dot-B[2]*B[2]);
+	krot_k[3] += -slope*(B[0]*B[1]);
+	krot_k[4] += -slope*(B[0]*B[2]);
+	krot_k[5] += -slope*(B[1]*B[2]);
       }
 
       k0 = k;
@@ -873,6 +1015,15 @@ loading:
     torque[0][j0] += tj[0];
     torque[1][j0] += tj[1];
     torque[2][j0] += tj[2];
+
+    kact[j0] += kact_j;
+    kmax[j0] += kmax_j;
+    krot[0][j0] += krot_j[0];
+    krot[1][j0] += krot_j[1];
+    krot[2][j0] += krot_j[2];
+    krot[3][j0] += krot_j[3];
+    krot[4][j0] += krot_j[4];
+    krot[5][j0] += krot_j[5];
   }
 
   if (k0 >= 0) /* final global acc */
@@ -886,6 +1037,15 @@ loading:
     torque[0][k0] -= tk[0];
     torque[1][k0] -= tk[1];
     torque[2][k0] -= tk[2];
+
+    kact[k0] += kact_k;
+    kmax[k0] += kmax_k;
+    krot[0][k0] += krot_k[0];
+    krot[1][k0] += krot_k[1];
+    krot[2][k0] += krot_k[2];
+    krot[3][k0] += krot_k[3];
+    krot[4][k0] += krot_k[4];
+    krot[5][k0] += krot_k[5];
 
     lock[k0] = -1; /* unlock */
   }
@@ -903,25 +1063,26 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3], uniform int sprflg[], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
-  uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+  uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6])
 {
-  launch [threads] zero_force_and_torque (parnum/threads, parnum, force, torque);
+  launch [threads] zero_force_torque_kmax (parnum/threads, parnum, force, torque, kmax);
 
   launch [threads] clear_slaves (parnum/threads, slave, parnum);
   sync;
 
-  launch [threads] contacts_task (parnum/threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
-                                  mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
+  launch [threads] contacts_task (parnum/threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass,
+                                  invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
   sync;
 
-  launch [threads] contacts_acc_task (parnum/threads, master, slave, parnum, position, mass, gravity, force, torque);
+  launch [threads] contacts_acc_task (parnum/threads, master, slave, parnum, rotation, position, mass, gravity, force, torque, kact, kmax, krot);
   sync;
 
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
-  launch [threads] springs_task (sprnum/threads, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
-                                 sprdir, sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, lock);
+  launch [threads] springs_task (sprnum/threads, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
+                                 sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, kact, kmax, krot, lock);
   sync;
 
   delete lock;

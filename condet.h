@@ -39,6 +39,7 @@ struct master_conpnt
   uniform REAL normal[3][CONBUF];
   uniform REAL depth[CONBUF];
   uniform REAL force[3][CONBUF];
+  uniform REAL kcur[CONBUF]; /* current spring stiffness */
   uniform REAL state[NSTATE][CONBUF]; /* state parameters */
   uniform int size;
 
@@ -53,6 +54,7 @@ struct slave_conpnt
   uniform int master[2][CONBUF]; /* particle, ellipsoid */
   uniform REAL point[3][CONBUF];
   uniform REAL force[3][CONBUF];
+  uniform REAL kcur[CONBUF];
   uniform int size;
 
   uniform slave_conpnt * uniform next; /* local list */

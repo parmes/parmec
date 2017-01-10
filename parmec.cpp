@@ -61,6 +61,7 @@ char *outpath; /* output path */
 int threads; /* number of hardware threads */
 
 REAL curtime; /* current time */
+REAL curstep; /* current step */
 
 int matnum; /* number of materials */
 REAL *mparam[NMAT]; /* material parameters */
@@ -94,6 +95,9 @@ REAL *mass; /* scalar mass */
 REAL *invm; /* inverse scalar mass */
 REAL *force[3]; /* total spatial force */
 REAL *torque[3]; /* total spatial torque */
+int *kact; /* time step control --> number of active constraints per particle */
+REAL *kmax; /* time step control --> maximum linear stiffness coefficient per particle */
+REAL *krot[6]; /* time step control --> symmetric rotational unit stiffness matrix per particle */
 int *flags; /* particle flags */
 ispc::master_conpnt *master; /* master contact points */
 ispc::slave_conpnt *slave; /* slave contact points */
@@ -430,6 +434,14 @@ void particle_buffer_init ()
   torque[0] = aligned_real_alloc (particle_buffer_size);
   torque[1] = aligned_real_alloc (particle_buffer_size);
   torque[2] = aligned_real_alloc (particle_buffer_size);
+  kact = aligned_int_alloc (particle_buffer_size);
+  kmax = aligned_real_alloc (particle_buffer_size);
+  krot[0] = aligned_real_alloc (particle_buffer_size);
+  krot[1] = aligned_real_alloc (particle_buffer_size);
+  krot[2] = aligned_real_alloc (particle_buffer_size);
+  krot[3] = aligned_real_alloc (particle_buffer_size);
+  krot[4] = aligned_real_alloc (particle_buffer_size);
+  krot[5] = aligned_real_alloc (particle_buffer_size);
   flags = aligned_int_alloc (particle_buffer_size);
   master = master_alloc (NULL, 0, particle_buffer_size);
   slave = slave_alloc (NULL, 0, particle_buffer_size);
@@ -493,6 +505,14 @@ int particle_buffer_grow ()
   real_buffer_grow (torque[0], parnum, particle_buffer_size);
   real_buffer_grow (torque[1], parnum, particle_buffer_size);
   real_buffer_grow (torque[2], parnum, particle_buffer_size);
+  integer_buffer_grow (kact, parnum, particle_buffer_size);
+  real_buffer_grow (kmax, parnum, particle_buffer_size);
+  real_buffer_grow (krot[0], parnum, particle_buffer_size);
+  real_buffer_grow (krot[1], parnum, particle_buffer_size);
+  real_buffer_grow (krot[2], parnum, particle_buffer_size);
+  real_buffer_grow (krot[3], parnum, particle_buffer_size);
+  real_buffer_grow (krot[4], parnum, particle_buffer_size);
+  real_buffer_grow (krot[5], parnum, particle_buffer_size);
   integer_buffer_grow (flags, parnum, particle_buffer_size);
   master = master_alloc (master, parnum, particle_buffer_size);
   slave = slave_alloc (slave, parnum, particle_buffer_size);
@@ -1471,6 +1491,7 @@ void init()
 void reset ()
 {
   curtime = 0.0;
+  curstep = 0.0;
 
   matnum = 0;
   pairnum = 0;
@@ -1509,7 +1530,7 @@ void reset ()
 /* run DEM simulation */
 REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose)
 {
-  REAL time, t0, t1, dt;
+  REAL time, t0, t1, dt, step0, step1;
   timing tt;
 
   timerstart (&tt);
@@ -1549,18 +1570,24 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 
   if (curtime == 0.0)
   {
+    step0 = step;
+
     output_files ();
 
     output_history ();
 
-    euler (threads, parnum, angular, linear, rotation, position, 0.5*step);
+    euler (threads, parnum, angular, linear, rotation, position, 0.5*step0);
 
     shapes (threads, ellnum, part, center, radii, orient, nodnum, nodes,
             nodpart, NULL, facnum, facnod, factri, tri, rotation, position);
 
-    obstaclev (obsnum, obsang, obslin, anghis, linhis, 0.5*step);
+    obstaclev (obsnum, obsang, obslin, anghis, linhis, 0.5*step0);
 
-    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
+    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step0);
+  }
+  else
+  {
+    step0 = curstep;
   }
 
   invert_inertia (threads, parnum, inertia, inverse, mass, invm);
@@ -1570,7 +1597,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
   partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
 
   /* time stepping */
-  for (t0 = t1 = time = 0.0; time < duration; time += step)
+  for (t0 = t1 = time = 0.0; time < duration; time += 0.5*(step0+step1), curtime += 0.5*(step0+step1), step0 = step1)
   {
     if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
     {
@@ -1587,17 +1614,19 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     read_gravity_and_damping (time, gravfunc, gravity, lindamp, angdamp, damping);
 
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
-            mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step,
+            mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
             sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
-	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque);
+	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, krot);
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
 
+    step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, krot);
+
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
-              position, inertia, inverse, mass, invm, damping, force, torque, step);
+              position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
 
     prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
                         angkind, time, rotation, linear, angular);
@@ -1621,9 +1650,9 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 	      factri+faccon, tri, rotation, position);
     }
 
-    obstaclev (obsnum, obsang, obslin, anghis, linhis, time+step);
+    obstaclev (obsnum, obsang, obslin, anghis, linhis, time+step0);
 
-    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, step);
+    obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, 0.5*(step0+step1));
 
     if (interval && time >= t0 + interval[0])
     {
@@ -1639,12 +1668,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
       t1 += interval[1];
     }
 
-    if (verbose) progressbar (time/step, duration/step);
-
-    curtime += step;
+    if (verbose) progressbar (2.0*time/(step0+step1), 2.0*duration/(step0+step1));
   }
 
   partitioning_destroy (tree);
+
+  curstep = step1;
 
   dt = timerend (&tt);
 

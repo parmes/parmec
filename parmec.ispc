@@ -229,9 +229,52 @@ task void euler_task (uniform int span, uniform int parnum, uniform REAL * unifo
   }
 }
 
+/* time step determination task */
+task void time_step_task (uniform int span, uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
+                          uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6], uniform REAL step[])
+{
+  uniform int start = taskIndex*span;
+  uniform int end = taskIndex == taskCount-1 ? parnum : start+span;
+
+  REAL step0 = 1E99;
+
+  foreach (i = start ... end)
+  {
+    REAL n = (REAL)kact[i];
+    REAL k = kmax[i];
+    REAL m = mass[i];
+    REAL h = sqrt(n*k/m);
+    step0 = min(h, step0);
+
+    /* TODO --> rotational maximum eigenvalue */
+  }
+
+  step[taskIndex] = reduce_min (step0);
+}
+
 /* explicit Euler step */
 export void euler (uniform int threads, uniform int parnum, uniform REAL * uniform angular[6],
   uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
 {
   launch [threads] euler_task (parnum/threads, parnum, angular, linear, rotation, position, step);
+}
+
+/* determine stable time step */
+export uniform REAL determine_time_step (uniform int threads, uniform int parnum, uniform REAL mass[],
+  uniform REAL * uniform inertia[9], uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6])
+{
+  uniform REAL step_min = 1E99;
+
+  uniform REAL * uniform step = uniform new uniform REAL [threads];
+
+  launch [threads] time_step_task (parnum/threads, parnum, mass, inertia, kact, kmax, krot, step);
+
+  for (uniform int i = 0; i < threads; i ++)
+  {
+    if (step[i] < step_min) step_min = step[i];
+  }
+
+  delete step;
+
+  return 0.9*step_min; /* XXX --> 0.9 */
 }
