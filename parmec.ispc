@@ -360,6 +360,8 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
       REAL lambda = maximum_eigenvalue (A);
       omega = sqrt(lambda);
       step0 = min(2.0/omega, step0);
+
+      /* TODO --> how about influence of damping as in the initial critical step above? */
     }
   }
 

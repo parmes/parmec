@@ -1623,7 +1623,11 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
 
-    step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, krot, step);
+    /* XXX --> experimental <-- XXX */
+    /* step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, krot, step); */
+    /* XXX --> experimental <-- XXX */
+
+    step1 = step0;
 
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
               position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);

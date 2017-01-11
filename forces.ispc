@@ -574,7 +574,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
     for (; start < end && sprpart[0][start] == sprpart[0][start-1]; start ++);
   }
 
-  if (end < sprnum) /* end at sprpart[0][] change --> avoid atomic accumulation of force[][j] and torque[][j] below */
+  if (end > 0 && end < sprnum) /* end at sprpart[0][] change --> avoid atomic accumulation of force[][j] and torque[][j] below */
   {
     for (; end < sprnum-1 && sprpart[0][end] == sprpart[0][end+1]; end ++);
   }
