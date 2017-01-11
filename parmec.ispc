@@ -229,6 +229,51 @@ task void euler_task (uniform int span, uniform int parnum, uniform REAL * unifo
   }
 }
 
+/* Given a real symmetric 3x3 matrix A, compute the maximum eigenvalue;
+ * Adopted from: https://en.wikipedia.org/wiki/Eigenvalue_algorithm */
+inline static REAL maximum_eigenvalue (REAL A[9])
+{
+  REAL eig1, eig2, eig3, ret;
+
+  REAL p1 = A[1]*A[1] + A[2]*A[2] + A[3]*A[3];
+
+  if (p1 == 0.0) /* A is diagonal */
+  {
+    eig1 = A[0];
+    eig2 = A[4];
+    eig3 = A[8];
+
+    ret = max(eig1, eig2);
+    ret = max(ret, eig3);
+    return ret;
+  }
+  else
+  {
+    REAL q = (A[0]+A[4]+A[8])/3.0;
+    REAL p2 = (A[0]-q)*(A[0]-q) + (A[4]-q)*(A[4]-q) + (A[8]-q)*(A[8]-q) + 2*p1;
+    REAL p = sqrt(p2 / 6.0);
+    REAL invp = 1.0 / p;
+    REAL B[9] = {invp*A[0]-q, invp*A[1], invp*A[2],
+                 invp*A[3], invp*A[4]-q, invp*A[5],
+		 invp*A[6], invp*A[7], invp*A[8]-q}; /* (1.0 / p) * (A - q * I), where I is the identity matrix */
+    REAL r = 0.5 * DET(B);
+
+    /* In exact arithmetic for a symmetric matrix  -1 <= r <= 1
+     * but computation error can leave it slightly outside this range */
+    REAL phi;
+    if (r <= -1.0) phi = ALG_PI / 3.0;
+    else if (r >= 1.0) phi = 0.0;
+    else phi = acos(r) / 3.0;
+
+    /* the eigenvalues satisfy eig3 <= eig2 <= eig1 */
+    eig1 = q + 2 * p * cos(phi);
+    return eig1;
+    /* hence we skip calculation of eig2 and eig3:
+     * eig3 = q + 2 * p * cos(phi + (2*pi/3));
+     * eig2 = 3 * q - eig1 - eig3; */ /* since trace(A) = eig1 + eig2 + eig3 */
+  }
+}
+
 /* time step determination task */
 task void time_step_task (uniform int span, uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
                           uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6], uniform REAL step[])
@@ -240,13 +285,82 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
 
   foreach (i = start ... end)
   {
-    REAL n = (REAL)kact[i];
-    REAL k = kmax[i];
-    REAL m = mass[i];
-    REAL h = sqrt(n*k/m);
-    step0 = min(h, step0);
+    /* minimum step based on
+     * translational free vibration;
+     * eigenvalue problem is scalar: m * x'' + n * k * x = 0;
+     * calculated eigenvalue is: omega = sqrt (n * k / m);
+     * time step is: h = 2 / omega */
 
-    /* TODO --> rotational maximum eigenvalue */
+    REAL n = (REAL)kact[i];
+
+    if (n == 0) step0 = 0.0;
+    else
+    {
+      REAL k = kmax[i];
+      REAL m = mass[i];
+      REAL omega = sqrt(n*k/m);
+      step0 = min(2.0/omega, step0);
+
+      /* minimum step based on 
+       * rotational free vibration;
+       * genralized symmetric eigenvalue problem is: J * O'' + K * O = 0;
+       * which can be rewritten as: K * x - omega^2 * J * x = 0;
+       * or using lambda = omega^2: K * x - lambda * J * x = 0;
+       * this is further transformed using Cholesky decomposition of J = L*L^T;
+       * transformation:     K * x - lambda * L*L^T * x = 0;
+       *                 L^-1 * K * L^-T * x - lambda * I * x = 0;
+       *     same as:                  A * x - lambda * I * x = 0;
+       *      with:                       A = L^-1 * K * L^-T;
+       *
+       * From http://rosettacode.org/wiki/Cholesky_decomposition
+       * Cholesky factorization of a 3x3 matrix reads:
+       *    [l11   0    0]
+       * L =[l21 l22    0]
+       *    [l31 l32  l33] , where:
+       *
+       * l11 = sqrt(J11)
+       * l22 = sqrt(J22 - l21^2)
+       * l33 = sqrt(J33 - (l31^2 + l32^2))
+       * l21 = (1/l11) * J21;
+       * l31 = (1/l11) * J31;
+       * l32 = (1/l22) * (J32 - l31*l21);
+       *
+       * L can be inverted directly; Having calculate A we can use a direct algorithm from 
+       * Wikipedia, https://en.wikipedia.org/wiki/Eigenvalue_algorithm, in order to calculate
+       * all eigenvalues of a symmetric 3x3 problem; we then select the maximum one; */
+
+      REAL K[9], L[9], inv, invL[9], temp[9], A[9];
+
+      K[0] = krot[0][i];
+      K[1] = krot[3][i];
+      K[2] = krot[4][i];
+      K[3] = K[1];
+      K[4] = krot[1][i];
+      K[5] = krot[5][i];
+      K[6] = K[2];
+      K[7] = K[5];
+      K[8] = krot[2][i];
+
+      L[0] = sqrt(inertia[0][i]);
+      inv = 1.0/L[0];
+      L[1] = inv * inertia[1][i];
+      L[2] = inv * inertia[2][i];
+      L[3] = 0.0;
+      L[4] = sqrt(inertia[4][i] - L[1]*L[1]);
+      inv = 1.0/L[4];
+      L[5] = inv * (inertia[5][i] - L[2]*L[1]);
+      L[6] = 0.0;
+      L[7] = 0.0;
+      L[8] = sqrt(inertia[8][i] - (L[2]*L[2] + L[5]*L[5]));
+
+      INVERT (L, invL, inv);
+      NTMUL (K, invL, temp);
+      NNMUL (L, temp, A);
+
+      REAL lambda = maximum_eigenvalue (A);
+      omega = sqrt(lambda);
+      step0 = min(2.0/omega, step0);
+    }
   }
 
   step[taskIndex] = reduce_min (step0);
@@ -261,7 +375,8 @@ export void euler (uniform int threads, uniform int parnum, uniform REAL * unifo
 
 /* determine stable time step */
 export uniform REAL determine_time_step (uniform int threads, uniform int parnum, uniform REAL mass[],
-  uniform REAL * uniform inertia[9], uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6])
+  uniform REAL * uniform inertia[9], uniform int kact[], uniform REAL kmax[], uniform REAL * uniform krot[6],
+  uniform REAL step_max)
 {
   uniform REAL step_min = 1E99;
 
@@ -276,5 +391,6 @@ export uniform REAL determine_time_step (uniform int threads, uniform int parnum
 
   delete step;
 
-  return 0.9*step_min; /* XXX --> 0.9 */
+  if (step_min > 0.0) return 0.9*step_min; /* XXX --> 0.9 */
+  else return step_max;
 }

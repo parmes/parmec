@@ -1443,8 +1443,8 @@ static void sort_springs ()
   parmec::sprfrc[1] = sprfrc[1];
 
 #if DEBUG /* print spring statistics */
-  int j_avg = 0, n_j = 0;
-  int k_avg = 0, n_k = 0;
+  int j_avg = 0, n_j = 1;
+  int k_avg = 0, n_k = 1;
 
   for (i = 0; i < parmec::sprnum; i ++)
   {
@@ -1623,7 +1623,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
 
-    step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, krot);
+    step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, krot, step);
 
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
               position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);

@@ -929,12 +929,12 @@ loading:
       uniform REAL A[3], dot;
       TVMUL (Lj, a, A);
       dot = DOT(A,A);
-      krot_j[0] += slope*(dot-A[0]*A[0]);
-      krot_j[1] += slope*(dot-A[1]*A[1]);
-      krot_j[2] += slope*(dot-A[2]*A[2]);
-      krot_j[3] += -slope*(A[0]*A[1]);
-      krot_j[4] += -slope*(A[0]*A[2]);
-      krot_j[5] += -slope*(A[1]*A[2]);
+      krot_j[0] += slope*(dot-A[0]*A[0]); /* K(1,1) */
+      krot_j[1] += slope*(dot-A[1]*A[1]); /* K(2,2) */
+      krot_j[2] += slope*(dot-A[2]*A[2]); /* K(3,3) */
+      krot_j[3] += -slope*(A[0]*A[1]); /* K(2,1) */
+      krot_j[4] += -slope*(A[0]*A[2]); /* K(3,1) */
+      krot_j[5] += -slope*(A[1]*A[2]); /* K(3,3) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
     }
 
     if (k >= 0)
@@ -993,12 +993,12 @@ loading:
 	uniform REAL B[3], dot;
 	TVMUL (Lj, b, B);
 	dot = DOT(B,B);
-	krot_k[0] += slope*(dot-B[0]*B[0]);
-	krot_k[1] += slope*(dot-B[1]*B[1]);
-	krot_k[2] += slope*(dot-B[2]*B[2]);
-	krot_k[3] += -slope*(B[0]*B[1]);
-	krot_k[4] += -slope*(B[0]*B[2]);
-	krot_k[5] += -slope*(B[1]*B[2]);
+	krot_k[0] += slope*(dot-B[0]*B[0]); /* K(1,1) */
+	krot_k[1] += slope*(dot-B[1]*B[1]); /* K(2,2) */
+	krot_k[2] += slope*(dot-B[2]*B[2]); /* K(3,3) */
+	krot_k[3] += -slope*(B[0]*B[1]); /* K(2,1) */
+	krot_k[4] += -slope*(B[0]*B[2]); /* K(3,1) */
+	krot_k[5] += -slope*(B[1]*B[2]); /* K(3,2) */
       }
 
       k0 = k;
