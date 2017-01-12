@@ -96,7 +96,8 @@ REAL *invm; /* inverse scalar mass */
 REAL *force[3]; /* total spatial force */
 REAL *torque[3]; /* total spatial torque */
 int *kact; /* time step control --> number of active constraints per particle */
-REAL *kmax; /* time step control --> maximum linear stiffness coefficient per particle */
+REAL *kmax; /* time step control --> maximum stiffness coefficient per particle */
+REAL *emax; /* time step control --> maximum damper coefficient per particle */
 REAL *krot[6]; /* time step control --> symmetric rotational unit stiffness matrix per particle */
 int *flags; /* particle flags */
 ispc::master_conpnt *master; /* master contact points */
@@ -436,6 +437,7 @@ void particle_buffer_init ()
   torque[2] = aligned_real_alloc (particle_buffer_size);
   kact = aligned_int_alloc (particle_buffer_size);
   kmax = aligned_real_alloc (particle_buffer_size);
+  emax = aligned_real_alloc (particle_buffer_size);
   krot[0] = aligned_real_alloc (particle_buffer_size);
   krot[1] = aligned_real_alloc (particle_buffer_size);
   krot[2] = aligned_real_alloc (particle_buffer_size);
@@ -507,6 +509,7 @@ int particle_buffer_grow ()
   real_buffer_grow (torque[2], parnum, particle_buffer_size);
   integer_buffer_grow (kact, parnum, particle_buffer_size);
   real_buffer_grow (kmax, parnum, particle_buffer_size);
+  real_buffer_grow (emax, parnum, particle_buffer_size);
   real_buffer_grow (krot[0], parnum, particle_buffer_size);
   real_buffer_grow (krot[1], parnum, particle_buffer_size);
   real_buffer_grow (krot[2], parnum, particle_buffer_size);
@@ -1616,7 +1619,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
             sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
-	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, krot);
+	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot);
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
@@ -1624,7 +1627,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
                             angkind, time, mass, inertia, force, torque);
 
     /* XXX --> experimental <-- XXX */
-    /* step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, krot, step); */
+    /* step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, emax, krot, step0); */
     /* XXX --> experimental <-- XXX */
 
     step1 = step0;

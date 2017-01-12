@@ -40,6 +40,7 @@ struct master_conpnt
   uniform REAL depth[CONBUF];
   uniform REAL force[3][CONBUF];
   uniform REAL kcur[CONBUF]; /* current spring stiffness */
+  uniform REAL ecur[CONBUF]; /* current damper stiffness */
   uniform REAL state[NSTATE][CONBUF]; /* state parameters */
   uniform int size;
 
@@ -55,6 +56,7 @@ struct slave_conpnt
   uniform REAL point[3][CONBUF];
   uniform REAL force[3][CONBUF];
   uniform REAL kcur[CONBUF];
+  uniform REAL ecur[CONBUF];
   uniform int size;
 
   uniform slave_conpnt * uniform next; /* local list */
