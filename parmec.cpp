@@ -1640,8 +1640,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 
     if (interval && interval_func)
     {
-      if (interval_func[0]) interval[0] = current_interval(interval_func[0], time);
-      if (interval_func[1]) interval[1] = current_interval(interval_func[1], time);
+      if (interval_func[0]) interval[0] = current_interval(interval_func[0], curtime);
+      if (interval_func[1]) interval[1] = current_interval(interval_func[1], curtime);
     }
 
     if (interval && time >= t0 + interval[0]) /* full update, due to output */
