@@ -905,6 +905,7 @@ loading:
 
       kact[j0] += kact_j;
       kmax[j0] = max(kmax_j, kmax[j0]);
+      emax[j0] = max(emax_j, emax[j0]);
       krot[0][j0] += krot_j[0];
       krot[1][j0] += krot_j[1];
       krot[2][j0] += krot_j[2];
@@ -970,6 +971,7 @@ loading:
 
 	kact[k0] += kact_k;
 	kmax[k0] = max(kmax_k, kmax[k0]);
+	emax[k0] = max(emax_k, emax[k0]);
 	krot[0][k0] += krot_k[0];
 	krot[1][k0] += krot_k[1];
 	krot[2][k0] += krot_k[2];
@@ -1035,7 +1037,8 @@ loading:
     torque[2][j0] += tj[2];
 
     kact[j0] += kact_j;
-    kmax[j0] += kmax_j;
+    kmax[j0] = max(kmax_j, kmax[j0]);
+    emax[j0] = max(emax_j, emax[j0]);
     krot[0][j0] += krot_j[0];
     krot[1][j0] += krot_j[1];
     krot[2][j0] += krot_j[2];
@@ -1057,7 +1060,8 @@ loading:
     torque[2][k0] -= tk[2];
 
     kact[k0] += kact_k;
-    kmax[k0] += kmax_k;
+    kmax[k0] = max(kmax_k, kmax[k0]);
+    emax[k0] = max(emax_k, emax[k0]);
     krot[0][k0] += krot_k[0];
     krot[1][k0] += krot_k[1];
     krot[2][k0] += krot_k[2];

@@ -297,6 +297,10 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   n2 = ed['N2']
   pid1 = nod2pid[n1]
   pid2 = nod2pid[n2]
+  if pid1 == pid2:
+    print "WARNING: spring nodes (%, %) belong to the same part %;\n" % (n1, n2, pid1)
+    print "         -> skipping this ELEMENT_DISCRETE card;\n"
+    continue
   if n1 == None or n2 == None:
     print 'ERROR: invalid node to part inertia cards mapping'
     sys.exit(1)
