@@ -138,12 +138,26 @@ static int is_non_negative (double num, const char *var)
 }
 
 /* in [lo, hi) range test */
-static int is_in_range (double num, double lo, double hi, const char *var)
+static int is_ge_lt (double num, double lo, double hi, const char *var)
 {
   if (num < lo || num >= hi)
   {
     char buf [BUFLEN];
     sprintf (buf, "'%s' must belong to [%g, %g)", var, lo, hi);
+    PyErr_SetString (PyExc_ValueError, buf);
+    return 0;
+  }
+
+  return 1;
+}
+
+/* in (lo, hi] range test */
+static int is_gt_le (double num, double lo, double hi, const char *var)
+{
+  if (num <= lo || num > hi)
+  {
+    char buf [BUFLEN];
+    sprintf (buf, "'%s' must belong to (%g, %g]", var, lo, hi);
     PyErr_SetString (PyExc_ValueError, buf);
     return 0;
   }
@@ -448,7 +462,7 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("Odii", &cen, &rad, &material, &color);
 
   TYPETEST (is_tuple (cen, kwl[0], 3) && is_positive (rad, kwl[1]) &&
-            is_in_range (material, 0, matnum, kwl[2]) && is_positive (color, kwl[3]));
+            is_ge_lt (material, 0, matnum, kwl[2]) && is_positive (color, kwl[3]));
 
   if (ellnum >= ellipsoid_buffer_size) ellipsoid_buffer_grow ();
 
@@ -1388,7 +1402,7 @@ static PyObject* CONSTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("i|OO", &j, &lin, &ang);
 
-  TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_list (lin, kwl[1], 0) && is_list (ang, kwl[2], 0));
+  TYPETEST (is_ge_lt (j, 0, parnum, kwl[0]) && is_list (lin, kwl[1], 0) && is_list (ang, kwl[2], 0));
 
   if (lin || ang)
   {
@@ -1578,7 +1592,7 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("i|OOO", &j, &lin, &ang, &kind);
 
-  TYPETEST (is_in_range (j, 0, parnum, kwl[0]) && is_callable (lin, kwl[1]) &&
+  TYPETEST (is_ge_lt (j, 0, parnum, kwl[0]) && is_callable (lin, kwl[1]) &&
             is_callable (ang, kwl[2]) && is_string (kind, kwl[3]));
 
   if (lin || ang)
@@ -1658,7 +1672,7 @@ static PyObject* VELOCITY (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("i|OO", &i, &lin, &ang);
 
-  TYPETEST (is_in_range (i, 0, parnum, kwl[0]) && is_tuple (lin, kwl[1], 3) && is_tuple (ang, kwl[2], 3));
+  TYPETEST (is_ge_lt (i, 0, parnum, kwl[0]) && is_tuple (lin, kwl[1], 3) && is_tuple (ang, kwl[2], 3));
 
   if (lin)
   {
@@ -1771,19 +1785,21 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
 /* run DEM simulation */
 static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("duration", "step", "interval", "prefix");
+  KEYWORDS ("duration", "step", "interval", "prefix", "adaptive");
+  double duration, step, adaptive;
   PyObject *prefix, *interval;
-  double duration, step;
   callback_t dt_func[2];
   REAL dt[2];
   char *pre;
 
   prefix = NULL;
   interval = NULL;
+  adaptive = 0.0;
 
-  PARSEKEYS ("dd|OO", &duration, &step, &interval, &prefix);
+  PARSEKEYS ("dd|OOd", &duration, &step, &interval, &prefix, &adaptive);
 
-  TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) && is_string (prefix, kwl[3]));
+  TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
+            is_string (prefix, kwl[3]) && is_gt_le (adaptive, 0.0, 1.0, kwl[4]));
 
   if (interval)
   {
@@ -1853,7 +1869,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else pre = NULL;
 
-  duration = dem (duration, step, dt, dt_func, pre, 1);
+  duration = dem (duration, step, dt, dt_func, pre, 1, adaptive);
 
   return Py_BuildValue ("d", duration); /* PyFloat_FromDouble (dt) */
 }

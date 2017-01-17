@@ -1531,7 +1531,7 @@ void reset ()
 }
 
 /* run DEM simulation */
-REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose)
+REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose, double adaptive)
 {
   REAL time, t0, t1, dt, step0, step1;
   timing tt;
@@ -1556,10 +1556,6 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     delete outpath;
     outpath = out;
   }
-
-  /* XXX --> experimental <-- XXX */
-  int adaptive = 0;
-  /* XXX --> experimental <-- XXX */
 
   REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
   REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
@@ -1624,16 +1620,16 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
             sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
 	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot,
-	    adaptive);
+	    (adaptive > 0.0 && adaptive <= 1.0));
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
 
-    if (adaptive)
+    if (adaptive > 0.0 && adaptive <= 1.0)
     {
-      step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, emax, krot, step0);
+      step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, emax, krot, step0, adaptive);
     }
     else
     {
