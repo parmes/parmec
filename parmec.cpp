@@ -1557,6 +1557,10 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     outpath = out;
   }
 
+  /* XXX --> experimental <-- XXX */
+  int adaptive = 0;
+  /* XXX --> experimental <-- XXX */
+
   REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
   REAL *iradii[3] = {radii[0]+ellcon, radii[1]+ellcon, radii[2]+ellcon};
   REAL *iorient[18] = {orient[0]+ellcon, orient[1]+ellcon, orient[2]+ellcon, orient[3]+ellcon, orient[4]+ellcon, orient[5]+ellcon,
@@ -1619,18 +1623,22 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
             sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
-	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot);
+	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot,
+	    adaptive);
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
 
-    /* XXX --> experimental <-- XXX */
-    /* step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, emax, krot, step0); */
-    /* XXX --> experimental <-- XXX */
-
-    step1 = step0;
+    if (adaptive)
+    {
+      step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, emax, krot, step0);
+    }
+    else
+    {
+      step1 = step0;
+    }
 
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
               position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);

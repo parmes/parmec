@@ -442,7 +442,7 @@ static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform 
 task void contacts_acc_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[], uniform int parnum,
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6], uniform REAL mass[], uniform REAL gravity[3],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6])
+  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
@@ -471,6 +471,7 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
     SET (fs, 0.0);
     SET (ts, 0.0);
+
     kact0 = 0;
     SET6 (krot0, 0.0);
     kmax0 = 0.0;
@@ -491,19 +492,22 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 	ACC (f, fs);
 	PRODUCTADD (a, f, ts);
 
-	kcur = m->kcur[j];
-	kmax0 = max(kcur, kmax0);
-	ecur = m->ecur[j];
-	emax0 = max(ecur, emax0);
+	cif (adaptive)
+	{
+	  kcur = m->kcur[j];
+	  kmax0 = max(kcur, kmax0);
+	  ecur = m->ecur[j];
+	  emax0 = max(ecur, emax0);
 
-	NVMUL (L, a, A);
-	dot = DOT(A, A);
-	krot0[0] += dot - A[0]*A[0];
-	krot0[1] += dot - A[1]*A[1];
-	krot0[2] += dot - A[2]*A[2];
-	krot0[3] += -A[0]*A[1];
-	krot0[4] += -A[0]*A[2];
-	krot0[5] += -A[1]*A[2];
+	  NVMUL (L, a, A);
+	  dot = DOT(A, A);
+	  krot0[0] += dot - A[0]*A[0];
+	  krot0[1] += dot - A[1]*A[1];
+	  krot0[2] += dot - A[2]*A[2];
+	  krot0[3] += -A[0]*A[1];
+	  krot0[4] += -A[0]*A[2];
+	  krot0[5] += -A[1]*A[2];
+	}
       }
 
       kact0 += m->size;
@@ -523,20 +527,23 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
 	ACC (f, fs);
 	PRODUCTADD (a, f, ts);
-        
-	kcur = s->kcur[j];
-	kmax0 = max(kcur, kmax0);
-	ecur = s->ecur[j];
-	emax0 = max(ecur, emax0);
 
-	NVMUL (L, a, A);
-	dot = DOT(A, A);
-	krot0[0] += dot - A[0]*A[0];
-	krot0[1] += dot - A[1]*A[1];
-	krot0[2] += dot - A[2]*A[2];
-	krot0[3] += -A[0]*A[1];
-	krot0[4] += -A[0]*A[2];
-	krot0[5] += -A[1]*A[2];
+	cif (adaptive)
+	{
+	  kcur = s->kcur[j];
+	  kmax0 = max(kcur, kmax0);
+	  ecur = s->ecur[j];
+	  emax0 = max(ecur, emax0);
+
+	  NVMUL (L, a, A);
+	  dot = DOT(A, A);
+	  krot0[0] += dot - A[0]*A[0];
+	  krot0[1] += dot - A[1]*A[1];
+	  krot0[2] += dot - A[2]*A[2];
+	  krot0[3] += -A[0]*A[1];
+	  krot0[4] += -A[0]*A[2];
+	  krot0[5] += -A[1]*A[2];
+	}
       }
 
       kact0 += s->size;
@@ -550,17 +557,20 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
     torque[1][i] = reduce_add (ts[1]);
     torque[2][i] = reduce_add (ts[2]);
 
-    krot[0][i] = reduce_add (krot0[0]);
-    krot[1][i] = reduce_add (krot0[1]);
-    krot[2][i] = reduce_add (krot0[2]);
-    krot[3][i] = reduce_add (krot0[3]);
-    krot[4][i] = reduce_add (krot0[4]);
-    krot[5][i] = reduce_add (krot0[5]);
-    
-    kact[i] = kact0;
+    if (adaptive)
+    {
+      krot[0][i] = reduce_add (krot0[0]);
+      krot[1][i] = reduce_add (krot0[1]);
+      krot[2][i] = reduce_add (krot0[2]);
+      krot[3][i] = reduce_add (krot0[3]);
+      krot[4][i] = reduce_add (krot0[4]);
+      krot[5][i] = reduce_add (krot0[5]);
+      
+      kact[i] = kact0;
 
-    kmax[i] = reduce_max (kmax0);
-    emax[i] = reduce_max (emax0);
+      kmax[i] = reduce_max (kmax0);
+      emax[i] = reduce_max (emax0);
+    }
   }
 }
 
@@ -572,7 +582,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int lock[])
+  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
+  uniform int lock[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
@@ -903,28 +914,31 @@ loading:
       torque[1][j0] += tj[1];
       torque[2][j0] += tj[2];
 
-      kact[j0] += kact_j;
-      kmax[j0] = max(kmax_j, kmax[j0]);
-      emax[j0] = max(emax_j, emax[j0]);
-      krot[0][j0] += krot_j[0];
-      krot[1][j0] += krot_j[1];
-      krot[2][j0] += krot_j[2];
-      krot[3][j0] += krot_j[3];
-      krot[4][j0] += krot_j[4];
-      krot[5][j0] += krot_j[5];
-
       COPY (z, fj);
       COPY (w, tj);
 
-      kact_j = 0;
-      kmax_j = 0.0;
-      emax_j = 0.0;
-      krot_j[0] = 0.0;
-      krot_j[1] = 0.0;
-      krot_j[2] = 0.0;
-      krot_j[3] = 0.0;
-      krot_j[4] = 0.0;
-      krot_j[5] = 0.0;
+      if (adaptive)
+      {
+	kact[j0] += kact_j;
+	kmax[j0] = max(kmax_j, kmax[j0]);
+	emax[j0] = max(emax_j, emax[j0]);
+	krot[0][j0] += krot_j[0];
+	krot[1][j0] += krot_j[1];
+	krot[2][j0] += krot_j[2];
+	krot[3][j0] += krot_j[3];
+	krot[4][j0] += krot_j[4];
+	krot[5][j0] += krot_j[5];
+
+	kact_j = 0;
+	kmax_j = 0.0;
+	emax_j = 0.0;
+	krot_j[0] = 0.0;
+	krot_j[1] = 0.0;
+	krot_j[2] = 0.0;
+	krot_j[3] = 0.0;
+	krot_j[4] = 0.0;
+	krot_j[5] = 0.0;
+      }
     }
     else /* local acc current */
     {
@@ -932,7 +946,7 @@ loading:
       ACC (w, tj);
     }
 
-    if (total_force != 0.0)
+    if (adaptive && total_force != 0.0)
     {
       kact_j ++;
 
@@ -969,30 +983,36 @@ loading:
 	torque[1][k0] -= tk[1];
 	torque[2][k0] -= tk[2];
 
-	kact[k0] += kact_k;
-	kmax[k0] = max(kmax_k, kmax[k0]);
-	emax[k0] = max(emax_k, emax[k0]);
-	krot[0][k0] += krot_k[0];
-	krot[1][k0] += krot_k[1];
-	krot[2][k0] += krot_k[2];
-	krot[3][k0] += krot_k[3];
-	krot[4][k0] += krot_k[4];
-	krot[5][k0] += krot_k[5];
+	if (adaptive)
+	{
+	  kact[k0] += kact_k;
+	  kmax[k0] = max(kmax_k, kmax[k0]);
+	  emax[k0] = max(emax_k, emax[k0]);
+	  krot[0][k0] += krot_k[0];
+	  krot[1][k0] += krot_k[1];
+	  krot[2][k0] += krot_k[2];
+	  krot[3][k0] += krot_k[3];
+	  krot[4][k0] += krot_k[4];
+	  krot[5][k0] += krot_k[5];
+	}
 
 	lock[k0] = -1; /* unlock */
 
 	COPY (z, fk);
 	COPY (w, tk);
 
-	kact_k = 0;
-	kmax_k = 0.0;
-	emax_k = 0.0;
-	krot_k[0] = 0.0;
-	krot_k[1] = 0.0;
-	krot_k[2] = 0.0;
-	krot_k[3] = 0.0;
-	krot_k[4] = 0.0;
-	krot_k[5] = 0.0;
+	if (adaptive)
+	{
+	  kact_k = 0;
+	  kmax_k = 0.0;
+	  emax_k = 0.0;
+	  krot_k[0] = 0.0;
+	  krot_k[1] = 0.0;
+	  krot_k[2] = 0.0;
+	  krot_k[3] = 0.0;
+	  krot_k[4] = 0.0;
+	  krot_k[5] = 0.0;
+	}
       }
       else /* local acc current */
       {
@@ -1000,7 +1020,7 @@ loading:
 	ACC (w, tk);
       }
 
-      if (total_force != 0.0)
+      if (adaptive && total_force != 0.0)
       {
 	kact_k ++;
 
@@ -1036,15 +1056,18 @@ loading:
     torque[1][j0] += tj[1];
     torque[2][j0] += tj[2];
 
-    kact[j0] += kact_j;
-    kmax[j0] = max(kmax_j, kmax[j0]);
-    emax[j0] = max(emax_j, emax[j0]);
-    krot[0][j0] += krot_j[0];
-    krot[1][j0] += krot_j[1];
-    krot[2][j0] += krot_j[2];
-    krot[3][j0] += krot_j[3];
-    krot[4][j0] += krot_j[4];
-    krot[5][j0] += krot_j[5];
+    if (adaptive)
+    {
+      kact[j0] += kact_j;
+      kmax[j0] = max(kmax_j, kmax[j0]);
+      emax[j0] = max(emax_j, emax[j0]);
+      krot[0][j0] += krot_j[0];
+      krot[1][j0] += krot_j[1];
+      krot[2][j0] += krot_j[2];
+      krot[3][j0] += krot_j[3];
+      krot[4][j0] += krot_j[4];
+      krot[5][j0] += krot_j[5];
+    }
   }
 
   if (k0 >= 0) /* final global acc */
@@ -1059,15 +1082,18 @@ loading:
     torque[1][k0] -= tk[1];
     torque[2][k0] -= tk[2];
 
-    kact[k0] += kact_k;
-    kmax[k0] = max(kmax_k, kmax[k0]);
-    emax[k0] = max(emax_k, emax[k0]);
-    krot[0][k0] += krot_k[0];
-    krot[1][k0] += krot_k[1];
-    krot[2][k0] += krot_k[2];
-    krot[3][k0] += krot_k[3];
-    krot[4][k0] += krot_k[4];
-    krot[5][k0] += krot_k[5];
+    if (adaptive)
+    {
+      kact[k0] += kact_k;
+      kmax[k0] = max(kmax_k, kmax[k0]);
+      emax[k0] = max(emax_k, emax[k0]);
+      krot[0][k0] += krot_k[0];
+      krot[1][k0] += krot_k[1];
+      krot[2][k0] += krot_k[2];
+      krot[3][k0] += krot_k[3];
+      krot[4][k0] += krot_k[4];
+      krot[5][k0] += krot_k[5];
+    }
 
     lock[k0] = -1; /* unlock */
   }
@@ -1086,7 +1112,7 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3], uniform int sprflg[], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6])
+  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
 {
   launch [threads] zero_force_torque_kmax (parnum/threads, parnum, force, torque, kmax, emax);
 
@@ -1098,14 +1124,14 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   sync;
 
   launch [threads] contacts_acc_task (parnum/threads, master, slave, parnum, rotation,
-                      position, mass, gravity, force, torque, kact, kmax, emax, krot);
+                    position, mass, gravity, force, torque, kact, kmax, emax, krot, adaptive);
   sync;
 
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
   launch [threads] springs_task (sprnum/threads, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
-                                 sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, lock);
+                     sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
   sync;
 
   delete lock;
