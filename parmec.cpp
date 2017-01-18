@@ -202,6 +202,8 @@ REAL damping[6]; /* linear and angular damping */
 callback_t lindamp; /* linead damping callback */
 callback_t angdamp; /* angular damping callback */
 
+MAP *prescribed_body_forces; /* particle index based map of prescibed body forces */
+
 /* grow integer buffer */
 void integer_buffer_grow (int* &src, int num, int size)
 {
@@ -1472,6 +1474,23 @@ static void sort_springs ()
 #endif
 }
 
+/* add up prescribed body forces */
+static void prescribe_body_forces (MAP *prescribed_body_forces, REAL *force[3], REAL *toruqe[3])
+{
+  for (MAP *item = MAP_First (prescribed_body_forces); item; item = MAP_Next (item))
+  {
+    struct prescribed_body_force *p = (struct prescribed_body_force*) item->data;
+
+    force[0][p->particle] += p->force[0];
+    force[1][p->particle] += p->force[1];
+    force[2][p->particle] += p->force[2];
+
+    torque[0][p->particle] += p->torque[0];
+    torque[1][p->particle] += p->torque[1];
+    torque[2][p->particle] += p->torque[2];
+  }
+}
+
 /* init parmec library */
 void init()
 {
@@ -1526,6 +1545,9 @@ void reset ()
   /* zero gravity by default */
   gravity[0] = gravity[1] = gravity[2] = 0.0;
   gravfunc[0] = gravfunc[1] = gravfunc[2] = NULL;
+
+  /* no prescribed body forces by default */
+  prescribed_body_forces = NULL;
 
   pair_reset();
 }
@@ -1626,6 +1648,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
+
+    prescribe_body_forces (prescribed_body_forces, force, torque);
 
     if (adaptive > 0.0 && adaptive <= 1.0)
     {

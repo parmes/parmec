@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "condet_ispc.h"
 #include "constants.h"
+#include "map.h"
 
 #ifndef __parmec__
 #define __parmec__
@@ -192,6 +193,15 @@ extern callback_t gravfunc[3]; /* gravity callbacks */
 extern REAL damping[6]; /* linear and angular damping */
 extern callback_t lindamp; /* linead damping callback */
 extern callback_t angdamp; /* angular damping callback */
+
+struct prescribed_body_force /* externally prescribed body force */
+{
+  int particle;
+  REAL force[3];
+  REAL torque[3];
+};
+
+extern MAP *prescribed_body_forces; /* particle index based map of prescibed body forces */
 
 extern void declare_analytical (int k); /* declare particle 'k' analytical */
 
