@@ -1447,7 +1447,7 @@ static void sort_springs ()
   parmec::sprfrc[0] = sprfrc[0];
   parmec::sprfrc[1] = sprfrc[1];
 
-#if DEBUG /* print spring statistics */
+#if 0 /* print spring statistics */
   int j_avg = 0, n_j = 1;
   int k_avg = 0, n_k = 1;
 
@@ -1506,7 +1506,10 @@ void init()
   prescribe_buffer_init ();
   history_buffer_init ();
   output_buffer_init ();
+
   reset ();
+
+  threads = ispc_num_cores();
 }
 
 /* reset all data */
@@ -1712,7 +1715,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 
   dt = timerend (&tt);
 
-  printf("[ ===             %10.3f sec                    === ]\n", dt);
+  if (verbose) printf("[ ===             %10.3f sec                    === ]\n", dt);
 
   return dt;
 }

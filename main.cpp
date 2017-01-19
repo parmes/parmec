@@ -48,7 +48,6 @@ int main (int argc, char *argv[])
     {
       threads = atoi (argv[2]);
     }
-    else threads = ispc_num_cores();
 
     int len = strlen (argv[argc-1]);
     ERRMEM (outpath = new char [len+1]);
