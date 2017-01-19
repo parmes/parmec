@@ -151,13 +151,13 @@ static int is_ge_lt (double num, double lo, double hi, const char *var)
   return 1;
 }
 
-/* in (lo, hi] range test */
-static int is_gt_le (double num, double lo, double hi, const char *var)
+/* in [lo, hi] range test */
+static int is_ge_le (double num, double lo, double hi, const char *var)
 {
-  if (num <= lo || num > hi)
+  if (num < lo || num > hi)
   {
     char buf [BUFLEN];
-    sprintf (buf, "'%s' must belong to (%g, %g]", var, lo, hi);
+    sprintf (buf, "'%s' must belong to [%g, %g]", var, lo, hi);
     PyErr_SetString (PyExc_ValueError, buf);
     return 0;
   }
@@ -1799,7 +1799,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("dd|OOd", &duration, &step, &interval, &prefix, &adaptive);
 
   TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
-            is_string (prefix, kwl[3]) && is_gt_le (adaptive, 0.0, 1.0, kwl[4]));
+            is_string (prefix, kwl[3]) && is_ge_le (adaptive, 0.0, 1.0, kwl[4]));
 
   if (interval)
   {
