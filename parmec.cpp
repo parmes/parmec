@@ -157,6 +157,7 @@ int *sprflg; /* spring flags */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 REAL *sprfrc[2]; /* total and spring force magnitude */
+int springs_changed; /* spring input data changed flag */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
@@ -721,6 +722,7 @@ int spring_buffer_init ()
   spridx[sprnum] = 0;
   dashidx[sprnum] = 0;
   unidx[sprnum] = 0;
+  springs_changed = 0;
 }
 
 /* grow spring buffer */
@@ -1257,7 +1259,6 @@ static void sort_springs ()
 
   std::sort (v.begin(), v.end(), cmp_spring());
 
-  int sprnum; /* number of spring constraints */
   int *sprid; /* spring id --> number returned to user */
   int *sprtype; /* spring type */
   int *sprpart[2]; /* spring constraint particle numbers */
@@ -1349,22 +1350,22 @@ static void sort_springs ()
     sprfrc[0][i] = parmec::sprfrc[0][x->number];
     sprfrc[1][i] = parmec::sprfrc[1][x->number];
 
-    spridx[i+1] = spridx[i] + parmec::spridx[i+1]-parmec::spridx[i];
-    for (int j = spridx[i], k = parmec::spridx[i]; j < spridx[i+1]; j ++, k ++)
+    spridx[i+1] = spridx[i] + parmec::spridx[x->number+1]-parmec::spridx[x->number];
+    for (int j = spridx[i], k = parmec::spridx[x->number]; j < spridx[i+1]; j ++, k ++)
     {
       spring[0][j] = parmec::spring[0][k];
       spring[1][j] = parmec::spring[1][k];
     }
 
-    dashidx[i+1] = dashidx[i] + parmec::dashidx[i+1]-parmec::dashidx[i];
-    for (int j = dashidx[i], k = parmec::dashidx[i]; j < dashidx[i+1]; j ++, k ++)
+    dashidx[i+1] = dashidx[i] + parmec::dashidx[x->number+1]-parmec::dashidx[x->number];
+    for (int j = dashidx[i], k = parmec::dashidx[x->number]; j < dashidx[i+1]; j ++, k ++)
     {
       dashpot[0][j] = parmec::dashpot[0][k];
       dashpot[1][j] = parmec::dashpot[1][k];
     }
 
-    unidx[i+1] = unidx[i] + parmec::unidx[i+1]-parmec::unidx[i];
-    for (int j = unidx[i], k = parmec::unidx[i]; j < unidx[i+1]; j ++, k ++)
+    unidx[i+1] = unidx[i] + parmec::unidx[x->number+1]-parmec::unidx[x->number];
+    for (int j = unidx[i], k = parmec::unidx[x->number]; j < unidx[i+1]; j ++, k ++)
     {
       unload[0][j] = parmec::unload[0][k];
       unload[1][j] = parmec::unload[1][k];
@@ -1536,6 +1537,8 @@ void reset ()
   hisnum = 0;
   outnum = 0;
 
+  springs_changed = 0; /* unset springs changed flag */
+
   /* unselected particles default output flags */
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
                OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
@@ -1594,7 +1597,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 
   sort_materials ();
 
-  sort_springs ();
+  if (springs_changed)
+  {
+    sort_springs ();
+
+    springs_changed = 0;
+  }
 
   if (curtime == 0.0)
   {

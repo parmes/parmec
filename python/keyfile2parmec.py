@@ -298,7 +298,7 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   pid1 = nod2pid[n1]
   pid2 = nod2pid[n2]
   if pid1 == pid2:
-    print "WARNING: spring nodes (%, %) belong to the same part %;\n" % (n1, n2, pid1)
+    print "WARNING: spring nodes (%d, %d) belong to the same part %d;\n" % (n1, n2, pid1)
     print "         -> skipping this ELEMENT_DISCRETE card;\n"
     continue
   if n1 == None or n2 == None:

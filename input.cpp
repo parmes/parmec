@@ -1134,6 +1134,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   sprid[i] = sprmap[i] = i;
 
+  springs_changed = 1;
+
   sprpart[0][i] = part1;
   sprpart[1][i] = part2;
 

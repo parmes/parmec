@@ -144,6 +144,7 @@ extern int *sprflg; /* spring flags */
 extern REAL *stroke0; /* initial spring stroke */
 extern REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 extern REAL *sprfrc[2]; /* total and spring force magnitude */
+extern int springs_changed; /* spring input data changed flag */
 extern int spring_buffer_size; /* size of the spring constraint buffer */
 extern int spring_lookup_size; /* size of the spring force lookup tables */
 extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */
