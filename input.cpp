@@ -1210,7 +1210,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else
   {
-    parmec::unidx[sprnum] = 0;
+    parmec::unidx[sprnum] = parmec::unidx[sprnum-1];
     parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
   }
 

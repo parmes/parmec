@@ -234,7 +234,7 @@ void callback_buffer_grow (callback_t* &src, int num, int size)
 
   ERRMEM (dst = new callback_t [size]);
   memcpy (dst, src, sizeof (callback_t)*num);
-  delete src;
+  delete [] src;
   src = dst;
 }
 

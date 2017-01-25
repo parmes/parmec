@@ -626,7 +626,7 @@ void output_files ()
       }
     }
 
-    delete set;
+    delete [] set;
   }
 
   if (trinum)
@@ -752,7 +752,7 @@ void output_files ()
       }
     }
 
-    delete set;
+    delete [] set;
     free (map);
     MEM_Release (&mem);
   }
