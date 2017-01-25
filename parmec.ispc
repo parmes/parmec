@@ -377,7 +377,7 @@ export void euler (uniform int threads, uniform int parnum, uniform REAL * unifo
 /* determine stable time step */
 export uniform REAL determine_time_step (uniform int threads, uniform int parnum, uniform REAL mass[],
   uniform REAL * uniform inertia[9], uniform int kact[], uniform REAL kmax[], uniform REAL emax[],
-  uniform REAL * uniform krot[6], uniform REAL step_max, uniform REAL adaptive)
+  uniform REAL * uniform krot[6], uniform REAL step_current, uniform REAL adaptive)
 {
   if (adaptive > 0.0 && adaptive <= 1.0)
   {
@@ -394,8 +394,15 @@ export uniform REAL determine_time_step (uniform int threads, uniform int parnum
 
     delete step;
 
-    if (step_min > 0.0 && step_min < 10*step_max) return adaptive*step_min; /* XXX --> heuristic 10*step_max */
-    else return step_max;
+    if (step_min > 0.0)
+    {
+      uniform REAL step_new = adaptive*step_min;
+
+      if (step_new < 0.1*step_current) return 0.1*step_current; /* XXX */
+      else if (step_new > 10*step_current) return 10*step_current; /* XXX */
+      else return step_new;
+    }
+    else return step_current;
   }
-  else return step_max;
+  else return step_current;
 }
