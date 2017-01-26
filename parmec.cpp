@@ -95,7 +95,7 @@ REAL *mass; /* scalar mass */
 REAL *invm; /* inverse scalar mass */
 REAL *force[3]; /* total spatial force */
 REAL *torque[3]; /* total spatial torque */
-int *kact; /* time step control --> number of active constraints per particle */
+REAL *kact[3]; /* time step control --> number of active constraints per particle */
 REAL *kmax; /* time step control --> maximum stiffness coefficient per particle */
 REAL *emax; /* time step control --> maximum damper coefficient per particle */
 REAL *krot[6]; /* time step control --> symmetric rotational unit stiffness matrix per particle */
@@ -438,7 +438,9 @@ void particle_buffer_init ()
   torque[0] = aligned_real_alloc (particle_buffer_size);
   torque[1] = aligned_real_alloc (particle_buffer_size);
   torque[2] = aligned_real_alloc (particle_buffer_size);
-  kact = aligned_int_alloc (particle_buffer_size);
+  kact[0] = aligned_real_alloc (particle_buffer_size);
+  kact[1] = aligned_real_alloc (particle_buffer_size);
+  kact[2] = aligned_real_alloc (particle_buffer_size);
   kmax = aligned_real_alloc (particle_buffer_size);
   emax = aligned_real_alloc (particle_buffer_size);
   krot[0] = aligned_real_alloc (particle_buffer_size);
@@ -510,7 +512,9 @@ int particle_buffer_grow ()
   real_buffer_grow (torque[0], parnum, particle_buffer_size);
   real_buffer_grow (torque[1], parnum, particle_buffer_size);
   real_buffer_grow (torque[2], parnum, particle_buffer_size);
-  integer_buffer_grow (kact, parnum, particle_buffer_size);
+  real_buffer_grow (kact[0], parnum, particle_buffer_size);
+  real_buffer_grow (kact[1], parnum, particle_buffer_size);
+  real_buffer_grow (kact[2], parnum, particle_buffer_size);
   real_buffer_grow (kmax, parnum, particle_buffer_size);
   real_buffer_grow (emax, parnum, particle_buffer_size);
   real_buffer_grow (krot[0], parnum, particle_buffer_size);

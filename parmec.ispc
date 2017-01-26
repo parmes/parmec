@@ -273,7 +273,7 @@ inline static REAL maximum_eigenvalue (REAL A[9])
 
 /* time step determination task */
 task void time_step_task (uniform int span, uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
-     uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL step[])
+     uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL step[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum : start+span;
@@ -288,14 +288,17 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
      * calculated eigenvalue is: omega = sqrt (n * k / m);
      * time step is: h = 2 / omega */
 
-    REAL n = (REAL)kact[i];
+    REAL nx = kact[0][i];
+    REAL ny = kact[1][i];
+    REAL nz = kact[2][i];
 
-    if (n == 0) step0 = 0.0;
-    else
+    if (nx > 0.0 || ny > 0.0 || nz > 0.0)
     {
       REAL k = kmax[i];
       REAL m = mass[i];
-      REAL omega1 = sqrt(n*k/m);
+      REAL omegax = sqrt(nx*k/m);
+      REAL omegay = sqrt(ny*k/m);
+      REAL omegaz = sqrt(nz*k/m);
 
       /* minimum step based on 
        * rotational free vibration;
@@ -354,12 +357,17 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
       NNMUL (L, temp, A);
 
       REAL lambda = maximum_eigenvalue (A);
-      REAL omega2 = sqrt(lambda);
+      REAL omegarot = sqrt(lambda);
 
       /* http://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration */
-      REAL omax = max(omega1, omega2);
-      REAL emxi = emax[i];
-      REAL hcri = (2.0/omax)*(sqrt(1.0+emxi*emxi) - emxi);
+      REAL omxy = max(omegax, omegay);
+      REAL oxyz = max(omxy, omegaz);
+      REAL damp = emax[i];
+      REAL ratioxyz = damp / (2.0*m*oxyz);
+      REAL ratiorot = damp / (2.0*omegarot); /* rotational mass is 1.0 in the transformed system */
+      REAL hxyz = (2.0/oxyz)*(sqrt(1.0+ratioxyz*ratioxyz) - ratioxyz);
+      REAL hrot = (2.0/omegarot)*(sqrt(1.0+ratiorot*ratiorot) - ratiorot);
+      REAL hcri = min (hxyz, hrot);
       step0 = min(hcri, step0);
     }
   }
@@ -376,7 +384,7 @@ export void euler (uniform int threads, uniform int parnum, uniform REAL * unifo
 
 /* determine stable time step */
 export uniform REAL determine_time_step (uniform int threads, uniform int parnum, uniform REAL mass[],
-  uniform REAL * uniform inertia[9], uniform int kact[], uniform REAL kmax[], uniform REAL emax[],
+  uniform REAL * uniform inertia[9], uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[],
   uniform REAL * uniform krot[6], uniform REAL step_current, uniform REAL adaptive)
 {
   if (adaptive > 0.0 && adaptive <= 1.0)
@@ -394,7 +402,7 @@ export uniform REAL determine_time_step (uniform int threads, uniform int parnum
 
     delete step;
 
-    if (step_min > 0.0)
+    if (step_min < 1E99)
     {
       uniform REAL step_new = adaptive*step_min;
 

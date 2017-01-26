@@ -442,16 +442,15 @@ static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform 
 task void contacts_acc_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[], uniform int parnum,
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6], uniform REAL mass[], uniform REAL gravity[3],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
+  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
 
   for (uniform int i = start; i < end; i ++) /* force accumulation */
   {
-    REAL A[3], f[3], a[3], fs[3], ts[3], dot, krot0[6], kmax0, kcur, emax0, ecur;
+    REAL A[3], f[3], a[3], fs[3], ts[3], dot, krot0[6], kact0[3], kmax0, kcur, emax0, ecur;
     uniform REAL L[9], po[3], ma;
-    uniform int kact0;
 
     L[0] = rotation[0][i];
     L[1] = rotation[1][i];
@@ -472,8 +471,8 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
     SET (fs, 0.0);
     SET (ts, 0.0);
 
-    kact0 = 0;
     SET6 (krot0, 0.0);
+    SET(kact0, 0.0);
     kmax0 = 0.0;
     emax0 = 0.0;
 
@@ -494,6 +493,9 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
 	cif (adaptive)
 	{
+	  kact0[0] += abs(m->normal[0][j]);
+	  kact0[1] += abs(m->normal[1][j]);
+	  kact0[2] += abs(m->normal[2][j]);
 	  kcur = m->kcur[j];
 	  kmax0 = max(kcur, kmax0);
 	  ecur = m->ecur[j];
@@ -509,8 +511,6 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 	  krot0[5] += -A[1]*A[2];
 	}
       }
-
-      kact0 += m->size;
     }
 
     for (uniform slave_conpnt * uniform s = &slave[i]; s; s = s->next)
@@ -530,6 +530,16 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 
 	cif (adaptive)
 	{
+	  REAL len = LEN(f);
+	  cif (len != 0.0)
+	  {
+	    len = 1.0/len;
+	    SCALE (f,len);
+	  }
+	  else SET (f, 0.0);
+	  kact0[0] += abs(f[0]);
+	  kact0[1] += abs(f[1]);
+	  kact0[2] += abs(f[2]);
 	  kcur = s->kcur[j];
 	  kmax0 = max(kcur, kmax0);
 	  ecur = s->ecur[j];
@@ -545,8 +555,6 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 	  krot0[5] += -A[1]*A[2];
 	}
       }
-
-      kact0 += s->size;
     }
 
     force[0][i] = reduce_add (fs[0]) + ma * gravity[0];
@@ -566,7 +574,9 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
       krot[4][i] = reduce_add (krot0[4]);
       krot[5][i] = reduce_add (krot0[5]);
       
-      kact[i] = kact0;
+      kact[0][i] = reduce_add (kact0[0]);
+      kact[1][i] = reduce_add (kact0[1]);
+      kact[2][i] = reduce_add (kact0[2]);
 
       kmax[i] = reduce_max (kmax0);
       emax[i] = reduce_max (emax0);
@@ -582,7 +592,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
+  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
   uniform int lock[])
 {
   uniform int start = taskIndex*span;
@@ -610,7 +620,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   ZERO (fk);
   ZERO (tk);
 
-  uniform int kact_j = 0.0, kact_k = 0.0;
+  uniform REAL kact_j[3] = {0.0, 0.0, 0.0},
+               kact_k[3] = {0.0, 0.0, 0.0};
   uniform REAL kmax_j = 0.0, kmax_k = 0.0;
   uniform REAL emax_j = 0.0, emax_k = 0.0;
   uniform REAL krot_j[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -620,7 +631,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
     uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
-    uniform REAL Y[3], p[3], q[3], z[3], w[3], u[3], a[3], b[3], stiffness, damping;
+    uniform REAL Y[3], p[3], q[3], z[3], w[3], frc[3], trq[3], u[3], a[3], b[3], stiffness, damping;
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
     if (j0 != j) /* springs are sorted (j,k)-wise --> avoid repeated reads */
@@ -898,12 +909,12 @@ loading:
 
     total_force = spring_force + (spring_force == 0.0 ? 0.0 : dashpot_force);
 
-    SCALE (z, total_force);
+    MUL (z, total_force, frc);
 
     sprfrc[0][i] = total_force;
     sprfrc[1][i] = spring_force;
 
-    PRODUCT (a, z, w);
+    PRODUCT (a, frc, trq);
 
     if (j0 != j && j0 >= 0) /* global acc previous and local reset current */
     {
@@ -914,12 +925,14 @@ loading:
       torque[1][j0] += tj[1];
       torque[2][j0] += tj[2];
 
-      COPY (z, fj);
-      COPY (w, tj);
+      COPY (frc, fj);
+      COPY (trq, tj);
 
       if (adaptive)
       {
-	kact[j0] += kact_j;
+	kact[0][j0] += kact_j[0];
+	kact[1][j0] += kact_j[1];
+	kact[2][j0] += kact_j[2];
 	kmax[j0] = max(kmax_j, kmax[j0]);
 	emax[j0] = max(emax_j, emax[j0]);
 	krot[0][j0] += krot_j[0];
@@ -929,7 +942,9 @@ loading:
 	krot[4][j0] += krot_j[4];
 	krot[5][j0] += krot_j[5];
 
-	kact_j = 0;
+	kact_j[0] = 0.0;
+	kact_j[1] = 0.0;
+	kact_j[2] = 0.0;
 	kmax_j = 0.0;
 	emax_j = 0.0;
 	krot_j[0] = 0.0;
@@ -942,13 +957,15 @@ loading:
     }
     else /* local acc current */
     {
-      ACC (z, fj);
-      ACC (w, tj);
+      ACC (frc, fj);
+      ACC (trq, tj);
     }
 
     if (adaptive && total_force != 0.0)
     {
-      kact_j ++;
+      kact_j[0] += abs(z[0]);
+      kact_j[1] += abs(z[1]);
+      kact_j[2] += abs(z[2]);
 
       stiffness = abs(stiffness);
       damping = abs(damping);
@@ -969,7 +986,7 @@ loading:
 
     if (k >= 0)
     {
-      PRODUCT (b, z, w);
+      PRODUCT (b, frc, trq);
 
       if (k0 != k && k0 >= 0) /* global acc previous and local reset current */
       {
@@ -985,7 +1002,9 @@ loading:
 
 	if (adaptive)
 	{
-	  kact[k0] += kact_k;
+	  kact[0][k0] += kact_k[0];
+	  kact[1][k0] += kact_k[1];
+	  kact[2][k0] += kact_k[2];
 	  kmax[k0] = max(kmax_k, kmax[k0]);
 	  emax[k0] = max(emax_k, emax[k0]);
 	  krot[0][k0] += krot_k[0];
@@ -998,12 +1017,14 @@ loading:
 
 	lock[k0] = -1; /* unlock */
 
-	COPY (z, fk);
-	COPY (w, tk);
+	COPY (frc, fk);
+	COPY (trq, tk);
 
 	if (adaptive)
 	{
-	  kact_k = 0;
+	  kact_k[0] = 0.0;
+	  kact_k[1] = 0.0;
+	  kact_k[2] = 0.0;
 	  kmax_k = 0.0;
 	  emax_k = 0.0;
 	  krot_k[0] = 0.0;
@@ -1016,13 +1037,15 @@ loading:
       }
       else /* local acc current */
       {
-	ACC (z, fk);
-	ACC (w, tk);
+	ACC (frc, fk);
+	ACC (trq, tk);
       }
 
       if (adaptive && total_force != 0.0)
       {
-	kact_k ++;
+	kact_k[0] += abs(z[0]);
+	kact_k[1] += abs(z[1]);
+	kact_k[2] += abs(z[2]);
 
 	stiffness = abs(stiffness);
 	damping = abs(damping);
@@ -1058,7 +1081,9 @@ loading:
 
     if (adaptive)
     {
-      kact[j0] += kact_j;
+      kact[0][j0] += kact_j[0];
+      kact[1][j0] += kact_j[1];
+      kact[2][j0] += kact_j[2];
       kmax[j0] = max(kmax_j, kmax[j0]);
       emax[j0] = max(emax_j, emax[j0]);
       krot[0][j0] += krot_j[0];
@@ -1084,7 +1109,9 @@ loading:
 
     if (adaptive)
     {
-      kact[k0] += kact_k;
+      kact[0][k0] += kact_k[0];
+      kact[1][k0] += kact_k[1];
+      kact[2][k0] += kact_k[2];
       kmax[k0] = max(kmax_k, kmax[k0]);
       emax[k0] = max(emax_k, emax[k0]);
       krot[0][k0] += krot_k[0];
@@ -1112,7 +1139,7 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3], uniform int sprflg[], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int kact[], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
+  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
 {
   launch [threads] zero_force_torque_kmax (parnum/threads, parnum, force, torque, kmax, emax);
 
