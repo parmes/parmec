@@ -49,19 +49,6 @@ int main (int argc, char *argv[])
       threads = atoi (argv[2]);
     }
 
-    int len = strlen (argv[argc-1]);
-    ERRMEM (outpath = new char [len+1]);
-    strcpy (outpath, argv[argc-1]);
-   
-    if (outpath[len-3] != '.' ||
-        outpath[len-2] != 'p' ||
-	outpath[len-1] != 'y')
-    {
-      fprintf (stderr, "ERROR: input file does not have '.py' extension!\n");
-      return 2;
-    }
-    else outpath[len-3] = '\0';
-
     input (argv[argc-1]);
   }
 

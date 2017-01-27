@@ -41,6 +41,8 @@ extern char *outpath; /* output path */
 
 extern REAL curtime; /* current time */
 extern REAL curstep; /* current step */
+extern REAL curtime_output; /* current output time */
+extern REAL curtime_history; /* current history time */
 
 extern int matnum; /* number of materials */
 extern REAL *mparam[NMAT]; /* material parameters */

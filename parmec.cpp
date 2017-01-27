@@ -62,6 +62,8 @@ int threads; /* number of hardware threads */
 
 REAL curtime; /* current time */
 REAL curstep; /* current step */
+REAL curtime_output; /* current output time */
+REAL curtime_history; /* current history time */
 
 int matnum; /* number of materials */
 REAL *mparam[NMAT]; /* material parameters */
@@ -1522,6 +1524,8 @@ void reset ()
 {
   curtime = 0.0;
   curstep = 0.0;
+  curtime_output = 0.0;
+  curtime_history = 0.0;
 
   matnum = 0;
   pairnum = 0;
@@ -1565,7 +1569,7 @@ void reset ()
 /* run DEM simulation */
 REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose, double adaptive)
 {
-  REAL time, t0, t1, dt, step0, step1;
+  REAL time, dt, step0, step1;
   timing tt;
 
   timerstart (&tt);
@@ -1612,9 +1616,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
   {
     step0 = step;
 
-    output_files ();
+    if (interval)
+    {
+      output_files ();
 
-    output_history ();
+      output_history ();
+    }
 
     euler (threads, parnum, angular, linear, rotation, position, 0.5*step0);
 
@@ -1637,7 +1644,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
   partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
 
   /* time stepping */
-  for (t0 = t1 = time = 0.0; time < duration; time += 0.5*(step0+step1), curtime += 0.5*(step0+step1), step0 = step1)
+  for (time = 0.0; time < duration; time += 0.5*(step0+step1), curtime += 0.5*(step0+step1), step0 = step1)
   {
     if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
     {
@@ -1687,7 +1694,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
       if (interval_func[1]) interval[1] = current_interval(interval_func[1], curtime);
     }
 
-    if (interval && time >= t0 + interval[0]) /* full update, due to output */
+    if (interval && curtime >= curtime_output + interval[0]) /* full update, due to output */
     {
       shapes (threads, ellnum, part, center, radii, orient,
 	      nodnum, nodes, nodpart, NULL, facnum, facnod,
@@ -1704,18 +1711,18 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 
     obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, 0.5*(step0+step1));
 
-    if (interval && time >= t0 + interval[0])
+    if (interval && curtime >= curtime_output + interval[0])
     {
       output_files ();
 
-      t0 += interval[0];
+      curtime_output += interval[0];
     }
 
-    if (interval && time >= t1 + interval[1])
+    if (interval && curtime >= curtime_history + interval[1])
     {
       output_history ();
 
-      t1 += interval[1];
+      curtime_history += interval[1];
     }
 
     if (verbose) progressbar (2.0*time/(step0+step1), 2.0*duration/(step0+step1));

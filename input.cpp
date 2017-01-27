@@ -2423,8 +2423,22 @@ namespace parmec
 /* interpret an input file (return 0 on success) */
 int input (const char *path)
 {
+  int error, len;
   char *line;
-  int error;
+
+  len = strlen (path);
+  ERRMEM (outpath = new char [len+1]);
+  strcpy (outpath, path);
+ 
+  if (outpath[len-3] != '.' ||
+      outpath[len-2] != 'p' ||
+      outpath[len-1] != 'y')
+  {
+    fprintf (stderr, "ERROR: input file does not have '.py' extension!\n");
+    fprintf (stderr, "       the input path reads: %s\n", path);
+    return 1;
+  }
+  else outpath[len-3] = '\0';
 
   Py_Initialize();
 
