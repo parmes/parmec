@@ -55,7 +55,7 @@ for i in range (0, nbod+2):
 
 xy_spring = [-1.0-gap, -1E5, -gap, 0.0, 1.0, 0.0]
 z_spring = [-1.0, -1E5, 0.0, 0.0, 1.0, 0.0]
-damper = [-1.0, -0.9E3, 1.0, 0.9E3]
+damper = [-1.0, -100, 1.0, 100]
 
 # y direction springs
 for i in range (0, nbod+1):

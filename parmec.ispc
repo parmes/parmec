@@ -226,13 +226,13 @@ task void euler_task (uniform int span, uniform int parnum, uniform REAL * unifo
   }
 }
 
-/* Given a real symmetric 3x3 matrix A, compute the maximum eigenvalue;
+/* Given a real symmetric 3x3 matrix A, compute the extremum eigenvalue;
  * Adopted from: https://en.wikipedia.org/wiki/Eigenvalue_algorithm */
-inline static REAL maximum_eigenvalue (REAL A[9])
+inline static REAL extremum_eigenvalue (REAL A[9], uniform int minimum = 0)
 {
   REAL eig1, eig2, eig3, ret;
 
-  REAL p1 = A[1]*A[1] + A[2]*A[2] + A[3]*A[3];
+  REAL p1 = A[3]*A[3] + A[6]*A[6] + A[7]*A[7];
 
   if (p1 == 0.0) /* A is diagonal */
   {
@@ -250,9 +250,9 @@ inline static REAL maximum_eigenvalue (REAL A[9])
     REAL p2 = (A[0]-q)*(A[0]-q) + (A[4]-q)*(A[4]-q) + (A[8]-q)*(A[8]-q) + 2*p1;
     REAL p = sqrt(p2 / 6.0);
     REAL invp = 1.0 / p;
-    REAL B[9] = {invp*A[0]-q, invp*A[1], invp*A[2],
-                 invp*A[3], invp*A[4]-q, invp*A[5],
-		 invp*A[6], invp*A[7], invp*A[8]-q}; /* (1.0 / p) * (A - q * I), where I is the identity matrix */
+    REAL B[9] = {invp*(A[0]-q), invp*A[1], invp*A[2],
+                 invp*A[3], invp*(A[4]-q), invp*A[5],
+		 invp*A[6], invp*A[7], invp*(A[8]-q)}; /* (1.0 / p) * (A - q * I), where I is the identity matrix */
     REAL r = 0.5 * DET(B);
 
     /* In exact arithmetic for a symmetric matrix  -1 <= r <= 1
@@ -263,11 +263,17 @@ inline static REAL maximum_eigenvalue (REAL A[9])
     else phi = acos(r) / 3.0;
 
     /* the eigenvalues satisfy eig3 <= eig2 <= eig1 */
-    eig1 = q + 2 * p * cos(phi);
-    return eig1;
-    /* hence we skip calculation of eig2 and eig3:
-     * eig3 = q + 2 * p * cos(phi + (2*pi/3));
-     * eig2 = 3 * q - eig1 - eig3; */ /* since trace(A) = eig1 + eig2 + eig3 */
+    if (minimum)
+    {
+     eig3 = q + 2.0 * p * cos(phi + (2*ALG_PI/3));
+     return eig3;
+    }
+    else
+    {
+      eig1 = q + 2.0 * p * cos(phi);
+      return eig1;
+    }
+    /* we skip calculation of eig2: eig2 = 3 * q - eig1 - eig3; since trace(A) = eig1 + eig2 + eig3 */
   }
 }
 
@@ -291,14 +297,14 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
     REAL nx = kact[0][i];
     REAL ny = kact[1][i];
     REAL nz = kact[2][i];
+    REAL nxy = max(nx, ny);
+    REAL nxyz = max (nxy, nz);
 
-    if (nx > 0.0 || ny > 0.0 || nz > 0.0)
+    if (nxyz > 0.0)
     {
       REAL k = kmax[i];
-      REAL m = mass[i];
-      REAL omegax = sqrt(nx*k/m);
-      REAL omegay = sqrt(ny*k/m);
-      REAL omegaz = sqrt(nz*k/m);
+      REAL mxyz = mass[i];
+      REAL omegaxyz = sqrt(nxyz*k/mxyz);
 
       /* minimum step based on 
        * rotational free vibration;
@@ -328,7 +334,7 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
        * Wikipedia, https://en.wikipedia.org/wiki/Eigenvalue_algorithm, in order to calculate
        * all eigenvalues of a symmetric 3x3 problem; we then select the maximum one; */
 
-      REAL K[9], L[9], inv, invL[9], temp[9], A[9];
+      REAL K[9], L[9], inv, invL[9], temp[9], A[9], J[9];
 
       K[0] = k*krot[0][i];
       K[1] = k*krot[3][i];
@@ -340,32 +346,42 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
       K[7] = K[5];
       K[8] = k*krot[2][i];
 
-      L[0] = sqrt(inertia[0][i]);
+      J[0] = inertia[0][i];
+      J[1] = inertia[1][i];
+      J[2] = inertia[2][i];
+      J[3] = inertia[3][i];
+      J[4] = inertia[4][i];
+      J[5] = inertia[5][i];
+      J[6] = inertia[6][i];
+      J[7] = inertia[7][i];
+      J[8] = inertia[8][i];
+
+      REAL mrot = extremum_eigenvalue(J, 1); /* minimum */
+
+      L[0] = sqrt(J[0]);
       inv = 1.0/L[0];
-      L[1] = inv * inertia[1][i];
-      L[2] = inv * inertia[2][i];
+      L[1] = inv * J[1];
+      L[2] = inv * J[2];
       L[3] = 0.0;
-      L[4] = sqrt(inertia[4][i] - L[1]*L[1]);
+      L[4] = sqrt(J[4] - L[1]*L[1]);
       inv = 1.0/L[4];
-      L[5] = inv * (inertia[5][i] - L[2]*L[1]);
+      L[5] = inv * (J[5] - L[2]*L[1]);
       L[6] = 0.0;
       L[7] = 0.0;
-      L[8] = sqrt(inertia[8][i] - (L[2]*L[2] + L[5]*L[5]));
+      L[8] = sqrt(J[8] - (L[2]*L[2] + L[5]*L[5]));
 
       INVERT (L, invL, inv);
       NTMUL (K, invL, temp);
-      NNMUL (L, temp, A);
+      NNMUL (invL, temp, A);
 
-      REAL lambda = maximum_eigenvalue (A);
+      REAL lambda = extremum_eigenvalue(A, 0); /* maximum */
       REAL omegarot = sqrt(lambda);
 
       /* http://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration */
-      REAL omxy = max(omegax, omegay);
-      REAL oxyz = max(omxy, omegaz);
-      REAL damp = emax[i];
-      REAL ratioxyz = damp / (2.0*m*oxyz);
-      REAL ratiorot = damp / (2.0*omegarot); /* rotational mass is 1.0 in the transformed system */
-      REAL hxyz = (2.0/oxyz)*(sqrt(1.0+ratioxyz*ratioxyz) - ratioxyz);
+      REAL damping = emax[i];
+      REAL ratioxyz = damping / (2.0*mxyz*omegaxyz);
+      REAL ratiorot = damping / (2.0*mrot*omegarot);
+      REAL hxyz = (2.0/omegaxyz)*(sqrt(1.0+ratioxyz*ratioxyz) - ratioxyz);
       REAL hrot = (2.0/omegarot)*(sqrt(1.0+ratiorot*ratiorot) - ratiorot);
       REAL hcri = min (hxyz, hrot);
       step0 = min(hcri, step0);
