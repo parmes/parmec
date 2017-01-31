@@ -1666,12 +1666,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
 	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot,
 	    (adaptive > 0.0 && adaptive <= 1.0));
 
+    prescribe_body_forces (prescribed_body_forces, force, torque);
+
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
                             angkind, time, mass, inertia, force, torque);
-
-    prescribe_body_forces (prescribed_body_forces, force, torque);
 
     if (adaptive > 0.0 && adaptive <= 1.0)
     {
