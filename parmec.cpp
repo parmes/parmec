@@ -1686,7 +1686,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
               position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
 
     prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
-                        angkind, time, rotation, linear, angular);
+                        angkind, curtime, rotation, linear, angular);
 
     if (interval && interval_func)
     {
