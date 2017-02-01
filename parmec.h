@@ -200,8 +200,10 @@ extern callback_t angdamp; /* angular damping callback */
 struct prescribed_body_force /* externally prescribed body force */
 {
   int particle;
-  REAL force[3];
-  REAL torque[3];
+  REAL inner_force[3];
+  REAL inner_torque[3];
+  REAL outer_force[3];
+  REAL outer_torque[3];
 };
 
 extern MAP *prescribed_body_forces; /* particle index based map of prescibed body forces */

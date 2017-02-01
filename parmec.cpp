@@ -1488,13 +1488,21 @@ static void prescribe_body_forces (MAP *prescribed_body_forces, REAL *force[3], 
   {
     struct prescribed_body_force *p = (struct prescribed_body_force*) item->data;
 
-    force[0][p->particle] += p->force[0];
-    force[1][p->particle] += p->force[1];
-    force[2][p->particle] += p->force[2];
+    p->inner_force[0] += force[0][p->particle];
+    p->inner_force[1] += force[1][p->particle];
+    p->inner_force[2] += force[2][p->particle];
 
-    torque[0][p->particle] += p->torque[0];
-    torque[1][p->particle] += p->torque[1];
-    torque[2][p->particle] += p->torque[2];
+    p->inner_torque[0] += torque[0][p->particle];
+    p->inner_torque[1] += torque[1][p->particle];
+    p->inner_torque[2] += torque[2][p->particle];
+
+    force[0][p->particle] += p->outer_force[0];
+    force[1][p->particle] += p->outer_force[1];
+    force[2][p->particle] += p->outer_force[2];
+
+    torque[0][p->particle] += p->outer_torque[0];
+    torque[1][p->particle] += p->outer_torque[1];
+    torque[2][p->particle] += p->outer_torque[2];
   }
 }
 
