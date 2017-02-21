@@ -59,6 +59,9 @@ clean:  del
 	find ./ -iname "*.dump" -exec rm '{}' ';'
 	find ./ -iname "*.pyc" -exec rm '{}' ';'
 
+qlean:	del
+	/bin/rm -fr $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) *~ $(EXE)4 $(EXE)8 *.dSYM $(LIB)4.a $(LIB)8.a parmec4.h parmec8.h condet4.h condet8.h
+
 $(LIB)4.a: $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)
 	ar rcv $@ $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)
 	ranlib $@ 

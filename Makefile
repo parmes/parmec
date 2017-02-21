@@ -11,8 +11,8 @@ ISPC_SRC=parmec.ispc partition.ispc condet.ispc forces.ispc dynamics.ispc shapes
 ISPC_TARGETS=sse2,sse4,avx
 
 # Python paths
-PYTHONINC=-I/usr/include/python2.7
-PYTHONLIB=-L/usr/lib -lpython2.7
+PYTHONINC=-I/opt/local/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7
+PYTHONLIB=-L/opt/local/lib -lpython2.7
 
 # Debug version
 DEBUG=yes
