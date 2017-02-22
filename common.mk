@@ -26,7 +26,7 @@ CPP_OBJS4=$(addprefix objs4/, $(CPP_SRC:.cpp=.o))
 CPP_OBJS8=$(addprefix objs8/, $(CPP_SRC:.cpp=.o))
 C_OBJS4=$(addprefix objs4/, $(C_SRC:.c=.o))
 C_OBJS8=$(addprefix objs8/, $(C_SRC:.c=.o))
-LIBS=-lm $(PYTHONLIB)
+LIBS=-lm $(PYTHONLIB) $(HDF5LIB)
 
 default: dirs $(ISPC_HEADERS4) $(ISPC_HEADERS8) $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) $(LIB)4.a $(LIB)8.a $(EXE)4 $(EXE)8 headers
 
@@ -52,6 +52,8 @@ headers:
 del:
 	find ./ -iname "*.dump" -exec rm '{}' ';'
 	find ./ -iname "*.vtk.*" -exec rm '{}' ';'
+	find ./ -iname "*.h5" -exec rm '{}' ';'
+	find ./ -iname "*.xmf" -exec rm '{}' ';'
 	find ./ -iname "*.png" -exec rm '{}' ';'
 
 clean:  del
@@ -83,10 +85,10 @@ objs8/input.o: input.cpp
 	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $< -c -o $@
 
 objs4/output.o: output.cpp
-	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $< -c -o $@
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $< -c -o $@
 
 objs8/output.o: output.cpp
-	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $< -c -o $@
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $< -c -o $@
 
 objs4/%_ispc.h objs4/%_ispc.o objs4/%_ispc_sse2.o objs4/%_ispc_sse4.o objs4/%_ispc_avx.o: %.ispc
 	$(ISPC) -DREAL=4 -Iobjs4 --target=$(ISPC_TARGETS) $< -o objs4/$*_ispc.o -h objs4/$*_ispc.h

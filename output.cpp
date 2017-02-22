@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <hdf5.h>
+#include <hdf5_hl.h>
 #include <Python.h>
 #include <structmember.h>
 #include <algorithm>
@@ -430,6 +432,43 @@ static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
   }
 }
 
+/* output hdf5 dataset of triangles */
+static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
+{
+  int i, j, *topo;
+  double *geom;
+
+  ERRMEM (geom = new double [9*num]);
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+    geom[9*i+0] = tri[0][0][j];
+    geom[9*i+1] = tri[0][1][j];
+    geom[9*i+2] = tri[0][2][j];
+    geom[9*i+3] = tri[1][0][j];
+    geom[9*i+4] = tri[1][1][j];
+    geom[9*i+5] = tri[1][2][j];
+    geom[9*i+6] = tri[2][0][j];
+    geom[9*i+7] = tri[2][1][j]; 
+    geom[9*i+8] = tri[2][2][j];
+  }
+  hsize_t dims[2] = {3*num, 3};
+  ASSERT (H5LTmake_dataset_double (h5_step, "GEOM", 2, dims, geom) >= 0, "HDF5 file write error");
+  delete [] geom;
+
+  ERRMEM (topo = new int[4*num]);
+  for (i = 0; i < num; i ++)
+  {
+    topo[4*i+0] = 4;
+    topo[4*i+1] = 3*i;
+    topo[4*i+2] = 3*i+1;
+    topo[4*i+3] = 3*i+2;
+  }
+  hsize_t length = 4*num;
+  ASSERT (H5LTmake_dataset_int (h5_step, "TOPO", 1, &length, topo) >= 0, "HDF5 file write error");
+  delete [] topo;
+}
+
 /* find triangles belonging to a particle set [part0, part1) */
 static int find_triangle_set (int *part0, int *part1, int *triangles)
 {
@@ -543,6 +582,118 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     }
   }
 }
+
+/* output XDMF files */
+static void output_xdmf_files ()
+{
+  ostringstream h5_path, h5_text, xmf_path;
+  FILE *xmf_file;
+  hid_t h5_file;
+  hid_t h5_step;
+
+
+  h5_path << outpath << ".h5";
+
+  if (curtime == 0.0)
+  {
+    ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+  }
+  else
+  {
+    ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+  }
+
+  h5_text << output_frame;
+  ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+
+  if (trinum)
+  {
+    int i, j, num = 0, *set; /* number of and the set of triangles */
+
+    ERRMEM (set = new int[trinum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
+      {
+	for (num = i = 0; i < trinum; i ++)
+	{
+	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
+	  {
+	    set[num ++] = i;
+	  }
+	  else if (triobs[i] < 0) /* triangles of obstacles */
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+        h5_triangle_dataset (num, set, outrest[0], h5_step);
+      }
+      else if (outmode[j] & OUT_MODE_MESH) /* output selected triangles */
+      {
+	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+
+	if (num) h5_triangle_dataset (num, set, outent[j], h5_step);
+      }
+    }
+
+    delete [] set;
+
+    if (num)
+    {
+      xmf_path << outpath << ".xmf";
+
+      if (curtime == 0.0)
+      {
+	xmf_file = fopen (xmf_path.str().c_str(), "w");
+
+	fprintf (xmf_file, "<Xdmf>\n");
+	fprintf (xmf_file, "<Domain>\n");
+	fprintf (xmf_file, "<Grid GridType=\"Collection\" CollectionType=\"Temporal\">\n");
+      }
+      else
+      {
+	xmf_file = fopen (xmf_path.str().c_str(), "a");
+      }
+
+      ASSERT (xmf_file, "XDMF file open error");
+
+      int elements = num;
+      int nodes = 3*num;
+      int topo_size = 4*num;
+      const char *label = "PARMEC triangles";
+      string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+
+      fprintf (xmf_file, "<Grid Name=\"%s\" Type=\"Uniform\">\n", label);
+      fprintf (xmf_file, "<Time Type=\"Single\" Value=\"%f\" />\n", curtime);
+      fprintf (xmf_file, "<Topology Type=\"Mixed\" NumberOfElements=\"%d\">\n", elements);
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", topo_size);
+      fprintf (xmf_file, "%s:/%d/TOPO\n", h5file.c_str(), output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Topology>\n");
+      fprintf (xmf_file, "<Geometry GeometryType=\"XYZ\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/GEOM\n", h5file.c_str(), output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Geometry>\n");
+      fprintf (xmf_file, "</Grid>\n");
+
+      if (output_frame == 99) /* FIXME --> how to guess last frame? (now works only for tests/spring.py) */
+      {                       /* FIXME --> revise DEM(prefix) into DEM(outpath) and react to path change */
+                              /* FIXME --> or rewind and overwrite last three lines every time */
+	fprintf (xmf_file, "</Grid>\n");
+	fprintf (xmf_file, "</Domain>\n");
+	fprintf (xmf_file, "</Xdmf>\n");
+      }
+
+      fclose (xmf_file);
+    }
+  }
+
+  H5Gclose (h5_step);
+  H5Fclose (h5_file);
+};
 
 /* output files */
 void output_files ()
@@ -683,7 +834,7 @@ void output_files ()
       }
     }
 
-    delete set;
+    delete [] set;
   }
 
   /* TODO --> *cd.vtk.* contact data output */
@@ -756,6 +907,8 @@ void output_files ()
     free (map);
     MEM_Release (&mem);
   }
+
+  /* output_xdmf_files(); */
 
   output_frame ++; 
 }
