@@ -195,6 +195,7 @@ int *outpart; /* output particle lists */
 int *outidx; /* output particle list start index */
 int *outent; /* output entities per output mode */
 int outrest[2]; /* 0: default output entities for unlisted particles and, 1: default output mode */
+int outformat; /* output format */
 int output_buffer_size; /* size of output buffer */
 int output_list_size; /* size of output particle lists buffer */
 
@@ -939,6 +940,7 @@ int output_buffer_init ()
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
                OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
   outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+  outformat = OUT_FORMAT_XDMF;
 
   outnum = 0;
   outidx[outnum] = 0;
@@ -1559,6 +1561,7 @@ void reset ()
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
                OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
   outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+  outformat = OUT_FORMAT_XDMF;
 
   /* zero global damping by default */
   damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;

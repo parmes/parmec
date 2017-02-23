@@ -2144,16 +2144,16 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 /* declare output entities */
 static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("entities", "subset", "mode");
-  PyObject *entities, *subset, * mode;
+  KEYWORDS ("entities", "subset", "mode", "format");
+  PyObject *entities, *subset, *mode, *format;
 
   subset = NULL;
   mode = NULL;
 
-  PARSEKEYS ("O|OO", &entities, &subset, &mode);
+  PARSEKEYS ("O|OOO", &entities, &subset, &mode, &format);
 
   TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0) &&
-            is_string_or_list (mode, kwl[2]));
+            is_string_or_list (mode, kwl[2]) && is_string_or_list (format, kwl[3]));
 
   int list_size = 0;
 
@@ -2389,6 +2389,49 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       PyErr_SetString (PyExc_ValueError, "Invalid entity");
       return NULL;
+    }
+  }
+
+  if (format)
+  {
+    if (PyString_Check (format))
+    {
+      IFIS (format, "VTK")
+      {
+	parmec::outformat = OUT_FORMAT_VTK;
+      }
+      ELIF (format, "XDMF")
+      {
+	parmec::outformat = OUT_FORMAT_XDMF;
+      }
+      ELSE
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid format");
+	return NULL;
+      }
+    }
+    else
+    {
+      parmec::outformat = 0;
+
+      for (int j = 0; j < PyList_Size (format); j ++)
+      {
+	PyObject *item = PyList_GetItem (format, j);
+
+	IFIS (item, "VTK")
+	{
+	  parmec::outformat |= OUT_FORMAT_VTK;
+	}
+	ELIF (item, "XDMF")
+	{
+	  parmec::outformat |= OUT_FORMAT_XDMF;
+	}
+	ELSE
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid format");
+	  return NULL;
+	}
+      }
     }
   }
 

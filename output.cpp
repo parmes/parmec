@@ -161,6 +161,12 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
   }
 }
 
+/* output hdf5 dataset of rigid body data */
+static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
+{
+  /* TODO */
+}
+
 /* output vtk dataset of triangles */
 static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
 {
@@ -828,6 +834,135 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
   }
 }
 
+/* append an XMF file */
+static void append_xmf_file (const char *xmf_path, int mode, int elements, int nodes, int topo_size, const char *label, const char *h5file, int ent)
+{
+  FILE *xmf_file;
+
+  if (curtime == 0.0)
+  {
+    ASSERT(xmf_file = fopen (xmf_path, "w"), "XMF markup file open failed");
+
+    fprintf (xmf_file, "<Xdmf>\n");
+    fprintf (xmf_file, "<Domain>\n");
+    fprintf (xmf_file, "<Grid GridType=\"Collection\" CollectionType=\"Temporal\">\n");
+  }
+  else
+  {
+    ASSERT (xmf_file = fopen (xmf_path, "r+"), "XMF markup file open failed");
+    fseek (xmf_file, -1, SEEK_END);
+    int ln = 0;
+    for(;;) /* move back three lines */
+    {
+      if (fgetc(xmf_file) == '\n') ln ++;
+      if (ln == 4) break;
+      else fseek (xmf_file, -2, SEEK_CUR);
+    }
+    int pos = ftell(xmf_file);
+    char *mem = (char*)malloc(pos);
+    ERRMEM (mem);
+    fseek (xmf_file, 0, SEEK_SET);
+    fread (mem, sizeof(char), pos, xmf_file); /* read until the last three lines */
+    fclose (xmf_file);
+    ASSERT (xmf_file = fopen (xmf_path, "w"), "XMF markup file open failed");
+    fwrite (mem, sizeof(char), pos, xmf_file); /* effectively truncate the last three lines */
+    free (mem);
+  }
+
+  ASSERT (xmf_file, "XDMF file open error");
+
+  fprintf (xmf_file, "<Grid Name=\"%s\" Type=\"Uniform\">\n", label);
+  fprintf (xmf_file, "<Time Type=\"Single\" Value=\"%f\" />\n", curtime);
+
+  switch (mode)
+  {
+  case OUT_MODE_MESH:
+
+    fprintf (xmf_file, "<Topology Type=\"Mixed\" NumberOfElements=\"%d\">\n", elements);
+    fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", topo_size);
+    fprintf (xmf_file, "%s:/%d/TOPO\n", h5file, output_frame);
+    fprintf (xmf_file, "</DataStructure>\n");
+    fprintf (xmf_file, "</Topology>\n");
+
+    fprintf (xmf_file, "<Geometry GeometryType=\"XYZ\">\n");
+    fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+    fprintf (xmf_file, "%s:/%d/GEOM\n", h5file, output_frame);
+    fprintf (xmf_file, "</DataStructure>\n");
+    fprintf (xmf_file, "</Geometry>\n");
+
+    if (ent & OUT_DISPL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_LINVEL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_NUMBER)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
+      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_COLOR)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"COLOR\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
+      fprintf (xmf_file, "%s:/%d/COLOR\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ANGVEL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Cell\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
+      fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_FORCE)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
+      fprintf (xmf_file, "%s:/%d/FORCE\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_TORQUE)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
+      fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+    break;
+  }
+
+  fprintf (xmf_file, "</Grid>\n");
+  fprintf (xmf_file, "</Grid>\n");
+  fprintf (xmf_file, "</Domain>\n");
+  fprintf (xmf_file, "</Xdmf>\n");
+
+  fclose (xmf_file);
+}
+
 /* output XDMF files */
 static void output_xdmf_files ()
 {
@@ -844,6 +979,8 @@ static void output_xdmf_files ()
 
     for (j = -1; j < outnum; j ++) /* for each output set */
     {
+      h5_path.str("");
+      h5_path.clear();
       h5_path << outpath << j+1 << ".h5";
 
       if (curtime == 0.0)
@@ -855,6 +992,8 @@ static void output_xdmf_files ()
 	ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
       }
 
+      h5_text.str("");
+      h5_text.clear();
       h5_text << output_frame;
       ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
 
@@ -881,45 +1020,13 @@ static void output_xdmf_files ()
 	ent = outent[j];
       }
 
-      if (num) h5_triangle_dataset (num, set, ent, h5_step); /* append h5 file */
+      if (num)
+      { 
+	h5_triangle_dataset (num, set, ent, h5_step); /* append h5 file */
 
-      delete [] set;
-
-      if (num) /* append xmf file */
-      {
-	xmf_path << outpath << j+1 << ".xmf";
-
-	if (curtime == 0.0)
-	{
-	  ASSERT( xmf_file = fopen (xmf_path.str().c_str(), "w"), "XMF markup file open failed");
-
-	  fprintf (xmf_file, "<Xdmf>\n");
-	  fprintf (xmf_file, "<Domain>\n");
-	  fprintf (xmf_file, "<Grid GridType=\"Collection\" CollectionType=\"Temporal\">\n");
-	}
-	else
-	{
-	  ASSERT (xmf_file = fopen (xmf_path.str().c_str(), "r+"), "XMF markup file open failed");
-	  fseek (xmf_file, -1, SEEK_END);
-	  int ln = 0;
-	  for(;;) /* move back three lines */
-	  {
-	    if (fgetc(xmf_file) == '\n') ln ++;
-	    if (ln == 4) break;
-	    else fseek (xmf_file, -2, SEEK_CUR);
-	  }
-	  int pos = ftell(xmf_file);
-	  char *mem = (char*)malloc(pos);
-	  ERRMEM (mem);
-	  fseek (xmf_file, 0, SEEK_SET);
-	  fread (mem, sizeof(char), pos, xmf_file); /* read until the last three lines */
-	  fclose (xmf_file);
-	  ASSERT (xmf_file = fopen (xmf_path.str().c_str(), "w"), "XMF markup file open failed");
-	  fwrite (mem, sizeof(char), pos, xmf_file); /* effectively truncate the last three lines */
-	  free (mem);
-	}
-
-	ASSERT (xmf_file, "XDMF file open error");
+        xmf_path.str("");
+	xmf_path.clear();
+	xmf_path << outpath << j+1 << ".xmf"; /* append xmf file */
 
 	int elements = num;
 	int nodes = 3*num;
@@ -927,151 +1034,44 @@ static void output_xdmf_files ()
 	const char *label = "PARMEC triangles";
 	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
-	fprintf (xmf_file, "<Grid Name=\"%s\" Type=\"Uniform\">\n", label);
-	fprintf (xmf_file, "<Time Type=\"Single\" Value=\"%f\" />\n", curtime);
-
-	fprintf (xmf_file, "<Topology Type=\"Mixed\" NumberOfElements=\"%d\">\n", elements);
-	fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", topo_size);
-	fprintf (xmf_file, "%s:/%d/TOPO\n", h5file.c_str(), output_frame);
-	fprintf (xmf_file, "</DataStructure>\n");
-	fprintf (xmf_file, "</Topology>\n");
-
-	fprintf (xmf_file, "<Geometry GeometryType=\"XYZ\">\n");
-	fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-	fprintf (xmf_file, "%s:/%d/GEOM\n", h5file.c_str(), output_frame);
-	fprintf (xmf_file, "</DataStructure>\n");
-	fprintf (xmf_file, "</Geometry>\n");
-
-	if (ent & OUT_DISPL)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-	  fprintf (xmf_file, "%s:/%d/DISPL\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	if (ent & OUT_LINVEL)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-	  fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	if (ent & OUT_NUMBER)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
-	  fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	if (ent & OUT_COLOR)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"COLOR\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
-	  fprintf (xmf_file, "%s:/%d/COLOR\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	if (ent & OUT_ANGVEL)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Cell\" AttributeType=\"Vector\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
-	  fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	if (ent & OUT_FORCE)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
-	  fprintf (xmf_file, "%s:/%d/FORCE\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	if (ent & OUT_TORQUE)
-	{
-	  fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
-	  fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
-	  fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file.c_str(), output_frame);
-	  fprintf (xmf_file, "</DataStructure>\n");
-	  fprintf (xmf_file, "</Attribute>\n");
-	}
-
-	fprintf (xmf_file, "</Grid>\n");
-	fprintf (xmf_file, "</Grid>\n");
-	fprintf (xmf_file, "</Domain>\n");
-	fprintf (xmf_file, "</Xdmf>\n");
-
-	fclose (xmf_file);
+        append_xmf_file (xmf_path.str().c_str(), OUT_MODE_MESH, elements, nodes, topo_size, label, h5file.c_str(), ent);
       }
 
       H5Gclose (h5_step);
       H5Fclose (h5_file);
     }
-  }
-};
 
-/* output files */
-void output_files ()
-{
-  ostringstream oss;
-  ofstream out;
-  int i, j;
-
-  if (ellnum)
-  {
-    oss.str("");
-    oss.clear();
-    oss << outpath << ".dump";
-    if (output_frame) out.open (oss.str().c_str(), ios::app);
-    else out.open (oss.str().c_str());
-
-    out << "ITEM: TIMESTEP\n";
-    out << curtime << "\n";
-    out << "ITEM: NUMBER OF ATOMS\n";
-    out << ellnum << "\n";
-    out << "ITEM: BOX BOUNDS\n";
-    out << "0 1\n";
-    out << "0 1\n";
-    out << "0 1\n";
-    out << "ITEM: ATOMS id x y z radius\n";
-    for (i = 0; i < ellnum; i ++)
-    {
-      out << i+1 << " " << center[0][i] << " " << center[1][i] << " " << center[2][i] << " " <<  radii[0][i] << "\n";
-    }
-
-    out.close();
-
-    /* TODO --> include output entities and subsets */
+    delete [] set;
   }
 
   if (parnum)
   {
-    int num, *set; /* number of and the of unselected particles */
+    int i, j, num, ent, *set, *pset; /* number of and the of unselected particles */
 
     ERRMEM (set = new int[parnum]);
 
     for (j = -1; j < outnum; j ++)
     {
+      h5_path.str("");
+      h5_path.clear();
+      h5_path << outpath << j+1 << "rb.h5";
+
+      if (curtime == 0.0)
+      {
+	ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+      }
+      else
+      {
+	ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+      }
+
+      h5_text.str("");
+      h5_text.clear();
+      h5_text << output_frame;
+      ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+ 
       if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << outpath << j+1 << "rb.vtk." << output_frame;
-	out.open (oss.str().c_str());
-
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC rigid bodies output at time " << curtime << "\n";
-	out << "ASCII\n";
-
 	for (num = i = 0; i < parnum; i ++)
 	{
 	  if (flags[i] & OUTREST)
@@ -1080,29 +1080,47 @@ void output_files ()
 	  }
 	}
 
-	output_rb_dataset (num, set, outrest[0], out);
-
-        out.close();
+	pset = set;
+	ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_RB) /* output selected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << outpath << j+1 << "rb.vtk." << output_frame;
-	out.open (oss.str().c_str());
-
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC rigid bodies output at time " << curtime << "\n";
-	out << "ASCII\n";
-
-	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[j], out);
-
-        out.close();
+	num = outidx[j+1]-outidx[j];
+	pset = &outpart[outidx[j]];
+	ent = outent[j];
       }
+
+      if (num)
+      {
+	h5_rb_dataset (num, pset, ent, h5_step); /* append h5 file */
+
+        xmf_path.str("");
+	xmf_path.clear();
+	xmf_path << outpath << j+1 << "rb.xmf"; /* append xmf file */
+
+	int elements = num;
+	int nodes = 3*num;
+	int topo_size = 2*num;
+	const char *label = "PARMEC rigid bodies";
+	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+
+        append_xmf_file (xmf_path.str().c_str(), OUT_MODE_RB, elements, nodes, topo_size, label, h5file.c_str(), ent);
+      }
+
+      H5Gclose (h5_step);
+      H5Fclose (h5_file);
     }
 
     delete [] set;
   }
+};
+
+/* output VTK files */
+static void output_vtk_files ()
+{
+  ostringstream oss;
+  ofstream out;
+  int i, j;
 
   if (trinum)
   {
@@ -1153,6 +1171,57 @@ void output_files ()
 	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
 	if (num) output_triangle_dataset (num, set, outent[j], out);
+
+        out.close();
+      }
+    }
+
+    delete [] set;
+  }
+
+  if (parnum)
+  {
+    int num, *set; /* number of and the of unselected particles */
+
+    ERRMEM (set = new int[parnum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << "rb.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC rigid bodies output at time " << curtime << "\n";
+	out << "ASCII\n";
+
+	for (num = i = 0; i < parnum; i ++)
+	{
+	  if (flags[i] & OUTREST)
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+	output_rb_dataset (num, set, outrest[0], out);
+
+        out.close();
+      }
+      else if (outmode[j] & OUT_MODE_RB) /* output selected particles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << outpath << j+1 << "rb.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC rigid bodies output at time " << curtime << "\n";
+	out << "ASCII\n";
+
+	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[j], out);
 
         out.close();
       }
@@ -1231,8 +1300,45 @@ void output_files ()
     free (map);
     MEM_Release (&mem);
   }
+}
 
-  output_xdmf_files();
+/* output files */
+void output_files ()
+{
+  if (ellnum)
+  {
+    ostringstream oss;
+    ofstream out;
+    int i;
+
+    oss.str("");
+    oss.clear();
+    oss << outpath << ".dump";
+    if (output_frame) out.open (oss.str().c_str(), ios::app);
+    else out.open (oss.str().c_str());
+
+    out << "ITEM: TIMESTEP\n";
+    out << curtime << "\n";
+    out << "ITEM: NUMBER OF ATOMS\n";
+    out << ellnum << "\n";
+    out << "ITEM: BOX BOUNDS\n";
+    out << "0 1\n";
+    out << "0 1\n";
+    out << "0 1\n";
+    out << "ITEM: ATOMS id x y z radius\n";
+    for (i = 0; i < ellnum; i ++)
+    {
+      out << i+1 << " " << center[0][i] << " " << center[1][i] << " " << center[2][i] << " " <<  radii[0][i] << "\n";
+    }
+
+    out.close();
+
+    /* TODO --> include output entities and subsets */
+  }
+
+  if (outformat & OUT_FORMAT_VTK) output_vtk_files();
+
+  if (outformat & OUT_FORMAT_XDMF) output_xdmf_files();
 
   output_frame ++; 
 }

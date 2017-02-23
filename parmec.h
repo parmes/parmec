@@ -186,6 +186,7 @@ extern int *outpart; /* output particle lists */
 extern int *outidx; /* output particle list start index */
 extern int *outent; /* output entities per output mode */
 extern int outrest[2]; /* 0: default output entities for unlisted particles and, 1: default output mode */
+extern int outformat; /* output format */
 extern int output_buffer_size; /* size of output buffer */
 extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */
