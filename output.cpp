@@ -173,10 +173,10 @@ static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
   hsize_t dims[2] = {num, 3};
   ASSERT (H5LTmake_dataset_double (h5_step, "GEOM", 2, dims, data) >= 0, "HDF5 file write error");
 
-  ERRMEM (numb = new int[2*num]);
-
   if (ent & OUT_NUMBER)
   {
+    ERRMEM (numb = new int[num]);
+
     for (i = 0; i < num; i ++)
     {
       numb[i] = set[i];
@@ -184,6 +184,8 @@ static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
 
     hsize_t length = num;
     ASSERT (H5LTmake_dataset_int (h5_step, "NUMBER", 1, &length, numb) >= 0, "HDF5 file write error");
+
+    delete [] numb;
   }
 
   if (ent & OUT_DISPL)
@@ -271,7 +273,6 @@ static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
   }
 
   delete [] data;
-  delete [] numb;
 }
 
 /* output vtk dataset of triangles */
@@ -941,6 +942,89 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
   }
 }
 
+/* output hdf5 dataset of spring data */
+static void h5_spring_dataset (int num, int *set, int ent, hid_t h5_step)
+{
+  double *data, *pdata;
+  int i, j, *numb;
+
+  ERRMEM (data = new double [3*num]);
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+    data[3*i+0] = 0.5*(sprpnt[0][0][j]+sprpnt[1][0][j]);
+    data[3*i+1] = 0.5*(sprpnt[0][1][j]+sprpnt[1][1][j]);
+    data[3*i+2] = 0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]);
+  }
+  hsize_t dims[2] = {num, 3};
+  ASSERT (H5LTmake_dataset_double (h5_step, "GEOM", 2, dims, data) >= 0, "HDF5 file write error");
+
+  if (ent & OUT_NUMBER)
+  {
+    ERRMEM (numb = new int[num]);
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      numb[i] = sprid[j];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_int (h5_step, "NUMBER", 1, &length, numb) >= 0, "HDF5 file write error");
+
+    delete [] numb;
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      data[i] = stroke[0][j];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_double (h5_step, "DISPL", 1, &length, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_ORIENT)
+  {
+    for (pdata = data, i = 0; i < num; i ++, pdata += 3)
+    {
+      j = set[i];
+      pdata[0] = (sprpnt[1][0][j]-sprpnt[0][0][j]);
+      pdata[1] = (sprpnt[1][1][j]-sprpnt[0][1][j]);
+      pdata[2] = (sprpnt[1][2][j]-sprpnt[0][2][j]);
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_F)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      data[i] = sprfrc[0][j];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_double (h5_step, "F", 1, &length, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_SF)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      data[i] = sprfrc[1][j];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_double (h5_step, "SF", 1, &length, data) >= 0, "HDF5 file write error");
+  }
+}
+
 /* append an XMF file */
 static void append_xmf_file (const char *xmf_path, int mode, int elements, int nodes, int topo_size, const char *label, const char *h5file, int ent)
 {
@@ -991,7 +1075,8 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
     fprintf (xmf_file, "</Topology>\n");
     break;
   case OUT_MODE_RB:
-    fprintf (xmf_file, "<Topology Type=\"Polyvertex\" NumberOfElements=\"%d\" NodesPerElement=\"%d\">\n", elements, 1);
+  case OUT_MODE_SD:
+    fprintf (xmf_file, "<Topology Type=\"Polyvertex\" NumberOfElements=\"%d\" NodesPerElement=\"%d\">\n", nodes, 1);
     fprintf (xmf_file, "</Topology>\n");
     break;
   }
@@ -1135,6 +1220,53 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "</Attribute>\n");
     }
     break;
+  case OUT_MODE_SD:
+
+    if (ent & OUT_NUMBER)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_DISPL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ORIENT)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_F)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"F\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/F\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_SF)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"SF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/SF\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+    break;
   }
 
   fprintf (xmf_file, "</Grid>\n");
@@ -1155,15 +1287,17 @@ static void output_xdmf_files ()
 
   if (trinum)
   {
-    int i, j, num = 0, ent, *set; /* number of and the set of triangles */
+    int i, j, num, ent, *set; /* number of and the set of triangles */
 
     ERRMEM (set = new int[trinum]);
 
     for (j = -1; j < outnum; j ++) /* for each output set */
     {
+      num = 0;
+
       if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
       {
-	for (num = i = 0; i < trinum; i ++)
+	for (i = 0; i < trinum; i ++)
 	{
 	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
 	  {
@@ -1234,9 +1368,11 @@ static void output_xdmf_files ()
 
     for (j = -1; j < outnum; j ++)
     {
+      num = 0;
+
       if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
-	for (num = i = 0; i < parnum; i ++)
+	for (i = 0; i < parnum; i ++)
 	{
 	  if (flags[i] & OUTREST)
 	  {
@@ -1280,9 +1416,9 @@ static void output_xdmf_files ()
 	xmf_path.clear();
 	xmf_path << output_path << j+1 << "rb.xmf"; /* append xmf file */
 
-	int elements = num;
+	int elements = 0;
 	int nodes = num;
-	int topo_size = 2*num;
+	int topo_size = 0;
 	const char *label = "PARMEC rigid bodies";
 	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
@@ -1298,7 +1434,92 @@ static void output_xdmf_files ()
 
   /* TODO --> *cd.h5 amd *cd.xmf contact data output */
 
-  /* TODO --> *sd.h5 and *sd.xmf spring data output */
+  if (sprnum)
+  {
+    int i, j, ent, num, *set; /* number of and the set of springs */
+    MAP **map, *item; /* map of springs attached to particles, and iterator */
+    MEM mem;
+
+    MEM_Init (&mem, sizeof (MAP), 1024);
+    ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
+    ERRMEM (set = new int[sprnum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      num = 0;
+
+      if (j < 0 && (outrest[1] & OUT_MODE_SD)) /* output springs attached to unselected particles */
+      {
+	for (i = 0; i < sprnum; i ++)
+	{
+	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+	  (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
+	  {
+	    set[num ++] = i;
+	  }
+
+	  MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+	  if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
+	}
+
+        ent = outrest[0];
+      }
+      else if (outmode[j] & OUT_MODE_SD) /* output springs attached to selected particles */
+      {
+	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+	{
+	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+	  {
+	    set[num ++] = (int)(long)item->key;
+	  }
+	}
+
+	ent = outent[j];
+      }
+
+      if (num) 
+      {
+	h5_path.str("");
+	h5_path.clear();
+	h5_path << output_path << j+1 << "sd.h5";
+
+	if (curtime == 0.0)
+	{
+	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+	else
+	{
+	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+
+	h5_text.str("");
+	h5_text.clear();
+	h5_text << output_frame;
+	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+ 
+	h5_spring_dataset (num, set, ent, h5_step); /* append h5 dataset */
+
+        xmf_path.str("");
+	xmf_path.clear();
+	xmf_path << output_path << j+1 << "sd.xmf"; /* append xmf file */
+
+	int elements = 0;
+	int nodes = num;
+	int topo_size = 0;
+	const char *label = "PARMEC springs";
+	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+
+        append_xmf_file (xmf_path.str().c_str(), OUT_MODE_SD, elements, nodes, topo_size, label, h5file.c_str(), ent);
+
+	H5Gclose (h5_step);
+	H5Fclose (h5_file);
+      }
+    }
+
+    delete [] set;
+    free (map);
+    MEM_Release (&mem);
+  }
 };
 
 /* output VTK files */
