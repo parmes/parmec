@@ -35,11 +35,6 @@ SOFTWARE.
 #include "mem.h"
 #include "map.h"
 
-namespace parmec
-{
-int output_frame = 0; /* output files frame */
-}
-
 using namespace parmec;
 using namespace std;
 
@@ -164,7 +159,119 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 /* output hdf5 dataset of rigid body data */
 static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
 {
-  /* TODO */
+  double *data, *pdata;
+  int i, j, *numb;
+
+  ERRMEM (data = new double [9*num]);
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+    data[3*i+0] = position[0][j];
+    data[3*i+1] = position[1][j];
+    data[3*i+2] = position[2][j];
+  }
+  hsize_t dims[2] = {num, 3};
+  ASSERT (H5LTmake_dataset_double (h5_step, "GEOM", 2, dims, data) >= 0, "HDF5 file write error");
+
+  ERRMEM (numb = new int[2*num]);
+
+  if (ent & OUT_NUMBER)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      numb[i] = set[i];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_int (h5_step, "NUMBER", 1, &length, numb) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL d[3] = {position[0][j]-position[3][j],
+                   position[1][j]-position[4][j],
+		   position[2][j]-position[5][j]};
+
+      pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "DISPL", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_LINVEL)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      pdata[0] = linear[0][j]; pdata[1] = linear[1][j]; pdata[2] = linear[2][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "LINVEL", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_ANGVEL)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      pdata[0] = angular[0][j]; pdata[1] = angular[1][j]; pdata[2] = angular[2][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "ANGVEL", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_FORCE)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      pdata[0] = force[0][j]; pdata[1] = force[1][j]; pdata[2] = force[2][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "FORCE", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_TORQUE)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      pdata[0] = torque[0][j]; pdata[1] = torque[1][j]; pdata[2] = torque[2][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "TORQUE", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_ORIENT)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      pdata[0] = rotation[0][j]; pdata[1] = rotation[1][j]; pdata[2] = rotation[2][j]; pdata += 3;
+      pdata[0] = rotation[3][j]; pdata[1] = rotation[4][j]; pdata[2] = rotation[5][j]; pdata += 3;
+      pdata[0] = rotation[6][j]; pdata[1] = rotation[7][j]; pdata[2] = rotation[8][j]; pdata += 3;
+    }
+
+    hsize_t dims[2] = {num, 9};
+    ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  delete [] data;
+  delete [] numb;
 }
 
 /* output vtk dataset of triangles */
@@ -441,8 +548,8 @@ static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
 /* output hdf5 dataset of triangles */
 static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 {
+  double *data, *pdata;
   int i, j, *topo;
-  double *data;
 
   ERRMEM (data = new double [9*num]);
   for (i = 0; i < num; i ++)
@@ -474,7 +581,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
   if (ent & OUT_DISPL)
   {
-    double *pdata = data;
+    pdata = data;
     for (i = 0; i < num; i ++)
     {
       j = set[i];
@@ -548,7 +655,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
   if (ent & OUT_LINVEL)
   {
-    double *pdata = data;
+    pdata = data;
     for (i = 0; i < num; i ++)
     {
       j = set[i];
@@ -649,7 +756,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
   if (ent & OUT_ANGVEL)
   {
-    double *pdata = data;
+    pdata = data;
     for (i = 0; i < num; i ++)
     {
       j = triobs[set[i]];
@@ -676,7 +783,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
   if (ent & OUT_FORCE)
   {
-    double *pdata = data;
+    pdata = data;
     for (i = 0; i < num; i ++)
     {
       j = triobs[set[i]];
@@ -697,7 +804,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
   if (ent & OUT_TORQUE)
   {
-    double *pdata = data;
+    pdata = data;
     for (i = 0; i < num; i ++)
     {
       j = triobs[set[i]];
@@ -877,18 +984,27 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
   switch (mode)
   {
   case OUT_MODE_MESH:
-
     fprintf (xmf_file, "<Topology Type=\"Mixed\" NumberOfElements=\"%d\">\n", elements);
     fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", topo_size);
     fprintf (xmf_file, "%s:/%d/TOPO\n", h5file, output_frame);
     fprintf (xmf_file, "</DataStructure>\n");
     fprintf (xmf_file, "</Topology>\n");
+    break;
+  case OUT_MODE_RB:
+    fprintf (xmf_file, "<Topology Type=\"Polyvertex\" NumberOfElements=\"%d\" NodesPerElement=\"%d\">\n", elements, 1);
+    fprintf (xmf_file, "</Topology>\n");
+    break;
+  }
 
-    fprintf (xmf_file, "<Geometry GeometryType=\"XYZ\">\n");
-    fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-    fprintf (xmf_file, "%s:/%d/GEOM\n", h5file, output_frame);
-    fprintf (xmf_file, "</DataStructure>\n");
-    fprintf (xmf_file, "</Geometry>\n");
+  fprintf (xmf_file, "<Geometry GeometryType=\"XYZ\">\n");
+  fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+  fprintf (xmf_file, "%s:/%d/GEOM\n", h5file, output_frame);
+  fprintf (xmf_file, "</DataStructure>\n");
+  fprintf (xmf_file, "</Geometry>\n");
+
+  switch (mode)
+  {
+  case OUT_MODE_MESH:
 
     if (ent & OUT_DISPL)
     {
@@ -953,6 +1069,72 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "</Attribute>\n");
     }
     break;
+
+  case OUT_MODE_RB:
+
+    if (ent & OUT_DISPL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_LINVEL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_NUMBER)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ANGVEL)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_FORCE)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/FORCE\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_TORQUE)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ORIENT)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Tensor\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 9\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+    break;
   }
 
   fprintf (xmf_file, "</Grid>\n");
@@ -979,24 +1161,6 @@ static void output_xdmf_files ()
 
     for (j = -1; j < outnum; j ++) /* for each output set */
     {
-      h5_path.str("");
-      h5_path.clear();
-      h5_path << outpath << j+1 << ".h5";
-
-      if (curtime == 0.0)
-      {
-	ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-      }
-      else
-      {
-	ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-      }
-
-      h5_text.str("");
-      h5_text.clear();
-      h5_text << output_frame;
-      ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
-
       if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
       {
 	for (num = i = 0; i < trinum; i ++)
@@ -1022,11 +1186,29 @@ static void output_xdmf_files ()
 
       if (num)
       { 
+	h5_path.str("");
+	h5_path.clear();
+	h5_path << output_path << j+1 << ".h5";
+
+	if (curtime == 0.0)
+	{
+	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+	else
+	{
+	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+
+	h5_text.str("");
+	h5_text.clear();
+	h5_text << output_frame;
+	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+
 	h5_triangle_dataset (num, set, ent, h5_step); /* append h5 file */
 
         xmf_path.str("");
 	xmf_path.clear();
-	xmf_path << outpath << j+1 << ".xmf"; /* append xmf file */
+	xmf_path << output_path << j+1 << ".xmf"; /* append xmf file */
 
 	int elements = num;
 	int nodes = 3*num;
@@ -1035,10 +1217,10 @@ static void output_xdmf_files ()
 	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_MESH, elements, nodes, topo_size, label, h5file.c_str(), ent);
-      }
 
-      H5Gclose (h5_step);
-      H5Fclose (h5_file);
+	H5Gclose (h5_step);
+	H5Fclose (h5_file);
+      }
     }
 
     delete [] set;
@@ -1052,24 +1234,6 @@ static void output_xdmf_files ()
 
     for (j = -1; j < outnum; j ++)
     {
-      h5_path.str("");
-      h5_path.clear();
-      h5_path << outpath << j+1 << "rb.h5";
-
-      if (curtime == 0.0)
-      {
-	ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-      }
-      else
-      {
-	ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-      }
-
-      h5_text.str("");
-      h5_text.clear();
-      h5_text << output_frame;
-      ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
- 
       if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
 	for (num = i = 0; i < parnum; i ++)
@@ -1092,27 +1256,49 @@ static void output_xdmf_files ()
 
       if (num)
       {
+	h5_path.str("");
+	h5_path.clear();
+	h5_path << output_path << j+1 << "rb.h5";
+
+	if (curtime == 0.0)
+	{
+	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+	else
+	{
+	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+
+	h5_text.str("");
+	h5_text.clear();
+	h5_text << output_frame;
+	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+   
 	h5_rb_dataset (num, pset, ent, h5_step); /* append h5 file */
 
         xmf_path.str("");
 	xmf_path.clear();
-	xmf_path << outpath << j+1 << "rb.xmf"; /* append xmf file */
+	xmf_path << output_path << j+1 << "rb.xmf"; /* append xmf file */
 
 	int elements = num;
-	int nodes = 3*num;
+	int nodes = num;
 	int topo_size = 2*num;
 	const char *label = "PARMEC rigid bodies";
 	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_RB, elements, nodes, topo_size, label, h5file.c_str(), ent);
-      }
 
-      H5Gclose (h5_step);
-      H5Fclose (h5_file);
+	H5Gclose (h5_step);
+	H5Fclose (h5_file);
+      }
     }
 
     delete [] set;
   }
+
+  /* TODO --> *cd.h5 amd *cd.xmf contact data output */
+
+  /* TODO --> *sd.h5 and *sd.xmf spring data output */
 };
 
 /* output VTK files */
@@ -1134,7 +1320,7 @@ static void output_vtk_files ()
       {
 	oss.str("");
 	oss.clear();
-	oss << outpath << j+1 << ".vtk." << output_frame;
+	oss << output_path << j+1 << ".vtk." << output_frame;
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
@@ -1161,7 +1347,7 @@ static void output_vtk_files ()
       {
 	oss.str("");
 	oss.clear();
-	oss << outpath << j+1 << ".vtk." << output_frame;
+	oss << output_path << j+1 << ".vtk." << output_frame;
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
@@ -1191,7 +1377,7 @@ static void output_vtk_files ()
       {
 	oss.str("");
 	oss.clear();
-	oss << outpath << j+1 << "rb.vtk." << output_frame;
+	oss << output_path << j+1 << "rb.vtk." << output_frame;
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
@@ -1214,7 +1400,7 @@ static void output_vtk_files ()
       {
 	oss.str("");
 	oss.clear();
-	oss << outpath << j+1 << "rb.vtk." << output_frame;
+	oss << output_path << j+1 << "rb.vtk." << output_frame;
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
@@ -1248,7 +1434,7 @@ static void output_vtk_files ()
       {
 	oss.str("");
 	oss.clear();
-	oss << outpath << j+1 << "sd.vtk." << output_frame;
+	oss << output_path << j+1 << "sd.vtk." << output_frame;
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
@@ -1275,7 +1461,7 @@ static void output_vtk_files ()
       {
 	oss.str("");
 	oss.clear();
-	oss << outpath << j+1 << "sd.vtk." << output_frame;
+	oss << output_path << j+1 << "sd.vtk." << output_frame;
 	out.open (oss.str().c_str());
 
 	out << "# vtk DataFile Version 2.0\n";
@@ -1313,7 +1499,7 @@ void output_files ()
 
     oss.str("");
     oss.clear();
-    oss << outpath << ".dump";
+    oss << output_path << ".dump";
     if (output_frame) out.open (oss.str().c_str(), ios::app);
     else out.open (oss.str().c_str());
 

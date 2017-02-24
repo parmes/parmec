@@ -37,7 +37,8 @@ typedef void* callback_t; /* generall Python callback */
 
 extern int threads; /* number of hardware threads */
 
-extern char *outpath; /* output path */
+extern char *output_path; /* output path */
+extern int output_frame; /* output files frame */
 
 extern REAL curtime; /* current time */
 extern REAL curstep; /* current step */

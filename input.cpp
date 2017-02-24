@@ -2470,18 +2470,18 @@ int input (const char *path)
   char *line;
 
   len = strlen (path);
-  ERRMEM (outpath = new char [len+1]);
-  strcpy (outpath, path);
+  ERRMEM (output_path = new char [len+1]);
+  strcpy (output_path, path);
  
-  if (outpath[len-3] != '.' ||
-      outpath[len-2] != 'p' ||
-      outpath[len-1] != 'y')
+  if (output_path[len-3] != '.' ||
+      output_path[len-2] != 'p' ||
+      output_path[len-1] != 'y')
   {
     fprintf (stderr, "ERROR: input file does not have '.py' extension!\n");
     fprintf (stderr, "       the input path reads: %s\n", path);
     return 1;
   }
-  else outpath[len-3] = '\0';
+  else output_path[len-3] = '\0';
 
   Py_Initialize();
 

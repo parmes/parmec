@@ -56,7 +56,8 @@ using namespace ispc; /* ISPC calls are used below */
 namespace parmec { /* namespace */
 #endif
 
-char *outpath; /* output path */
+char *output_path; /* output path */
+int output_frame; /* output files frame */
 
 int threads; /* number of hardware threads */
 
@@ -1532,6 +1533,8 @@ void init()
 /* reset all data */
 void reset ()
 {
+  output_frame = 0;
+
   curtime = 0.0;
   curstep = 0.0;
   curtime_output = 0.0;
@@ -1589,19 +1592,19 @@ REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, c
   {
     char *out;
     int len, i;
-    len = strlen (outpath);
+    len = strlen (output_path);
     for (i = len-1; i >= 0; i --)
     {
-      if (outpath[i] == '/' || /* unix */
-	  outpath[i] == '\\') break; /* windows */
+      if (output_path[i] == '/' || /* unix */
+	  output_path[i] == '\\') break; /* windows */
     }
     len = (i+1) + strlen (prefix) + 1;
     ERRMEM (out = new char [len]);
-    outpath[i+1] = '\0';
-    strcpy (out, outpath);
+    output_path[i+1] = '\0';
+    strcpy (out, output_path);
     strcpy (out+i+1, prefix);
-    delete outpath;
-    outpath = out;
+    delete output_path;
+    output_path = out;
   }
 
   REAL *icenter[6] = {center[0]+ellcon, center[1]+ellcon, center[2]+ellcon, center[3]+ellcon, center[4]+ellcon, center[5]+ellcon};
