@@ -608,7 +608,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
   if (end > 0 && end < sprnum) /* end at sprpart[0][] change --> avoid atomic accumulation of force[][j] and torque[][j] below */
   {
-    for (; end < sprnum-1 && sprpart[0][end] == sprpart[0][end+1]; end ++);
+    for (; end < sprnum && sprpart[0][end-1] == sprpart[0][end]; end ++);
   }
 
   /* TODO --> test --> instead of the above lock also for the j particle (now that local accumulation is used) */
