@@ -269,6 +269,88 @@ RESET ()
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "sec:TSERIES"
+
+\end_inset
+
+TSERIES
+\end_layout
+
+\begin_layout Standard
+Create time series: a linear spline based on series of 2-points.
+\end_layout
+
+\begin_layout Subsection*
+tmsnum = TSERIES (points)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+tmsnum
+\series default
+ - time series number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+points
+\series default
+ - a constant 
+\emph on
+v0
+\emph default
+, a list 
+\emph on
+[t0, v0, t1, v1, ....]
+\emph default
+ or a list of lists 
+\emph on
+[[t0,v0], [t1,v1], ...]
+\emph default
+ of points (where 
+\emph on
+ti < tj
+\emph default
+, when 
+\emph on
+i < j
+\emph default
+), or a path to a file storing times and values pairs in format:
+\end_layout
+
+\begin_layout LyX-Code
+# comment 1 ...
+\end_layout
+
+\begin_layout LyX-Code
+# comment 2 ...
+\end_layout
+
+\begin_layout LyX-Code
+t0 v0
+\end_layout
+
+\begin_layout LyX-Code
+t1 v1
+\end_layout
+
+\begin_layout LyX-Code
+# comment 3 ...
+\end_layout
+
+\begin_layout LyX-Code
+t2 v2
+\end_layout
+
+\begin_layout LyX-Code
+...
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "subsec:MATERIAL"
 
 \end_inset
@@ -1377,7 +1459,19 @@ parnum
 \series bold
 linear
 \series default
- - linear velocity or acceleration history callback: 
+ - a tuple 
+\begin_inset Formula $(i,j,k)$
+\end_inset
+
+ of 
+\emph on
+time series numbers
+\emph default
+ 
+\series bold
+or
+\series default
+ a callback: 
 \begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)=$
 \end_inset
 
@@ -1389,7 +1483,7 @@ linear
 \begin_inset Formula $\left(t\right)$
 \end_inset
 
-; default: 
+ defining linear velocity or acceleration history; default: 
 \emph on
 not prescribed
 \end_layout
@@ -1399,7 +1493,19 @@ not prescribed
 \series bold
 angular
 \series default
- - spatial angular velocity or acceleration history callback: 
+ - a tuple 
+\begin_inset Formula $(i,j,k)$
+\end_inset
+
+ of 
+\emph on
+time series numbers
+\emph default
+ 
+\series bold
+or
+\series default
+ a callback: 
 \begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)=$
 \end_inset
 
@@ -1411,7 +1517,7 @@ angular
 \begin_inset Formula $\left(t\right)$
 \end_inset
 
-; default: 
+ defining spatial angular velocity or acceleration history; default: 
 \emph on
 not prescribed
 \end_layout

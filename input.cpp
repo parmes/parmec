@@ -33,6 +33,7 @@ SOFTWARE.
 #include <fstream>
 #include <iomanip>
 #include <omp.h>
+#include "timeseries.h"
 #include "macros.h"
 #include "parmec.h"
 #include "timer.h"
@@ -401,6 +402,34 @@ static int is_list_or_number (PyObject *obj, const char *var, int len)
   return 1;
 }
 
+/* test whether an object is a number or a list (details as above) or a string */
+static int is_number_or_list_or_string (PyObject *obj, const char *var, int div, int len)
+{
+  if (obj)
+  {
+    if (!(PyNumber_Check(obj) || PyString_Check (obj) || PyList_Check (obj)))
+    {
+      char buf [BUFLEN];
+      sprintf (buf, "'%s' must be a number or a list or a string object", var);
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+
+    if (PyList_Check (obj))
+    {
+      if (!(PyList_Size (obj) % div == 0 && PyList_Size (obj) >= len))
+      {
+	char buf [BUFLEN];
+	sprintf (buf, "'%s' must have N * %d elements, where N >= %d", var, div, len / div);
+	PyErr_SetString (PyExc_ValueError, buf);
+	return 0;
+      }
+    }
+  }
+
+  return 1;
+}
+
 /* define keywords */
 #define KEYWORDS(...) const char *kwl [] = {__VA_ARGS__, NULL}
 
@@ -428,6 +457,91 @@ static PyObject* RESET (PyObject *self, PyObject *args, PyObject *kwds)
   reset ();
 
   Py_RETURN_NONE;
+}
+
+/* create time series */
+static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("points");
+  PyObject *points;
+  TMS *ts;
+
+  PARSEKEYS ("O", &points);
+
+  TYPETEST (is_number_or_list_or_string (points, kwl [0], 1, 2));
+
+  if (PyNumber_Check (points))
+  {
+    ts = TMS_Constant (PyFloat_AsDouble (points));
+  }
+  else if (PyString_Check (points))
+  {
+    if (!(ts = TMS_File (PyString_AsString (points))))
+    {
+      PyErr_SetString (PyExc_ValueError, "Could not open file");
+      return NULL;
+    }
+  }
+  else if (PyList_Check (points))
+  {
+    REAL *times, *values;
+    int i, n;
+
+    if (PyList_Check (PyList_GetItem (points, 0)))
+    {
+      n = PyList_Size (points);
+
+      ERRMEM (times = (REAL*)malloc (sizeof (REAL [n])));
+      ERRMEM (values = (REAL*)malloc (sizeof (REAL [n])));
+
+      for (i = 0; i < n; i ++)
+      {
+	PyObject *pv = PyList_GetItem (points, i);
+
+	TYPETEST (is_list (pv, "[t,v]", 2));
+
+	times [i] = PyFloat_AsDouble (PyList_GetItem (pv, 0));
+	values [i] = PyFloat_AsDouble (PyList_GetItem (pv, 1));
+      }
+    }
+    else
+    {
+      if (PyList_Size(points) < 4)
+      {
+	PyErr_SetString (PyExc_ValueError, "Time series must have at least two points");
+	return NULL;
+      }
+
+      n = PyList_Size (points) / 2;
+
+      ERRMEM (times = (REAL*)malloc (sizeof (REAL [n])));
+      ERRMEM (values = (REAL*)malloc (sizeof (REAL [n])));
+
+      for (i = 0; i < n; i ++)
+      {
+	times [i] = PyFloat_AsDouble (PyList_GetItem (points, 2*i));
+	values [i] = PyFloat_AsDouble (PyList_GetItem (points, 2*i + 1));
+      }
+    }
+
+    ts = TMS_Create (n, times, values);
+
+    free (times);
+    free (values);
+  }
+  else
+  {
+    PyErr_SetString (PyExc_TypeError, "Invalid points format");
+    return NULL;
+  }
+
+  if (tmsnum >= time_series_buffer_size) time_series_buffer_grow ();
+
+  int i = tmsnum ++;
+
+  parmec::tms[i] = ts;
+
+  return PyInt_FromLong (i);
 }
 
 /* create material */
@@ -1594,8 +1708,7 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("i|OOO", &j, &lin, &ang, &kind);
 
-  TYPETEST (is_ge_lt (j, 0, parnum, kwl[0]) && is_callable (lin, kwl[1]) &&
-            is_callable (ang, kwl[2]) && is_string (kind, kwl[3]));
+  TYPETEST (is_ge_lt (j, 0, parnum, kwl[0]) && is_string (kind, kwl[3]));
 
   if (lin || ang)
   {
@@ -1608,20 +1721,60 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (lin)
   {
-    prslin[i] = lin;
+    if (PyCallable_Check(lin))
+    {
+      prslin[i] = lin;
+      tmslin[i] = -1;
+    }
+    else if (PyNumber_Check(lin))
+    {
+      prslin[i] = NULL;
+      tmslin[i] = PyInt_AsLong(lin);
+      if (tmslin[i] < 0 || tmslin[i] >= tmsnum)
+      {
+	PyErr_SetString (PyExc_ValueError, "'linear' is not a time series number (out of range)");
+	return NULL;
+      }
+    }
+    else
+    {
+      PyErr_SetString (PyExc_ValueError, "'linear' is neither a time series number nor a callback");
+      return NULL;
+    }
   }
   else
   {
     prslin[i] = NULL;
+    tmslin[i] = -1;
   }
 
   if (ang)
   {
-    prsang[i] = ang;
+    if (PyCallable_Check(ang))
+    {
+      prsang[i] = ang;
+      tmsang[i] = -1;
+    }
+    else if (PyNumber_Check(ang))
+    {
+      prsang[i] = NULL;
+      tmsang[i] = PyInt_AsLong(ang);
+      if (tmsang[i] < 0 || tmsang[i] >= tmsnum)
+      {
+	PyErr_SetString (PyExc_ValueError, "'angular' is not a time series number (out of range)");
+	return NULL;
+      }
+    }
+    else
+    {
+      PyErr_SetString (PyExc_ValueError, "'angular' is neither a time series number nor a callback");
+      return NULL;
+    }
   }
   else
   {
     prsang[i] = NULL;
+    tmsang[i] = -1;
   }
 
   if (kind)
@@ -1790,7 +1943,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   KEYWORDS ("duration", "step", "interval", "prefix", "adaptive");
   double duration, step, adaptive;
   PyObject *prefix, *interval;
-  callback_t dt_func[2];
+  pointer_t dt_func[2];
   REAL dt[2];
   char *pre;
 
@@ -2441,6 +2594,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 static PyMethodDef methods [] =
 {
   {"RESET", (PyCFunction)RESET, METH_NOARGS, "Reset simulation"},
+  {"TSERIES", (PyCFunction)MATERIAL, METH_VARARGS|METH_KEYWORDS, "Create time series"},
   {"MATERIAL", (PyCFunction)MATERIAL, METH_VARARGS|METH_KEYWORDS, "Create material"},
   {"SPHERE", (PyCFunction)SPHERE, METH_VARARGS|METH_KEYWORDS, "Create spherical particle"},
   {"MESH", (PyCFunction)MESH, METH_VARARGS|METH_KEYWORDS, "Create meshed particle"},
@@ -2516,7 +2670,7 @@ int input (const char *path)
 }
 
 /* update obstacles time histories from callbacks */
-void obstaclev (int obsnum, REAL *obsang, REAL *obslin, callback_t anghis[], callback_t linhis[], REAL time)
+void obstaclev (int obsnum, REAL *obsang, REAL *obslin, pointer_t anghis[], pointer_t linhis[], REAL time)
 {
   PyObject *result, *args;
   int i;
@@ -2564,7 +2718,7 @@ void obstaclev (int obsnum, REAL *obsang, REAL *obslin, callback_t anghis[], cal
 }
 
 /* prescribe particle acceleration */
-void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
+void prescribe_acceleration (int prsnum, int prspart[], pointer_t prslin[], int linkind[], pointer_t prsang[], int angkind[],
   REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3])
 {
   PyObject *result, *args;
@@ -2637,7 +2791,7 @@ void prescribe_acceleration (int prsnum, int prspart[], callback_t prslin[], int
 }
 
 /* prescribe particle velocity */
-void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int linkind[], callback_t prsang[], int angkind[],
+void prescribe_velocity (int prsnum, int prspart[], pointer_t prslin[], int linkind[], pointer_t prsang[], int angkind[],
   REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6])
 {
   PyObject *result, *args;
@@ -2695,7 +2849,7 @@ void prescribe_velocity (int prsnum, int prspart[], callback_t prslin[], int lin
 }
 
 /* read gravity and global damping */
-void read_gravity_and_damping (REAL time, callback_t gravfunc[3], REAL gravity[3], callback_t lindamp, callback_t angdamp, REAL damping[6])
+void read_gravity_and_damping (REAL time, pointer_t gravfunc[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6])
 {
   for (int i = 0; i < 3; i ++)
   {
@@ -2743,7 +2897,7 @@ void read_gravity_and_damping (REAL time, callback_t gravfunc[3], REAL gravity[3
 }
 
 /* call interval callback */
-REAL current_interval (callback_t func, REAL time)
+REAL current_interval (pointer_t func, REAL time)
 {
   PyObject *result, *args;
   REAL dt;

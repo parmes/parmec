@@ -34,6 +34,7 @@ SOFTWARE.
 #include <fstream>
 #include <iomanip>
 #include <omp.h>
+#include "timeseries.h"
 #include "macros.h"
 #include "parmec.h"
 #include "timer.h"
@@ -74,7 +75,7 @@ int pairnum; /* number of pairings */
 int *pairs; /* color pairs */
 int *ikind; /* interaction kind */
 REAL *iparam[NIPARAM]; /* interaction parameters */
-callback_t *uforce; /* user force callbacks */
+pointer_t *uforce; /* user force callbacks */
 int pair_buffer_size; /* size of the buffer */
 
 int ellnum; /* number of ellipsoids */
@@ -138,8 +139,8 @@ int *trirng; /* triangles range */
 REAL *obspnt; /* obstacle spatial points */
 REAL *obsang; /* obstacle angular velocities at t and t+h */
 REAL *obslin; /* obstacle linear velocities at t and t+h */
-callback_t *anghis; /* angular velocity history */
-callback_t *linhis; /* linear velocity history */
+pointer_t *anghis; /* angular velocity history */
+pointer_t *linhis; /* linear velocity history */
 int obstacle_buffer_size; /* size of the buffer */
 
 int sprnum; /* number of spring constraints */
@@ -172,11 +173,17 @@ REAL *cnslin[9]; /* constrained linear directions */
 REAL *cnsang[9]; /* constrained angular directions */
 int constrain_buffer_size; /* size of constrained particles buffer */
 
+int tmsnum; /* number of time series */
+pointer_t *tms; /* time series */
+int time_series_buffer_size; /* size of time series buffer */
+
 int prsnum; /* number of particles with prescribed motion */
 int *prspart; /* prescribed motion particle numbers */
-callback_t *prslin; /* prescribed linear motion time history callbacks */
+pointer_t *prslin; /* prescribed linear motion time history callbacks */
+int *tmslin; /* prescribed linear motion time series */
 int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-acceleration */
-callback_t *prsang; /* prescribed angular motion time history callbacks */
+pointer_t *prsang; /* prescribed angular motion time history callbacks */
+int *tmsang; /* prescribed angular motion time series */
 int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
 int prescribe_buffer_size; /* size of prescribed particle motion buffer */
 
@@ -186,7 +193,7 @@ int *hisidx; /* history source list start index */
 int *hisent; /* history entity */
 int *hiskind; /* history kind */
 REAL *source[6]; /* source sphere or box definition or optional point */
-callback_t *history; /* Python list storing history */
+pointer_t *history; /* Python list storing history */
 int history_buffer_size; /* size of history buffer */
 int history_list_size; /* size of history particle lists buffer */
 
@@ -201,11 +208,11 @@ int output_buffer_size; /* size of output buffer */
 int output_list_size; /* size of output particle lists buffer */
 
 REAL gravity[3]; /* gravity vector */
-callback_t gravfunc[3]; /* gravity callbacks */
+pointer_t gravfunc[3]; /* gravity callbacks */
 
 REAL damping[6]; /* linear and angular damping */
-callback_t lindamp; /* linead damping callback */
-callback_t angdamp; /* angular damping callback */
+pointer_t lindamp; /* linead damping callback */
+pointer_t angdamp; /* angular damping callback */
 
 MAP *prescribed_body_forces; /* particle index based map of prescibed body forces */
 
@@ -231,13 +238,13 @@ void real_buffer_grow (REAL* &src, int num, int size)
   src = dst;
 }
 
-/* grow callback buffer */
-void callback_buffer_grow (callback_t* &src, int num, int size)
+/* grow pointer buffer */
+void pointer_buffer_grow (pointer_t* &src, int num, int size)
 {
-  callback_t *dst;
+  pointer_t *dst;
 
-  ERRMEM (dst = new callback_t [size]);
-  memcpy (dst, src, sizeof (callback_t)*num);
+  ERRMEM (dst = new pointer_t [size]);
+  memcpy (dst, src, sizeof (pointer_t)*num);
   delete [] src;
   src = dst;
 }
@@ -277,7 +284,7 @@ int pair_buffer_init ()
   {
     iparam[i] = aligned_real_alloc (pair_buffer_size);
   }
-  uforce = new callback_t [pair_buffer_size];
+  uforce = new pointer_t [pair_buffer_size];
 }
 
 /* grow pair buffer */
@@ -291,7 +298,7 @@ int pair_buffer_grow ()
   {
     real_buffer_grow (iparam[i], pairnum, pair_buffer_size);
   }
-  callback_buffer_grow (uforce, pairnum, pair_buffer_size);
+  pointer_buffer_grow (uforce, pairnum, pair_buffer_size);
 
   return pair_buffer_size;
 }
@@ -658,8 +665,8 @@ int obstacle_buffer_init ()
   obspnt = aligned_real_alloc (3*obstacle_buffer_size);
   obsang = aligned_real_alloc (3*obstacle_buffer_size);
   obslin = aligned_real_alloc (3*obstacle_buffer_size);
-  anghis = new callback_t [obstacle_buffer_size];
-  linhis = new callback_t [obstacle_buffer_size];
+  anghis = new pointer_t [obstacle_buffer_size];
+  linhis = new pointer_t [obstacle_buffer_size];
 
   obsnum = 0;
 }
@@ -673,8 +680,8 @@ int obstacle_buffer_grow ()
   real_buffer_grow (obspnt, 3*obsnum, 3*obstacle_buffer_size);
   real_buffer_grow (obsang, 3*obsnum, 3*obstacle_buffer_size);
   real_buffer_grow (obslin, 3*obsnum, 3*obstacle_buffer_size);
-  callback_buffer_grow (anghis, obsnum, obstacle_buffer_size);
-  callback_buffer_grow (linhis, obsnum, obstacle_buffer_size);
+  pointer_buffer_grow (anghis, obsnum, obstacle_buffer_size);
+  pointer_buffer_grow (linhis, obsnum, obstacle_buffer_size);
 
   return obstacle_buffer_size;
 }
@@ -852,15 +859,37 @@ int constrain_buffer_grow ()
   return constrain_buffer_size;
 }
 
+/* init time series buffer */
+int time_series_buffer_init ()
+{
+  time_series_buffer_size = 256;
+
+  tms = new pointer_t [time_series_buffer_size];
+
+  tmsnum = 0;
+}
+
+/* grow time series buffer */
+int time_series_buffer_grow ()
+{
+  time_series_buffer_size *= 2;
+
+  pointer_buffer_grow (tms, tmsnum, time_series_buffer_size);
+
+  return time_series_buffer_size;
+}
+
 /* init prescribed particles motion buffer */
 int prescribe_buffer_init ()
 {
   prescribe_buffer_size = 256;
 
   prspart = aligned_int_alloc (prescribe_buffer_size);
-  prslin = new callback_t [prescribe_buffer_size];
+  prslin = new pointer_t [prescribe_buffer_size];
+  tmslin = aligned_int_alloc (prescribe_buffer_size);
   linkind = aligned_int_alloc (prescribe_buffer_size);
-  prsang = new callback_t [prescribe_buffer_size];
+  prsang = new pointer_t [prescribe_buffer_size];
+  tmsang = aligned_int_alloc (prescribe_buffer_size);
   angkind = aligned_int_alloc (prescribe_buffer_size);
 
   prsnum = 0;
@@ -872,9 +901,11 @@ int prescribe_buffer_grow ()
   prescribe_buffer_size *= 2;
 
   integer_buffer_grow (prspart, prsnum, prescribe_buffer_size);
-  callback_buffer_grow (prslin, prsnum, prescribe_buffer_size);
+  pointer_buffer_grow (prslin, prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmslin, prsnum, prescribe_buffer_size);
   integer_buffer_grow (linkind, prsnum, prescribe_buffer_size);
-  callback_buffer_grow (prsang, prsnum, prescribe_buffer_size);
+  pointer_buffer_grow (prsang, prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmsang, prsnum, prescribe_buffer_size);
   integer_buffer_grow (angkind, prsnum, prescribe_buffer_size);
 
   return prescribe_buffer_size;
@@ -896,7 +927,7 @@ int history_buffer_init ()
   source[3] = aligned_real_alloc (history_buffer_size);
   source[4] = aligned_real_alloc (history_buffer_size);
   source[5] = aligned_real_alloc (history_buffer_size);
-  history = new callback_t [history_buffer_size];
+  history = new pointer_t [history_buffer_size];
 
   hisnum = 0;
   hisidx[hisnum] = 0;
@@ -918,7 +949,7 @@ void history_buffer_grow (int list_size)
     real_buffer_grow (source[3], hisnum, history_buffer_size);
     real_buffer_grow (source[4], hisnum, history_buffer_size);
     real_buffer_grow (source[5], hisnum, history_buffer_size);
-    callback_buffer_grow (history, hisnum, history_buffer_size);
+    pointer_buffer_grow (history, hisnum, history_buffer_size);
   }
 
   if (history_list_size < hisidx[hisnum] + list_size)
@@ -1521,6 +1552,7 @@ void init()
   obstacle_buffer_init ();
   spring_buffer_init ();
   constrain_buffer_init ();
+  time_series_buffer_init ();
   prescribe_buffer_init ();
   history_buffer_init ();
   output_buffer_init ();
@@ -1554,6 +1586,7 @@ void reset ()
   obsnum = 0;
   sprnum = 0;
   cnsnum = 0;
+  tmsnum = 0;
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
@@ -1581,7 +1614,7 @@ void reset ()
 }
 
 /* run DEM simulation */
-REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose, double adaptive)
+REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, char *prefix, int verbose, double adaptive)
 {
   REAL time, dt, step0, step1;
   timing tt;

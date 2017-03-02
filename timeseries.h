@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+Copyright (c) 2017 Tomasz Koziara
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef __input__
-#define __input__
+#include <stdio.h>
+#include "macros.h"
 
-namespace parmec
+#ifndef __tms__
+#define __tms__
+
+typedef struct time_series TMS;
+
+struct time_series
 {
-/* update obstacles time histories from callbacks */
-void obstaclev (int obsnum, REAL *obsang, REAL *obslin, pointer_t anghis[], pointer_t linhis[], REAL time);
+  REAL value; /* constant value => used if size == 0 */
+  REAL (*points) [2]; /* vector of (time, value) pairs */
+  int marker; /* index of the last read interval */
+  int size; /* total number of pairs */
+};
 
-/* prescribe particle velocity */
-void prescribe_velocity (int prsnum, int prspart[], pointer_t prslin[], int linkind[], pointer_t prsang[], int angkind[],
-  REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6]);
+/* create a copy */
+TMS* TMS_Copy (TMS *ts);
 
-/* prescribe particle acceleration */
-void prescribe_acceleration (int prsnum, int prspart[], pointer_t prslin[], int linkind[], pointer_t prsang[], int angkind[],
-  REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3]);
+/* create time series */
+TMS* TMS_Create (int size, REAL *times, REAL *values);
 
-/* read gravity and global damping */
-void read_gravity_and_damping (REAL time, pointer_t gravfunc[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6]);
+/* create time series from a text file */
+TMS* TMS_File (char *path);
 
-/* call interval callback */
-REAL current_interval (pointer_t func, REAL time);
-}
+/* wrapper for a constant value */
+TMS* TMS_Constant (REAL value);
+
+/* create from another series through integration */
+TMS* TMS_Integral (TMS *ts);
+
+/* as above, but calculate derivative */
+TMS* TMS_Derivative (TMS *ts);
+
+/* obtain value at a specific time */
+REAL TMS_Value (TMS *ts, REAL time);
+
+/* free time series memory */
+void TMS_Destroy (TMS *ts);
 
 #endif

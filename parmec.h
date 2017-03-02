@@ -33,7 +33,7 @@ SOFTWARE.
 namespace parmec { /* namespace */
 #endif
 
-typedef void* callback_t; /* generall Python callback */
+typedef void* pointer_t; /* generall Python callback */
 
 extern int threads; /* number of hardware threads */
 
@@ -54,7 +54,7 @@ extern int pairnum; /* number of pairings */
 extern int *pairs; /* color pairs */
 extern int *ikind; /* interaction kind */
 extern REAL *iparam[NIPARAM]; /* interaction parameters */
-extern callback_t *uforce; /* user force callbacks */
+extern pointer_t *uforce; /* user force callbacks */
 extern int pair_buffer_size; /* size of the buffer */
 extern int pair_buffer_grow (); /* grow buffer */
 extern void pair_reset (); /* reset pairing defaults */
@@ -124,8 +124,8 @@ extern int *trirng; /* triangles range */
 extern REAL *obspnt; /* obstacle spatial points */
 extern REAL *obslin; /* obstacle linear velocities at t and t+h */
 extern REAL *obsang; /* obstacle angular velocities at t and t+h */
-extern callback_t *linhis; /* linear velocity history */
-extern callback_t *anghis; /* angular velocity history */
+extern pointer_t *linhis; /* linear velocity history */
+extern pointer_t *anghis; /* angular velocity history */
 extern int obstacle_buffer_size; /* size of the buffer */
 extern int obstacle_buffer_grow (); /* grow buffer */
 
@@ -161,11 +161,18 @@ extern REAL *cnsang[9]; /* constrained angular directions */
 extern int constrain_buffer_size; /* size of constrained particles buffer */
 extern int constrain_buffer_grow (); /* grow buffer */
 
+extern int tmsnum; /* number of time series */
+extern pointer_t *tms; /* time series */
+extern int time_series_buffer_size; /* size of time series buffer */
+extern int time_series_buffer_grow (); /* grow buffer */
+
 extern int prsnum; /* number of particles with prescribed motion */
 extern int *prspart; /* prescribed motion particle numbers */
-extern callback_t *prslin; /* prescribed linear motion time history callbacks */
+extern pointer_t *prslin; /* prescribed linear motion time history callbacks */
+extern int *tmslin; /* prescribed linear motion time series */
 extern int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-acceleration */
-extern callback_t *prsang; /* prescribed angular motion time history callbacks */
+extern pointer_t *prsang; /* prescribed angular motion time history callbacks */
+extern int *tmsang; /* prescribed angular motion time series */
 extern int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
 extern int prescribe_buffer_size; /* size of prescribed particle motion buffer */
 extern int prescribe_buffer_grow (); /* grow buffer */
@@ -176,7 +183,7 @@ extern int *hisidx; /* history source list start index */
 extern int *hisent; /* history entity */
 extern int *hiskind; /* history kind */
 extern REAL *source[6]; /* source sphere or box definition or optional point */
-extern callback_t *history; /* Python list storing history */
+extern pointer_t *history; /* Python list storing history */
 extern int history_buffer_size; /* size of history buffer */
 extern int history_list_size; /* size of history particle lists buffer */
 extern void history_buffer_grow (int list_size); /* grow buffer */
@@ -193,11 +200,11 @@ extern int output_list_size; /* size of output particle lists buffer */
 extern void output_buffer_grow (int list_size); /* grow buffer */
 
 extern REAL gravity[3]; /* gravity vector */
-extern callback_t gravfunc[3]; /* gravity callbacks */
+extern pointer_t gravfunc[3]; /* gravity callbacks */
 
 extern REAL damping[6]; /* linear and angular damping */
-extern callback_t lindamp; /* linead damping callback */
-extern callback_t angdamp; /* angular damping callback */
+extern pointer_t lindamp; /* linead damping callback */
+extern pointer_t angdamp; /* angular damping callback */
 
 struct prescribed_body_force /* externally prescribed body force */
 {
@@ -220,7 +227,7 @@ void reset (); /* reset all simulation data */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-REAL dem (REAL duration, REAL step, REAL *interval, callback_t *interval_func, char *prefix, int verbose, double adaptive); /* run DEM simulation (return timed duration) */
+REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, char *prefix, int verbose, double adaptive); /* run DEM simulation (return timed duration) */
 
 #ifdef __cplusplus
 } /* namespace */
