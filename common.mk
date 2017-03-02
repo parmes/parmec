@@ -50,6 +50,7 @@ headers:
 	python headers.py
 
 del:
+	rm -fr *.dSYM
 	find ./ -iname "*.dump" -exec rm '{}' ';'
 	find ./ -iname "*.vtk.*" -exec rm '{}' ';'
 	find ./ -iname "*.h5" -exec rm '{}' ';'

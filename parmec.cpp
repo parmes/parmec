@@ -180,10 +180,10 @@ int time_series_buffer_size; /* size of time series buffer */
 int prsnum; /* number of particles with prescribed motion */
 int *prspart; /* prescribed motion particle numbers */
 pointer_t *prslin; /* prescribed linear motion time history callbacks */
-int *tmslin; /* prescribed linear motion time series */
+int *tmslin[3]; /* prescribed linear motion time series */
 int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-acceleration */
 pointer_t *prsang; /* prescribed angular motion time history callbacks */
-int *tmsang; /* prescribed angular motion time series */
+int *tmsang[3]; /* prescribed angular motion time series */
 int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
 int prescribe_buffer_size; /* size of prescribed particle motion buffer */
 
@@ -886,10 +886,14 @@ int prescribe_buffer_init ()
 
   prspart = aligned_int_alloc (prescribe_buffer_size);
   prslin = new pointer_t [prescribe_buffer_size];
-  tmslin = aligned_int_alloc (prescribe_buffer_size);
+  tmslin[0] = aligned_int_alloc (prescribe_buffer_size);
+  tmslin[1] = aligned_int_alloc (prescribe_buffer_size);
+  tmslin[2] = aligned_int_alloc (prescribe_buffer_size);
   linkind = aligned_int_alloc (prescribe_buffer_size);
   prsang = new pointer_t [prescribe_buffer_size];
-  tmsang = aligned_int_alloc (prescribe_buffer_size);
+  tmsang[0] = aligned_int_alloc (prescribe_buffer_size);
+  tmsang[1] = aligned_int_alloc (prescribe_buffer_size);
+  tmsang[2] = aligned_int_alloc (prescribe_buffer_size);
   angkind = aligned_int_alloc (prescribe_buffer_size);
 
   prsnum = 0;
@@ -902,10 +906,14 @@ int prescribe_buffer_grow ()
 
   integer_buffer_grow (prspart, prsnum, prescribe_buffer_size);
   pointer_buffer_grow (prslin, prsnum, prescribe_buffer_size);
-  integer_buffer_grow (tmslin, prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmslin[0], prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmslin[1], prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmslin[2], prsnum, prescribe_buffer_size);
   integer_buffer_grow (linkind, prsnum, prescribe_buffer_size);
   pointer_buffer_grow (prsang, prsnum, prescribe_buffer_size);
-  integer_buffer_grow (tmsang, prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmsang[0], prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmsang[1], prsnum, prescribe_buffer_size);
+  integer_buffer_grow (tmsang[2], prsnum, prescribe_buffer_size);
   integer_buffer_grow (angkind, prsnum, prescribe_buffer_size);
 
   return prescribe_buffer_size;
@@ -1717,8 +1725,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, ch
 
     constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
-    prescribe_acceleration (prsnum, prspart, prslin, linkind, prsang,
-                            angkind, time, mass, inertia, force, torque);
+    prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
+                            tmsang, angkind, time, mass, inertia, force, torque);
 
     if (adaptive > 0.0 && adaptive <= 1.0)
     {
@@ -1732,8 +1740,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, ch
     dynamics (threads, master, slave, parnum, angular, linear, rotation,
               position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
 
-    prescribe_velocity (prsnum, prspart, prslin, linkind, prsang,
-                        angkind, curtime, rotation, linear, angular);
+    prescribe_velocity (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
+                        tmsang, angkind, curtime, rotation, linear, angular);
 
     if (interval && interval_func)
     {

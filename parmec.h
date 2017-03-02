@@ -169,10 +169,10 @@ extern int time_series_buffer_grow (); /* grow buffer */
 extern int prsnum; /* number of particles with prescribed motion */
 extern int *prspart; /* prescribed motion particle numbers */
 extern pointer_t *prslin; /* prescribed linear motion time history callbacks */
-extern int *tmslin; /* prescribed linear motion time series */
+extern int *tmslin[3]; /* prescribed linear motion time series */
 extern int *linkind; /* prescribied linear motion signal kind: 0-velocity, 1-acceleration */
 extern pointer_t *prsang; /* prescribed angular motion time history callbacks */
-extern int *tmsang; /* prescribed angular motion time series */
+extern int *tmsang[3]; /* prescribed angular motion time series */
 extern int *angkind; /* prescribied angular motion signal kind: 0-velocity, 1-acceleration */
 extern int prescribe_buffer_size; /* size of prescribed particle motion buffer */
 extern int prescribe_buffer_grow (); /* grow buffer */

@@ -1483,7 +1483,7 @@ linear
 \begin_inset Formula $\left(t\right)$
 \end_inset
 
- defining linear velocity or acceleration history; default: 
+, defining linear velocity or acceleration history; default: 
 \emph on
 not prescribed
 \end_layout
@@ -1517,7 +1517,7 @@ angular
 \begin_inset Formula $\left(t\right)$
 \end_inset
 
- defining spatial angular velocity or acceleration history; default: 
+, defining spatial angular velocity or acceleration history; default: 
 \emph on
 not prescribed
 \end_layout

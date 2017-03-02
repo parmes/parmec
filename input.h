@@ -31,12 +31,12 @@ namespace parmec
 void obstaclev (int obsnum, REAL *obsang, REAL *obslin, pointer_t anghis[], pointer_t linhis[], REAL time);
 
 /* prescribe particle velocity */
-void prescribe_velocity (int prsnum, int prspart[], pointer_t prslin[], int linkind[], pointer_t prsang[], int angkind[],
-  REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6]);
+void prescribe_velocity (int prsnum, pointer_t tms[], int prspart[], pointer_t prslin[], int *tmslin[3], int linkind[],
+  pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6]);
 
 /* prescribe particle acceleration */
-void prescribe_acceleration (int prsnum, int prspart[], pointer_t prslin[], int linkind[], pointer_t prsang[], int angkind[],
-  REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3]);
+void prescribe_acceleration (int prsnum, pointer_t tms[], int prspart[], pointer_t prslin[], int *tmslin[3], int linkind[],
+  pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3]);
 
 /* read gravity and global damping */
 void read_gravity_and_damping (REAL time, pointer_t gravfunc[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6]);
