@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <hdf5.h>
-#include <hdf5_hl.h>
 #include <Python.h>
 #include <structmember.h>
+#include <hdf5.h>
+#include <hdf5_hl.h>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
