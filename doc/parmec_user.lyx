@@ -96,6 +96,133 @@ LatexCommand tableofcontents
 \end_layout
 
 \begin_layout Chapter
+Installation
+\end_layout
+
+\begin_layout Standard
+Clone parmec sources from 
+\begin_inset CommandInset href
+LatexCommand href
+name "GitHub"
+target "https://github.com/tkoziara/parmec"
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout LyX-Code
+git clone https://github.com/tkoziara/parmec
+\end_layout
+
+\begin_layout Standard
+Enter parmec directory:
+\end_layout
+
+\begin_layout LyX-Code
+cd parmec
+\end_layout
+
+\begin_layout Standard
+Edit Makefile variables:
+\end_layout
+
+\begin_layout LyX-Code
+# C++ compiler (ISPC is assumed to be in the PATH; 
+\begin_inset CommandInset href
+LatexCommand href
+target "http://ispc.github.io"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout LyX-Code
+CXX=g++
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+# Python paths
+\end_layout
+
+\begin_layout LyX-Code
+PYTHONINC=-I/usr/include/python2.7
+\end_layout
+
+\begin_layout LyX-Code
+PYTHONLIB=-L/usr/lib -lpython2.7
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+# HDF5 paths
+\end_layout
+
+\begin_layout LyX-Code
+HDF5INC=-I/usr/include
+\end_layout
+
+\begin_layout LyX-Code
+HDF5LIB=-L/usr/lib -lhdf5 -lhdf5_hl
+\end_layout
+
+\begin_layout LyX-Code
+ 
+\end_layout
+
+\begin_layout LyX-Code
+# Debug version
+\end_layout
+
+\begin_layout LyX-Code
+DEBUG=no
+\end_layout
+
+\begin_layout Standard
+Compile sources:
+\end_layout
+
+\begin_layout LyX-Code
+make
+\end_layout
+
+\begin_layout Standard
+Parmec executable files are:
+\end_layout
+
+\begin_layout LyX-Code
+parmec4 (single precision)
+\end_layout
+
+\begin_layout LyX-Code
+parmec8 (double precision)
+\end_layout
+
+\begin_layout Standard
+Parmec library files are:
+\end_layout
+
+\begin_layout LyX-Code
+libparmec4.a, parmec4.h (single precision library, header)
+\end_layout
+
+\begin_layout LyX-Code
+libparmec8.a, paremc8.h (double precision library, header)
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
 name "cha:Running"
@@ -153,7 +280,11 @@ reference "cha:Input commands"
 Run PARMEC (e.g.
  
 \emph on
-PARMEC path/to/test/test.py
+parmec4 path/to/test/test.py
+\emph default
+, or 
+\emph on
+parmec8 path/to/test/test.py
 \emph default
 ).
 \end_layout
@@ -171,13 +302,19 @@ reference "subsec:HISTORY"
 \end_layout
 
 \begin_layout Enumerate
-Upon termination a *.dump file and/or a *.vtk.* file(s) is/are created in the
- same directory (e.g.
+Upon termination output file(s) is(are) created in the same directory (e.g.
  
 \emph on
 path/to/test/test.dump
 \emph default
-); their format is documented in Chapter 
+); see Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+ and Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "cha:Output files"
@@ -204,7 +341,7 @@ target "http://www.paraview.org"
 
 \end_inset
 
- or 
+, or 
 \begin_inset CommandInset href
 LatexCommand href
 name "VisIt"
@@ -2087,15 +2224,26 @@ i, j, ...
 \begin_inset Formula $\left(x,y,z,r\right)$
 \end_inset
 
+ 
+\color red
+(under development)
+\color inherit
 , or a spatial box defined as tuple 
 \begin_inset Formula $\left(x_{\text{min}},y_{\text{min}},z_{\text{min}},x_{\text{max}},y_{\text{max}},z_{\text{max}}\right)$
 \end_inset
 
+ 
+\color red
+(under development)
+\color inherit
 ; in case of a list of particle numbers the output entity is averaged over
  the set of particles; in case of a spatial sphere or box the output entity
- is averaged over the set of particles passing through it; default: 0 (useful
- when entity is 'TIME'); spring number or a list of numbers can be used
- as a source in case of spring entities
+ is averaged over the set of particles passing through it 
+\color red
+(under development)
+\color inherit
+; default: 0 (useful when entity is 'TIME'); spring number or a list of
+ numbers can be used as a source in case of spring entities
 \end_layout
 
 \begin_layout Itemize

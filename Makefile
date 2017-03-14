@@ -1,4 +1,4 @@
-# C/C++ compiler
+# C++ compiler (ISPC is assumed to be in the PATH; http://ispc.github.io)
 CXX=g++
 
 # C++ files
