@@ -39,7 +39,8 @@ void prescribe_acceleration (int prsnum, pointer_t tms[], int prspart[], pointer
   pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3]);
 
 /* read gravity and global damping */
-void read_gravity_and_damping (REAL time, pointer_t gravfunc[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6]);
+void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3],
+  int gravtms[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6]);
 
 /* call interval callback */
 REAL current_interval (pointer_t func, REAL time);

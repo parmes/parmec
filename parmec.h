@@ -201,6 +201,7 @@ extern void output_buffer_grow (int list_size); /* grow buffer */
 
 extern REAL gravity[3]; /* gravity vector */
 extern pointer_t gravfunc[3]; /* gravity callbacks */
+extern int gravtms[3]; /* gravity time series */
 
 extern REAL damping[6]; /* linear and angular damping */
 extern pointer_t lindamp; /* linead damping callback */

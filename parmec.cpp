@@ -209,6 +209,7 @@ int output_list_size; /* size of output particle lists buffer */
 
 REAL gravity[3]; /* gravity vector */
 pointer_t gravfunc[3]; /* gravity callbacks */
+int gravtms[3]; /* gravity time series */
 
 REAL damping[6]; /* linear and angular damping */
 pointer_t lindamp; /* linead damping callback */
@@ -1614,6 +1615,7 @@ void reset ()
   /* zero gravity by default */
   gravity[0] = gravity[1] = gravity[2] = 0.0;
   gravfunc[0] = gravfunc[1] = gravfunc[2] = NULL;
+  gravtms[0] = gravtms[1] = gravtms[2] = -1;
 
   /* no prescribed body forces by default */
   prescribed_body_forces = NULL;
@@ -1713,7 +1715,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, ch
     condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
-    read_gravity_and_damping (time, gravfunc, gravity, lindamp, angdamp, damping);
+    read_gravity_and_damping (time, tms, gravfunc, gravtms, gravity, lindamp, angdamp, damping);
 
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,

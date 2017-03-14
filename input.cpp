@@ -1898,10 +1898,24 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   if (PyCallable_Check (gx))
   {
     gravfunc[0] = gx;
+
+    gravtms[0] = -1;
   }
-  else if (PyNumber_Check(gx))
+  else if (PyFloat_Check(gx))
   {
     gravity[0] = PyFloat_AsDouble(gx);
+  }
+  else if (PyInt_Check(gx))
+  {
+    gravtms[0] = PyInt_AsLong(gx);
+
+    gravfunc[0] = NULL;
+
+    if (gravtms[0] < 0 || gravtms[0] >= tmsnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid TSERIES number for gx");
+      return NULL;
+    }
   }
   else
   {
@@ -1912,10 +1926,24 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   if (PyCallable_Check (gy))
   {
     gravfunc[1] = gy;
+
+    gravtms[1] = -1;
   }
-  else if (PyNumber_Check(gy))
+  else if (PyFloat_Check(gy))
   {
     gravity[1] = PyFloat_AsDouble(gy);
+  }
+  else if (PyInt_Check(gy))
+  {
+    gravtms[1] = PyInt_AsLong(gy);
+
+    gravfunc[1] = NULL;
+
+    if (gravtms[1] < 0 || gravtms[1] >= tmsnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid TSERIES number for gy");
+      return NULL;
+    }
   }
   else
   {
@@ -1926,11 +1954,26 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   if (PyCallable_Check (gz))
   {
     gravfunc[2] = gz;
+
+    gravtms[2] = -1;
   }
-  else if (PyNumber_Check(gz))
+  else if (PyFloat_Check(gz))
   {
     gravity[2] = PyFloat_AsDouble(gz);
   }
+  else if (PyInt_Check(gz))
+  {
+    gravtms[2] = PyInt_AsLong(gz);
+
+    gravfunc[2] = NULL;
+
+    if (gravtms[2] < 0 || gravtms[2] >= tmsnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid TSERIES number for gz");
+      return NULL;
+    }
+  }
+
   else
   {
     PyErr_SetString (PyExc_ValueError, "Invalid gz component");
@@ -2926,7 +2969,8 @@ void prescribe_velocity (int prsnum, pointer_t tms[], int prspart[], pointer_t p
 }
 
 /* read gravity and global damping */
-void read_gravity_and_damping (REAL time, pointer_t gravfunc[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6])
+void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3],
+  int gravtms[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6])
 {
   for (int i = 0; i < 3; i ++)
   {
@@ -2942,6 +2986,10 @@ void read_gravity_and_damping (REAL time, pointer_t gravfunc[3], REAL gravity[3]
       Py_DECREF (result);
 
       Py_DECREF (args);
+    }
+    else if (gravtms[i] >= 0 && gravtms[i] < tmsnum)
+    {
+      gravity[i] = TMS_Value ((TMS*)tms[gravtms[i]], time);
     }
   }
 

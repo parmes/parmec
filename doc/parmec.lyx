@@ -79,7 +79,7 @@
 \begin_body
 
 \begin_layout Title
-PARMEC MANUAL
+PARMEC USER MANUAL
 \end_layout
 
 \begin_layout Standard
@@ -196,7 +196,7 @@ target "http://www.ovito.org"
 
 \end_inset
 
- and/or 
+, 
 \begin_inset CommandInset href
 LatexCommand href
 name "ParaView"
@@ -204,21 +204,18 @@ target "http://www.paraview.org"
 
 \end_inset
 
+ or 
+\begin_inset CommandInset href
+LatexCommand href
+name "VisIt"
+target "https://wci.llnl.gov/simulation/computer-codes/visit"
+
+\end_inset
+
 , as documented in Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "cha:Output viewers"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-A tutorial is provided in Chapter 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cha:Tutorial"
 
 \end_inset
 
@@ -1706,15 +1703,7 @@ linear
 \begin_inset Formula $(i,j,k)$
 \end_inset
 
- of 
-\emph on
-time series numbers
-\emph default
- 
-\series bold
-or
-\series default
- a callback: 
+ of TSERIES numbers, or a callback: 
 \begin_inset Formula $\left(v_{x},v_{y},v_{z}\right)=$
 \end_inset
 
@@ -1740,15 +1729,7 @@ angular
 \begin_inset Formula $(i,j,k)$
 \end_inset
 
- of 
-\emph on
-time series numbers
-\emph default
- 
-\series bold
-or
-\series default
- a callback: 
+ of TSERIES numbers, or a callback: 
 \begin_inset Formula $\left(\omega_{x},\omega_{y},\omega_{z}\right)=$
 \end_inset
 
@@ -1871,7 +1852,19 @@ GRAVITY (gx, gy, gz)
 \series bold
 gx
 \series default
- - constant x component or callback gx(t)
+ - constant 
+\begin_inset Formula $x$
+\end_inset
+
+ float number, or callback 
+\series bold
+gx
+\series default
+
+\begin_inset Formula $(t)$
+\end_inset
+
+, or TSERIES number
 \end_layout
 
 \begin_layout Itemize
@@ -1879,7 +1872,19 @@ gx
 \series bold
 gy
 \series default
- - constant y component or callback gy(t)
+ - constant 
+\begin_inset Formula $y$
+\end_inset
+
+ float number, or callback 
+\series bold
+gy
+\series default
+
+\begin_inset Formula $(t)$
+\end_inset
+
+, or TSERIES number
 \end_layout
 
 \begin_layout Itemize
@@ -1887,7 +1892,19 @@ gy
 \series bold
 gz
 \series default
- - constant z component or callback gz(t)
+ - constant 
+\begin_inset Formula $z$
+\end_inset
+
+ float number, or callback 
+\series bold
+gz
+\series default
+
+\begin_inset Formula $(t)$
+\end_inset
+
+, or TSERIES number
 \end_layout
 
 \begin_layout Section
@@ -2462,7 +2479,7 @@ prefix
 \begin_layout Itemize
 
 \series bold
-adpative
+adaptive
 \series default
  - adaptive time step reduction factor; zero turns off adaptive time stepping,
  values 
@@ -2506,22 +2523,6 @@ name "cha:Output viewers"
 \end_inset
 
 Output viewers
-\end_layout
-
-\begin_layout Standard
-
-\color red
-(Under development)
-\end_layout
-
-\begin_layout Chapter
-\begin_inset CommandInset label
-LatexCommand label
-name "cha:Tutorial"
-
-\end_inset
-
-Tutorial
 \end_layout
 
 \begin_layout Standard
