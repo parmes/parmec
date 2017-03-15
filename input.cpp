@@ -504,6 +504,23 @@ static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
 	values [i] = PyFloat_AsDouble (PyList_GetItem (pv, 1));
       }
     }
+    else if (PyTuple_Check (PyList_GetItem (points, 0)))
+    {
+      n = PyList_Size (points);
+
+      ERRMEM (times = (REAL*)malloc (sizeof (REAL [n])));
+      ERRMEM (values = (REAL*)malloc (sizeof (REAL [n])));
+
+      for (i = 0; i < n; i ++)
+      {
+	PyObject *pv = PyList_GetItem (points, i);
+
+	TYPETEST (is_tuple (pv, "(t,v)", 2));
+
+	times [i] = PyFloat_AsDouble (PyTuple_GetItem (pv, 0));
+	values [i] = PyFloat_AsDouble (PyTuple_GetItem (pv, 1));
+      }
+    }
     else
     {
       if (PyList_Size(points) < 4)
@@ -1991,10 +2008,73 @@ static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("OO", &linear, &angular);
 
-  TYPETEST (is_callable (linear, kwl[0]) && is_callable (angular, kwl[1]));
+  if (PyCallable_Check (linear))
+  {
+    lindamp = linear;
 
-  lindamp = linear;
-  angdamp = angular;
+    lindamptms[0] = lindamptms[1] = lindamptms[2] = -1;
+  }
+  else if (PyTuple_Check(linear))
+  {
+    if (PyTuple_Size(linear) != 3)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid linear damping tuple size");
+      return NULL;
+    }
+
+    lindamptms[0] = PyInt_AsLong(PyTuple_GetItem(linear, 0));
+    lindamptms[1] = PyInt_AsLong(PyTuple_GetItem(linear, 1));
+    lindamptms[2] = PyInt_AsLong(PyTuple_GetItem(linear, 2));
+
+    lindamp = NULL;
+
+    if (lindamptms[0] < 0 || lindamptms[0] >= tmsnum ||
+        lindamptms[1] < 0 || lindamptms[1] >= tmsnum ||
+        lindamptms[2] < 0 || lindamptms[2] >= tmsnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid TSERIES number in linear damping tuple");
+      return NULL;
+    }
+  }
+  else
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid linear damping argument type");
+    return NULL;
+  }
+
+  if (PyCallable_Check (angular))
+  {
+    angdamp = angular;
+
+    angdamptms[0] = angdamptms[1] = angdamptms[2] = -1;
+  }
+  else if (PyTuple_Check(angular))
+  {
+    if (PyTuple_Size(angular) != 3)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid angular damping tuple size");
+      return NULL;
+    }
+
+    angdamptms[0] = PyInt_AsLong(PyTuple_GetItem(angular, 0));
+    angdamptms[1] = PyInt_AsLong(PyTuple_GetItem(angular, 1));
+    angdamptms[2] = PyInt_AsLong(PyTuple_GetItem(angular, 2));
+
+    angdamp = NULL;
+
+    if (angdamptms[0] < 0 || angdamptms[0] >= tmsnum ||
+        angdamptms[1] < 0 || angdamptms[1] >= tmsnum ||
+        angdamptms[2] < 0 || angdamptms[2] >= tmsnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid TSERIES number in angular damping tuple");
+      return NULL;
+    }
+  }
+  else
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid angular damping argument type");
+    return NULL;
+  }
 
   Py_RETURN_NONE;
 }
@@ -2017,6 +2097,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   double duration, step, adaptive;
   PyObject *prefix, *interval;
   pointer_t dt_func[2];
+  int dt_tms[2];
   REAL dt[2];
   char *pre;
 
@@ -2045,11 +2126,25 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	dt[0] = 0.0;
 	dt_func[0] = dt0;
+	dt_tms[0] = -1;
+      }
+      else if (PyInt_Check (dt0))
+      {
+	dt[0] = 0.0;
+	dt_func[0] = NULL;
+	dt_tms[0] = PyInt_AsLong (dt0);
+
+	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+	  return NULL;
+	}
       }
       else
       {
 	dt[0] = PyFloat_AsDouble (dt0);
 	dt_func[0] = NULL;
+	dt_tms[0] -1;
       }
 
       PyObject *dt1 = PyTuple_GetItem (interval, 1);
@@ -2058,30 +2153,58 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	dt[1] = 0.0;
 	dt_func[1] = dt1;
+	dt_tms[1] = -1;
+      }
+      else if (PyInt_Check (dt1))
+      {
+	dt[1] = 0.0;
+	dt_func[1] = NULL;
+	dt_tms[1] = PyInt_AsLong (dt1);
+
+	if (dt_tms[1] < 0 || dt_tms[1] >= tmsnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+	  return NULL;
+	}
       }
       else
       {
 	dt[1] = PyFloat_AsDouble (dt1);
 	dt_func[1] = NULL;
+	dt_tms[1] = -1;
       }
     }
     else 
     {
       if (PyCallable_Check (interval))
       {
-	dt_func[0] = dt_func[1] = interval;
         dt[0] = dt[1] = 0.0;
+	dt_func[0] = dt_func[1] = interval;
+	dt_tms[0] = dt_tms[1] = -1;
+      }
+      else if (PyInt_Check (interval))
+      {
+        dt[0] = dt[1] = 0.0;
+	dt_func[0] = dt_func[1] = NULL;
+	dt_tms[0] = dt_tms[1] = PyInt_AsLong (interval);
+
+	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+	  return NULL;
+	}
       }
       else
       {
         dt[0] = dt[1] = PyFloat_AsDouble (interval);
 	dt_func[0] = dt_func[1] = NULL;
+	dt_tms[0] = dt_tms[1] = -1;
       }
     }
 
     if (dt[0] < 0.0 || dt[1] < 0.0)
     {
-      PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+      PyErr_SetString (PyExc_ValueError, "Invalid, negative, output interval");
       return NULL;
     }
   }
@@ -2089,6 +2212,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   {
     dt[0] = dt[1] = step;
     dt_func[0] = dt_func[1] = NULL;
+    dt_tms[0] = dt_tms[1] = -1;
   }
 
   if (prefix)
@@ -2097,7 +2221,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else pre = NULL;
 
-  duration = dem (duration, step, dt, dt_func, pre, 1, adaptive);
+  duration = dem (duration, step, dt, dt_func, dt_tms, pre, 1, adaptive);
 
   return Py_BuildValue ("d", duration); /* PyFloat_FromDouble (dt) */
 }
@@ -2969,8 +3093,8 @@ void prescribe_velocity (int prsnum, pointer_t tms[], int prspart[], pointer_t p
 }
 
 /* read gravity and global damping */
-void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3],
-  int gravtms[3], REAL gravity[3], pointer_t lindamp, pointer_t angdamp, REAL damping[6])
+void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3], int gravtms[3],
+  REAL gravity[3], pointer_t lindamp, int lindamptms[3], pointer_t angdamp, int angdamptms[3], REAL damping[6])
 {
   for (int i = 0; i < 3; i ++)
   {
@@ -2993,7 +3117,7 @@ void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3],
     }
   }
 
-  if (lindamp && angdamp)
+  if (lindamp)
   {
     PyObject *result, *args;
 
@@ -3006,6 +3130,27 @@ void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3],
     damping[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
     Py_DECREF (result);
 
+    Py_DECREF (args);
+  }
+  else if (lindamptms[0] >= 0 && lindamptms[0] < tmsnum &&
+           lindamptms[1] >= 0 && lindamptms[1] < tmsnum &&
+           lindamptms[2] >= 0 && lindamptms[2] < tmsnum)
+  {
+    damping[0] = TMS_Value ((TMS*)tms[lindamptms[0]], time);
+    damping[1] = TMS_Value ((TMS*)tms[lindamptms[1]], time);
+    damping[2] = TMS_Value ((TMS*)tms[lindamptms[2]], time);
+  }
+  else
+  {
+    damping[0] = damping[1] = damping[2] = 0.0;
+  }
+
+  if (angdamp)
+  {
+    PyObject *result, *args;
+
+    args = Py_BuildValue ("(d)", time);
+
     result = PyObject_CallObject ((PyObject*)angdamp, args);
     ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dox, doy, doz) tuple");
     damping[3] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
@@ -3015,9 +3160,17 @@ void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3],
 
     Py_DECREF (args);
   }
+  else if (angdamptms[0] >= 0 && angdamptms[0] < tmsnum &&
+           angdamptms[1] >= 0 && angdamptms[1] < tmsnum &&
+           angdamptms[2] >= 0 && angdamptms[2] < tmsnum)
+  {
+    damping[3] = TMS_Value ((TMS*)tms[angdamptms[0]], time);
+    damping[4] = TMS_Value ((TMS*)tms[angdamptms[1]], time);
+    damping[5] = TMS_Value ((TMS*)tms[angdamptms[2]], time);
+  }
   else
   {
-    damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;
+    damping[3] = damping[4] = damping[5] = 0.0;
   }
 }
 

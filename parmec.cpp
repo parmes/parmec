@@ -213,7 +213,9 @@ int gravtms[3]; /* gravity time series */
 
 REAL damping[6]; /* linear and angular damping */
 pointer_t lindamp; /* linead damping callback */
+int lindamptms[3]; /* linear damping time series */
 pointer_t angdamp; /* angular damping callback */
+int angdamptms[3]; /* angular damping time series */
 
 MAP *prescribed_body_forces; /* particle index based map of prescibed body forces */
 
@@ -1611,6 +1613,8 @@ void reset ()
   /* zero global damping by default */
   damping[0] = damping[1] = damping[2] = damping[3] = damping[4] = damping[5] = 0.0;
   lindamp = angdamp = NULL;
+  lindamptms[0] = lindamptms[1] = lindamptms[2] = -1;
+  angdamptms[0] = angdamptms[2] = angdamptms[2] = -1;
 
   /* zero gravity by default */
   gravity[0] = gravity[1] = gravity[2] = 0.0;
@@ -1624,7 +1628,7 @@ void reset ()
 }
 
 /* run DEM simulation */
-REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, char *prefix, int verbose, double adaptive)
+REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, int interval_tms[2], char *prefix, int verbose, double adaptive)
 {
   REAL time, dt, step0, step1;
   timing tt;
@@ -1715,7 +1719,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, ch
     condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
-    read_gravity_and_damping (time, tms, gravfunc, gravtms, gravity, lindamp, angdamp, damping);
+    read_gravity_and_damping (time, tms, gravfunc, gravtms, gravity, lindamp, lindamptms, angdamp, angdamptms, damping);
 
     forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
@@ -1745,10 +1749,22 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, ch
     prescribe_velocity (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
                         tmsang, angkind, curtime, rotation, linear, angular);
 
-    if (interval && interval_func)
+    if (interval && interval_func && interval_func[0])
     {
-      if (interval_func[0]) interval[0] = current_interval(interval_func[0], curtime);
-      if (interval_func[1]) interval[1] = current_interval(interval_func[1], curtime);
+      interval[0] = current_interval(interval_func[0], curtime);
+    }
+    else if (interval && interval_tms[0] >= 0 && interval_tms[0] < tmsnum)
+    {
+      interval[0] = TMS_Value ((TMS*)tms[interval_tms[0]], curtime);
+    }
+
+    if (interval && interval_func && interval_func[1])
+    {
+      interval[1] = current_interval(interval_func[1], curtime);
+    }
+    else if (interval && interval_tms[1] >= 0 && interval_tms[1] < tmsnum)
+    {
+      interval[1] = TMS_Value ((TMS*)tms[interval_tms[1]], curtime);
     }
 
     if (interval && curtime >= curtime_output + interval[0]) /* full update, due to output */

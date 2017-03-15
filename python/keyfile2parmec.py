@@ -127,12 +127,6 @@ parmec.write ('\n')
 parmec.write ('#\n')
 parmec.write ('# prescribe acceleration\n')
 parmec.write ('#\n')
-parmec.write ('try:\n')
-parmec.write ('  from scipy.interpolate import interp1d\n')
-parmec.write ('except:\n')
-parmec.write ('  print "'"ERROR: SciPy interp1d failed to load -->"'"\n')
-parmec.write ('  print "'"       perhaps SciPy needs to be installed"'"\n')
-parmec.write ('\n')
 
 #DEFINE_CURVE
 print 'Writing parmec file (load curves)...'
@@ -146,7 +140,9 @@ for lc in keyfile['DEFINE_CURVE']:
     curve.append (t)
     curve.append (v)
   parmec.write ('curve%d = %s\n' % (lc['LCID'], str(curve)))
-parmec.write ('curve0 = [-1, 0, 1, 0]\n\n')
+  parmec.write ('tms%d = TSERIES(curve%d)\n' % (lc['LCID'], lc['LCID']))
+parmec.write ('curve0 = [-1.0, 0.0, 1.0, 0.0]\n')
+parmec.write ('tms0 = TSERIES(0.0)\n\n')
 
 #BOUNDARY_PRESCRIBED_MOTION_NODE
 print 'Writing parmec file (boundary conditions)...'
@@ -160,12 +156,12 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
       print '       node with ID =', bc['NID'], 'was not defined as a mass center in a PART_INERTIA card'
       sys.exit(1)
     if pid not in pidset:
-      parmec.write ('def ACC%d_LIN_X(t): return 0.0\n' % pid)
-      parmec.write ('def ACC%d_LIN_Y(t): return 0.0\n' % pid)
-      parmec.write ('def ACC%d_LIN_Z(t): return 0.0\n' % pid)
-      parmec.write ('def ACC%d_ANG_X(t): return 0.0\n' % pid)
-      parmec.write ('def ACC%d_ANG_Y(t): return 0.0\n' % pid)
-      parmec.write ('def ACC%d_ANG_Z(t): return 0.0\n' % pid)
+      parmec.write ('ACC%d_LIN_X = tms0\n' % pid)
+      parmec.write ('ACC%d_LIN_Y = tms0\n' % pid)
+      parmec.write ('ACC%d_LIN_Z = tms0\n' % pid)
+      parmec.write ('ACC%d_ANG_X = tms0\n' % pid)
+      parmec.write ('ACC%d_ANG_Y = tms0\n' % pid)
+      parmec.write ('ACC%d_ANG_Z = tms0\n' % pid)
     pidset.add (pid)
 
   parmec.write ('\n')
@@ -182,25 +178,23 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
       print 'ERROR: prescribed node motion VAD != 1 (acceleration)'
       sys.exit(1)
     if dof == 1:
-      parmec.write ('ACC%d_LIN_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      parmec.write ('ACC%d_LIN_X = tms%d\n' % (pid, lcid))
     elif dof == 2:
-      parmec.write ('ACC%d_LIN_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid)) 
+      parmec.write ('ACC%d_LIN_Y = tms%d\n' % (pid, lcid)) 
     elif dof == 3:
-      parmec.write ('ACC%d_LIN_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      parmec.write ('ACC%d_LIN_Z = tms%d\n' % (pid, lcid))
     elif dof == 5:
-      parmec.write ('ACC%d_ANG_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      parmec.write ('ACC%d_ANG_X = tms%d\n' % (pid, lcid))
     elif dof == 6:
-      parmec.write ('ACC%d_ANG_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      parmec.write ('ACC%d_ANG_Y = tms%d\n' % (pid, lcid))
     elif dof == 7:
-      parmec.write ('ACC%d_ANG_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+      parmec.write ('ACC%d_ANG_Z = tms%d\n' % (pid, lcid))
 
   parmec.write ('\n')
   parmec.write ('# prescribe acceleration\n')
   for pid in pidset:
-    parmec.write ('def ACC%d_LIN(t):\n' % pid)
-    parmec.write ('  return (float(ACC%d_LIN_X(t)), float(ACC%d_LIN_Y(t)), float(ACC%d_LIN_Z(t)))\n' % (pid, pid, pid))
-    parmec.write ('def ACC%d_ANG(t):\n' % pid)
-    parmec.write ('  return (float(ACC%d_ANG_X(t)), float(ACC%d_ANG_Y(t)), float(ACC%d_ANG_Z(t)))\n' % (pid, pid, pid))
+    parmec.write ('ACC%d_LIN = (ACC%d_LIN_X, ACC%d_LIN_Y, ACC%d_LIN_Z)\n' % (pid, pid, pid, pid))
+    parmec.write ('ACC%d_ANG = (ACC%d_ANG_X, ACC%d_ANG_Y, ACC%d_ANG_Z)\n' % (pid, pid, pid, pid))
     parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, "'"aa"'")\n' % (pid, pid, pid))
     parmec.write ('\n')
 
@@ -216,12 +210,12 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
 	print '       node with ID =', nid, 'was not defined as a mass center in a PART_INERTIA card'
 	sys.exit(1)
       if pid not in pidset:
-	parmec.write ('def ACC%d_LIN_X(t): return 0.0\n' % pid)
-	parmec.write ('def ACC%d_LIN_Y(t): return 0.0\n' % pid)
-	parmec.write ('def ACC%d_LIN_Z(t): return 0.0\n' % pid)
-	parmec.write ('def ACC%d_ANG_X(t): return 0.0\n' % pid)
-	parmec.write ('def ACC%d_ANG_Y(t): return 0.0\n' % pid)
-	parmec.write ('def ACC%d_ANG_Z(t): return 0.0\n' % pid)
+	parmec.write ('ACC%d_LIN_X = tms0\n' % pid)
+	parmec.write ('ACC%d_LIN_Y = tms0\n' % pid)
+	parmec.write ('ACC%d_LIN_Z = tms0\n' % pid)
+	parmec.write ('ACC%d_ANG_X = tms0\n' % pid)
+	parmec.write ('ACC%d_ANG_Y = tms0\n' % pid)
+	parmec.write ('ACC%d_ANG_Z = tms0\n' % pid)
       pidset.add (pid)
 
   parmec.write ('\n')
@@ -239,25 +233,23 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
 	print 'ERROR: prescribed node motion VAD != 1 (acceleration)'
 	sys.exit(1)
       if dof == 1:
-	parmec.write ('ACC%d_LIN_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+	parmec.write ('ACC%d_LIN_X = tms%d\n' % (pid, lcid))
       elif dof == 2:
-	parmec.write ('ACC%d_LIN_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+	parmec.write ('ACC%d_LIN_Y = tms%d\n' % (pid, lcid))
       elif dof == 3:
-	parmec.write ('ACC%d_LIN_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+	parmec.write ('ACC%d_LIN_Z = tms%d\n' % (pid, lcid))
       elif dof == 5:
-	parmec.write ('ACC%d_ANG_X = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+	parmec.write ('ACC%d_ANG_X = tms%d\n' % (pid, lcid))
       elif dof == 6:
-	parmec.write ('ACC%d_ANG_Y = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+	parmec.write ('ACC%d_ANG_Y = tms%d\n' % (pid, lcid))
       elif dof == 7:
-	parmec.write ('ACC%d_ANG_Z = interp1d(curve%d[::2], curve%d[1::2])\n' % (pid, lcid, lcid))
+	parmec.write ('ACC%d_ANG_Z = tms%d\n' % (pid, lcid))
 
     parmec.write ('\n')
     parmec.write ('# prescribe acceleration\n')
     for pid in pidset:
-      parmec.write ('def ACC%d_LIN(t):\n' % pid)
-      parmec.write ('  return (float(ACC%d_LIN_X(t)), float(ACC%d_LIN_Y(t)), float(ACC%d_LIN_Z(t)))\n' % (pid, pid, pid))
-      parmec.write ('def ACC%d_ANG(t):\n' % pid)
-      parmec.write ('  return (float(ACC%d_ANG_X(t)), float(ACC%d_ANG_Y(t)), float(ACC%d_ANG_Z(t)))\n' % (pid, pid, pid))
+      parmec.write ('ACC%d_LIN = (ACC%d_LIN_X, ACC%d_LIN_Y, ACC%d_LIN_Z)\n' % (pid, pid, pid, pid))
+      parmec.write ('ACC%d_ANG = (ACC%d_ANG_X, ACC%d_ANG_Y, ACC%d_ANG_Z)\n' % (pid, pid, pid, pid))
       parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, "'"aa"'")\n' % (pid, pid, pid))
       parmec.write ('\n')
 
@@ -362,8 +354,8 @@ if lbz != None:
   parmec.write ('# gravity\n')
   parmec.write ('#\n')
   lcid = lbz['LCID']
-  parmec.write ('gz = interp1d(curve%d[::2], [-g for g in curve%d[1::2]])\n' % (lcid, lcid))
-  parmec.write ('GRAVITY (0, 0, gz)\n')
+  parmec.write ('gz = TSERIES(zip(curve%d[::2], [-g for g in curve%d[1::2]]))\n' % (lcid, lcid))
+  parmec.write ('GRAVITY (0.0, 0.0, gz)\n')
 
 gd = keyfile.getcard('DAMPING_GLOBAL')
 if gd != None:
@@ -372,9 +364,14 @@ if gd != None:
   parmec.write ('# global damping\n')
   parmec.write ('#\n')
   lcid = gd['LCID']
-  parmec.write ('dmp = interp1d(curve%d[::2], curve%d[1::2])\n' % (lcid, lcid))
-  parmec.write ('def dmplin(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['STX'], gd['STY'], gd['STZ']))
-  parmec.write ('def dmpang(t): return (%g*dmp(t), %g*dmp(t), %g*dmp(t))\n' % (gd['SRX'], gd['SRY'], gd['SRZ']))
+  parmec.write ('DMP_LIN_X = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['STX'], lcid))
+  parmec.write ('DMP_LIN_Y = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['STY'], lcid))
+  parmec.write ('DMP_LIN_Z = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['STZ'], lcid))
+  parmec.write ('DMP_ANG_X = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['SRX'], lcid))
+  parmec.write ('DMP_ANG_Y = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['SRY'], lcid))
+  parmec.write ('DMP_ANG_Z = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['SRZ'], lcid))
+  parmec.write ('dmplin = (DMP_LIN_X, DMP_LIN_Y, DMP_LIN_Z)\n');
+  parmec.write ('dmpang = (DMP_ANG_X, DMP_ANG_Y, DMP_ANG_Z)\n');
   parmec.write ('DAMPING (dmplin, dmpang)\n')
 
 print 'Writing parmec file (output intervals)...'
@@ -384,13 +381,13 @@ parmec.write ('#\n')
 d3plot = keyfile.getcard('DATABASE_BINARY_D3PLOT')
 if d3plot != None:
   lcdt = d3plot['LCDT']
-  parmec.write ('dt_files = interp1d(curve%d[::2], curve%d[1::2])\n' % (lcdt, lcdt))
+  parmec.write ('dt_files = tms%d\n' % lcdt)
 else: parmec.write ('dt_fiels = 0\n')
 
 d3thdt = keyfile.getcard('DATABASE_BINARY_D3THDT')
 if d3thdt != None:
   lcdt = d3thdt['LCDT']
-  parmec.write ('dt_hist = interp1d(curve%d[::2], curve%d[1::2])\n' % (lcdt, lcdt))
+  parmec.write ('dt_hist = tms%d\n' % lcdt)
 else: parmec.write ('dt_hist = 0\n')
 
 ct = keyfile.getcard('CONTROL_TERMINATION')

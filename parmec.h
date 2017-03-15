@@ -205,7 +205,9 @@ extern int gravtms[3]; /* gravity time series */
 
 extern REAL damping[6]; /* linear and angular damping */
 extern pointer_t lindamp; /* linead damping callback */
+extern int lindamptms[3]; /* linear damping time series */
 extern pointer_t angdamp; /* angular damping callback */
+extern int angdamptms[3]; /* angular damping time series */
 
 struct prescribed_body_force /* externally prescribed body force */
 {
@@ -228,7 +230,8 @@ void reset (); /* reset all simulation data */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, char *prefix, int verbose, double adaptive); /* run DEM simulation (return timed duration) */
+REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func,
+  int interval_tms[2], char *prefix, int verbose, double adaptive); /* run DEM simulation (return timed duration) */
 
 #ifdef __cplusplus
 } /* namespace */
