@@ -10,7 +10,7 @@ tic = time.clock()
 
 # check input syntax
 if len(sys.argv) < 3:
-  print 'SYNOPSIS: python keyfile2parmec.py path_to_keyfile path_to_parmec_file'
+  print 'SYNOPSIS: python [--skip_general_nonlinear_springs] keyfile2parmec.py path_to_keyfile path_to_parmec_file'
   sys.exit(0)
 
 # auxiliary vector/matrix operations
@@ -31,12 +31,24 @@ def matmat(a, b):
 def trans(a):
   return (a[0], a[3], a[6], a[1], a[4], a[7], a[2], a[5], a[8])
 
+# parse input parameters
+skip_general_nonlinear_springs = 0
+key_path_index = 1
+out_path_index = 2
+for i in range (1,len(sys.argv)):
+  if sys.argv[i] == '--skip_general_nonlinear_springs':
+    skip_general_nonlinear_springs = 1
+  elif sys.argv[i].endswith('.key'):
+    key_path_index = i
+  elif sys.argv[i].endswith('.py'):
+    out_path_index = i
+
 # begin processing files
 print 'Parsing keyfile...'
-keyfile = Keyfile(sys.argv[1])
+keyfile = Keyfile(sys.argv[key_path_index])
 
 print 'Writing parmec file (rigid bodies)...'
-parmec = open(sys.argv[2], 'w')
+parmec = open(sys.argv[out_path_index], 'w')
 
 parmec.write ('pid2num = {} # PART_INERTIA to particle number mapping\n')
 parmec.write ('eid2num = {} # ELEMENT_DISCRETE to spring number mapping\n')
@@ -318,7 +330,7 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   pid = ed['PID']
   mid = pid2mid[pid]
   try:
-    mat = mid2mat[mid] # this can give exception 'mid' is not MAT_SPRING_NONLINEAR_ELASTIC
+    mat = mid2mat[mid] # this can give rise to exception if 'mid' is not MAT_SPRING_NONLINEAR_ELASTIC
     lcd = mat['LCD']
     lcr = mat['LCR']
     spring = 'curve%d' % lcd
@@ -331,21 +343,22 @@ for ed in keyfile['ELEMENT_DISCRETE']:
 		   (pid1, str(pnt1), pid2, str(pnt2), spring, damper))
     parmec.write ('eid2num[%d] = num\n' % ed['EID'])
   except:
-    mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=mid) # TODO: optimize out by mapping
-    if mat != None:
-      lcdl = mat['LCDL']
-      lcdu = mat['LCDU']
-      spring = 'curve%d' % lcdl
-      unload = 'curve%d' % lcdu
-      if direct != None:
-	parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, direction=%s, planar="'"%s"'", unload=%s)\n' % \
-		     (pid1, str(pnt1), pid2, str(pnt2), spring, direct, planar, unload))
+    if not skip_general_nonlinear_springs:
+      mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=mid) # TODO: optimize out by mapping
+      if mat != None:
+	lcdl = mat['LCDL']
+	lcdu = mat['LCDU']
+	spring = 'curve%d' % lcdl
+	unload = 'curve%d' % lcdu
+	if direct != None:
+	  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, direction=%s, planar="'"%s"'", unload=%s)\n' % \
+		       (pid1, str(pnt1), pid2, str(pnt2), spring, direct, planar, unload))
+	else:
+	  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, unload=%s)\n' % \
+		       (pid1, str(pnt1), pid2, str(pnt2), spring, unload))
+	parmec.write ('eid2num[%d] = num\n' % ed['EID'])
       else:
-	parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, unload=%s)\n' % \
-		     (pid1, str(pnt1), pid2, str(pnt2), spring, unload))
-      parmec.write ('eid2num[%d] = num\n' % ed['EID'])
-    else:
-      print 'ERROR: MAT_SPRING_GENERAL_NONLINEAR with MID', mid, 'has not been found'
+	print 'ERROR: MAT_SPRING_GENERAL_NONLINEAR with MID', mid, 'has not been found'
 
 lbz = keyfile.getcard('LOAD_BODY_Z')
 if lbz != None:
