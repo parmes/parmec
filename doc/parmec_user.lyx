@@ -222,6 +222,22 @@ libparmec8.a, paremc8.h (double precision library, header)
 
 \end_layout
 
+\begin_layout Standard
+To update parmec type:
+\end_layout
+
+\begin_layout LyX-Code
+make clean
+\end_layout
+
+\begin_layout LyX-Code
+git pull
+\end_layout
+
+\begin_layout LyX-Code
+make
+\end_layout
+
 \begin_layout Chapter
 \begin_inset CommandInset label
 LatexCommand label
@@ -238,8 +254,7 @@ PARMEC is a command line program.
 \end_layout
 
 \begin_layout Enumerate
-Place PARMEC in a globally accessible path (e.g.
- suitably extend the PATH variable on a unix system).
+Include parmec directory into your PATH variable.
 \end_layout
 
 \begin_layout Enumerate
@@ -349,7 +364,14 @@ target "https://wci.llnl.gov/simulation/computer-codes/visit"
 
 \end_inset
 
-, as documented in Chapter 
+, as documented in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+ and Chapter 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "cha:Output viewers"
@@ -1017,7 +1039,7 @@ name "fig:eletype"
 
 \end_inset
 
-Element types.
+Mesh element types in Parmec.
 \end_layout
 
 \end_inset
