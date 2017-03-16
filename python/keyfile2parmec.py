@@ -8,11 +8,6 @@ from sets import Set
 # start timer
 tic = time.clock()
 
-# check input syntax
-if len(sys.argv) < 3:
-  print 'SYNOPSIS: python [--skip_general_nonlinear_springs] keyfile2parmec.py path_to_keyfile path_to_parmec_file'
-  sys.exit(0)
-
 # auxiliary vector/matrix operations
 def cross(a, b):
   return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
@@ -31,10 +26,10 @@ def matmat(a, b):
 def trans(a):
   return (a[0], a[3], a[6], a[1], a[4], a[7], a[2], a[5], a[8])
 
-# parse input parameters
+# parse command line arguments
 skip_general_nonlinear_springs = 0
-key_path_index = 1
-out_path_index = 2
+key_path_index = -1
+out_path_index = -1
 for i in range (1,len(sys.argv)):
   if sys.argv[i] == '--skip_general_nonlinear_springs':
     skip_general_nonlinear_springs = 1
@@ -42,6 +37,19 @@ for i in range (1,len(sys.argv)):
     key_path_index = i
   elif sys.argv[i].endswith('.py'):
     out_path_index = i
+  else:
+    print 'invalid command line argument:', sys.argv[i]
+
+# check input syntax
+if key_path_index == -1 or out_path_index == -1:
+  print 'SYNOPSIS: python [--skip_general_nonlinear_springs] keyfile2parmec.py path_to_keyfile path_to_parmec_file'
+  sys.exit(0)
+
+# print command line info
+print 'Input file:', sys.argv[key_path_index]
+print 'Output file:', sys.argv[out_path_index]
+if skip_general_nonlinear_springs:
+  print 'Skipping general nonlinear springs enabled'
 
 # begin processing files
 print 'Parsing keyfile...'
@@ -343,7 +351,9 @@ for ed in keyfile['ELEMENT_DISCRETE']:
 		   (pid1, str(pnt1), pid2, str(pnt2), spring, damper))
     parmec.write ('eid2num[%d] = num\n' % ed['EID'])
   except:
-    if not skip_general_nonlinear_springs:
+    if skip_general_nonlinear_springs:
+      print 'skipping general nonlinear spring element', ed['EID']
+    else:
       mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=mid) # TODO: optimize out by mapping
       if mat != None:
 	lcdl = mat['LCDL']
