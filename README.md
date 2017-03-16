@@ -1,4 +1,4 @@
-# parmec
+# Parmec
 Particulate media code.
 
 Parmec is a prototype of a vectorized and task based discrete element software, implemented using
