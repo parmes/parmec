@@ -28,11 +28,14 @@ def trans(a):
 
 # parse command line arguments
 skip_general_nonlinear_springs = 0
+flip_gravity = 0
 key_path_index = -1
 out_path_index = -1
 for i in range (1,len(sys.argv)):
   if sys.argv[i] == '--skip_general_nonlinear_springs':
     skip_general_nonlinear_springs = 1
+  elif sys.argv[i] == '--flip_gravity':
+    flip_gravity = 1
   elif sys.argv[i].endswith('.key'):
     key_path_index = i
   elif sys.argv[i].endswith('.py'):
@@ -42,7 +45,7 @@ for i in range (1,len(sys.argv)):
 
 # check input syntax
 if key_path_index == -1 or out_path_index == -1:
-  print 'SYNOPSIS: python [--skip_general_nonlinear_springs] keyfile2parmec.py path_to_keyfile path_to_parmec_file'
+  print 'SYNOPSIS: python [--flip_gravity] [--skip_general_nonlinear_springs] keyfile2parmec.py path_to_keyfile path_to_parmec_file'
   sys.exit(0)
 
 # print command line info
@@ -50,6 +53,8 @@ print 'Input file:', sys.argv[key_path_index]
 print 'Output file:', sys.argv[out_path_index]
 if skip_general_nonlinear_springs:
   print 'Skipping general nonlinear springs enabled'
+if flip_gravity:
+  print 'Flipping gravity enabled'
 
 # begin processing files
 print 'Parsing keyfile...'
@@ -377,8 +382,11 @@ if lbz != None:
   parmec.write ('# gravity\n')
   parmec.write ('#\n')
   lcid = lbz['LCID']
-  parmec.write ('gz = TSERIES(zip(curve%d[::2], [-g for g in curve%d[1::2]]))\n' % (lcid, lcid))
-  parmec.write ('GRAVITY (0.0, 0.0, gz)\n')
+  if flip_gravity:
+    parmec.write ('gz = TSERIES(zip(curve%d[::2], [-g for g in curve%d[1::2]]))\n' % (lcid, lcid))
+    parmec.write ('GRAVITY (0.0, 0.0, gz)\n')
+  else:
+    parmec.write ('GRAVITY (0.0, 0.0, tms%d)\n' % lcid)
 
 gd = keyfile.getcard('DAMPING_GLOBAL')
 if gd != None:
@@ -416,11 +424,11 @@ else: parmec.write ('dt_hist = 0\n')
 ct = keyfile.getcard('CONTROL_TERMINATION')
 ts = keyfile.getcard('CONTROL_TIMESTEP')
 if ct != None and ts != None:
-  print 'Writing parmec file (commented out simulation control)...'
+  print 'Writing parmec file...'
   parmec.write ('#\n')
   parmec.write ('# run simulation\n')
   parmec.write ('#\n')
-  parmec.write ('# DEM(%g, %g, (dt_files, dt_hist))\n' % (ct['ENDTIM'], ts['DTINIT']))
+  parmec.write ('DEM(%g, %g, (dt_files, dt_hist))\n' % (ct['ENDTIM'], ts['DTINIT']))
 
 parmec.close()
 
