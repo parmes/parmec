@@ -1,6 +1,6 @@
-print '==========================='
-print 'PARMEC: hopper flow example'
-print '==========================='
+print '--------------------------'
+print 'Parmec hopper flow example'
+print '--------------------------'
 from math import pi
 
 # material data
@@ -18,7 +18,7 @@ da = 1.0
 mu = 0.0
 
 # duration and time step ratio
-dura = 1.0
+stop = 1.0
 ratio = 0.2
 
 # define material
@@ -60,6 +60,6 @@ step = ratio * hcrit
 print 'Critical time step: %.2e' % hcrit
 
 # run simulation
-print 'Running', int(dura/step), 'DEM steps of size %.2e' % step, '...'
-t = DEM (dura, step, 0.02)
+print 'Running', int(stop/step), 'DEM steps of size %.2e' % step, '...'
+t = DEM (stop, step, 0.02)
 print 'Finished after %f seconds' % t

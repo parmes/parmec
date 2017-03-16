@@ -1,6 +1,6 @@
-print '======================'
-print 'PARMEC: bounce example'
-print '======================'
+print '---------------------'
+print 'Parmec bounce example'
+print '---------------------'
 from math import pi
 
 # material data
