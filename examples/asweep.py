@@ -35,7 +35,7 @@ tsv[::2] = vt
 tsv[1::2] = vv
 tsv = TSERIES (tsv)
 ts0 = TSERIES (0.0)
-linvel = (tsv, tsv, tsv) # FIXME --> is the z-excitation missing in the results?
+linvel = (tsv, tsv, tsv)
 angvel = (ts0, ts0, ts0)
 
 # cube material
@@ -54,7 +54,7 @@ def cube (x, y, z):
   elements = [8, 0, 1, 2, 3, 4, 5, 6, 7, matnum]
   colors = [1, 4, 0, 1, 2, 3, 2, 4, 4, 5, 6, 7, 3]
   parnum = MESH (nodes, elements, matnum, colors)
-  CONSTRAIN (parnum, [0, 0, 1], [1, 0, 0, 0, 1, 0, 0, 0, 1])
+  CONSTRAIN (parnum, angular=[1, 0, 0, 0, 1, 0, 0, 0, 1])
   ANALYTICAL (particle=parnum)
   return parnum
 
@@ -100,6 +100,9 @@ for (i,j,k) in ijkmap:
     n1 = ijkmap[(i,j,k)]
     n2 = ijkmap[(i,j,k+1)]
     sprnum = SPRING (n1, p1, n2, p2, spring_curve, damper_curve, (0, 0, 1))
+
+# set gravity
+GRAVITY (0.0, 0.0, -9.81)
 
 # request time histories
 ths = HISTORY ('TIME')

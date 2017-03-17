@@ -230,8 +230,15 @@ void reset (); /* reset all simulation data */
 
 int input (const char *path); /* interpret an input file (return 0 on success) */
 
-REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func,
-  int interval_tms[2], char *prefix, int verbose, double adaptive); /* run DEM simulation (return timed duration) */
+/* run DEM simulation (return timed duration) */
+REAL dem (REAL duration, /* simulation duration */
+          REAL step, /* time step */
+	  REAL *interval, /* optional constant output intervals (two); when passed with interval_func or interval_tms it stores current values */
+	  pointer_t *interval_func, /* optional output interval callbacks (two) */
+          int *interval_tms, /* optional output interval TSERIES numbers (two) */
+	  char *prefix, /* optional output directory prefix */
+	  int verbose, /* verbosity flag; 0 disables verbose output */
+	  double adaptive); /* adaptive time stepping ratio; 0.0 disables adaptive time stepping */
 
 #ifdef __cplusplus
 } /* namespace */

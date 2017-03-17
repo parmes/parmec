@@ -1628,12 +1628,18 @@ void reset ()
 }
 
 /* run DEM simulation */
-REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, int interval_tms[2], char *prefix, int verbose, double adaptive)
+REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, int *interval_tms, char *prefix, int verbose, double adaptive)
 {
   REAL time, dt, step0, step1;
+  REAL auxiliary_interval[2];
   timing tt;
 
   timerstart (&tt);
+
+  if ((interval_func || interval_tms) && !interval)
+  {
+    interval = auxiliary_interval;
+  }
 
   if (prefix)
   {
@@ -1753,7 +1759,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     {
       interval[0] = current_interval(interval_func[0], curtime);
     }
-    else if (interval && interval_tms[0] >= 0 && interval_tms[0] < tmsnum)
+    else if (interval && interval_tms && interval_tms[0] >= 0 && interval_tms[0] < tmsnum)
     {
       interval[0] = TMS_Value ((TMS*)tms[interval_tms[0]], curtime);
     }
@@ -1762,7 +1768,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     {
       interval[1] = current_interval(interval_func[1], curtime);
     }
-    else if (interval && interval_tms[1] >= 0 && interval_tms[1] < tmsnum)
+    else if (interval && interval_tms && interval_tms[1] >= 0 && interval_tms[1] < tmsnum)
     {
       interval[1] = TMS_Value ((TMS*)tms[interval_tms[1]], curtime);
     }
