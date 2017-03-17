@@ -2144,7 +2144,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	dt[0] = PyFloat_AsDouble (dt0);
 	dt_func[0] = NULL;
-	dt_tms[0] -1;
+	dt_tms[0] = -1;
       }
 
       PyObject *dt1 = PyTuple_GetItem (interval, 1);
