@@ -45,7 +45,7 @@ for i in range (1,len(sys.argv)):
 
 # check input syntax
 if key_path_index == -1 or out_path_index == -1:
-  print 'SYNOPSIS: python [--flip_gravity] [--skip_general_nonlinear_springs] keyfile2parmec.py path_to_keyfile path_to_parmec_file'
+  print 'SYNOPSIS: keyfile2parmec [--flip_gravity] [--skip_general_nonlinear_springs] path_to_keyfile path_to_parmec_file'
   sys.exit(0)
 
 # print command line info
