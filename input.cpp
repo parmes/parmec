@@ -1522,8 +1522,8 @@ static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
-/* constrain particle  motion */
-static PyObject* CONSTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
+/* restrain particle  motion */
+static PyObject* RESTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
 {
   KEYWORDS ("parnum", "linear", "angular");
   PyObject *lin, *ang;
@@ -2799,7 +2799,7 @@ static PyMethodDef methods [] =
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
-  {"CONSTRAIN", (PyCFunction)CONSTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
+  {"RESTRAIN", (PyCFunction)RESTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
   {"PRESCRIBE", (PyCFunction)PRESCRIBE, METH_VARARGS|METH_KEYWORDS, "Prescribe particle motion"},
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
@@ -2847,7 +2847,7 @@ int input (const char *path)
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
                       "from parmec import GRANULAR\n"
-                      "from parmec import CONSTRAIN\n"
+                      "from parmec import RESTRAIN\n"
                       "from parmec import PRESCRIBE\n"
                       "from parmec import VELOCITY\n"
                       "from parmec import GRAVITY\n"

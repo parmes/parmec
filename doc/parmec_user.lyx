@@ -1759,19 +1759,19 @@ force
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
-name "subsec:CONSTRAIN"
+name "subsec:RESTRAIN"
 
 \end_inset
 
-CONSTRAIN
+RESTRAIN
 \end_layout
 
 \begin_layout Standard
-Constrain particle motion.
+Restrain particle motion.
 \end_layout
 
 \begin_layout Subsection*
-CONSTRAIN (parnum | linear, angular)
+RESTRAIN (parnum | linear, angular)
 \end_layout
 
 \begin_layout Itemize
@@ -1799,7 +1799,7 @@ linear
 \begin_inset Formula $\left[x_{1},y_{1},z_{1},x_{2},y_{2},z_{2},x_{3},y_{3},z_{3}\right]$
 \end_inset
 
- defining directions of constrained linear motion; default: 
+ defining directions of restrained linear motion; default: 
 \begin_inset Formula $\left[0,0,0\right]$
 \end_inset
 
@@ -1823,7 +1823,7 @@ angular
 \begin_inset Formula $\left[x_{1},y_{1},z_{1},x_{2},y_{2},z_{2},x_{3},y_{3},z_{3}\right]$
 \end_inset
 
- defining directions of constrained spatial rotation; default: 
+ defining directions of restrained spatial rotation; default: 
 \begin_inset Formula $\left[0,0,0\right]$
 \end_inset
 
@@ -1842,7 +1842,7 @@ PRESCRIBE
 
 \begin_layout Standard
 Prescribe particle motion.
- Prescribed motion overwrites this resulting from dynamics and constraints.
+ Prescribed motion overwrites this resulting from dynamics and restraints.
 \end_layout
 
 \begin_layout Subsection*

@@ -1,4 +1,4 @@
-# PARMEC test --> CONSTRAIN command test
+# PARMEC test --> RESTRAIN command test
 
 matnum = MATERIAL (1E3, 1E9, 0.25)
 
@@ -19,16 +19,16 @@ for i in range (0,7):
   VELOCITY (parnum, (1, 1, 1), (1, 1, 1))
 
   if i == 1:
-    CONSTRAIN (parnum, [1, 0, 0])
+    RESTRAIN (parnum, [1, 0, 0])
   if i == 2:
-    CONSTRAIN (parnum, [1, 0, 0, 0, 1, 0])
+    RESTRAIN (parnum, [1, 0, 0, 0, 1, 0])
   if i == 3:
-    CONSTRAIN (parnum, [1, 0, 0, 0, 1, 0, 0, 0, 1])
+    RESTRAIN (parnum, [1, 0, 0, 0, 1, 0, 0, 0, 1])
   if i == 4:
-    CONSTRAIN (parnum, angular = [1, 0, 0])
+    RESTRAIN (parnum, angular = [1, 0, 0])
   if i == 5:
-    CONSTRAIN (parnum, angular = [1, 0, 0, 0, 1, 0])
+    RESTRAIN (parnum, angular = [1, 0, 0, 0, 1, 0])
   if i == 6:
-    CONSTRAIN (parnum, angular = [1, 0, 0, 0, 1, 0, 0 ,0, 1])
+    RESTRAIN (parnum, angular = [1, 0, 0, 0, 1, 0, 0 ,0, 1])
 
 DEM (5, 0.1)
