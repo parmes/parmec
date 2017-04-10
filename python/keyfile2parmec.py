@@ -8,6 +8,15 @@ from sets import Set
 # start timer
 tic = time.clock()
 
+# error reporting
+def ERROR(*args):
+ from inspect import currentframe, getframeinfo
+ cf = currentframe()
+ info = getframeinfo(cf)
+ print 'ERROR: ', args
+ print 'signaled by:', info.filename, 'line ', cf.f_back.f_lineno
+ sys.exit(1)
+
 # auxiliary vector/matrix operations
 def cross(a, b):
   return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
@@ -77,8 +86,7 @@ for pi in keyfile['PART_INERTIA']:
   if pi['IRCS'] == 1:
     coord = keyfile.getcard ('DEFINE_COORDINATE_SYSTEM', CID=pi['CID'])
     if coord == None:
-      print 'ERROR: DEFINE_COORDINATE_SYSTEM card with CID =', pi['CID'], 'was not found'
-      sys.exit(1)
+      ERROR ('DEFINE_COORDINATE_SYSTEM card with CID =', pi['CID'], 'was not found')
     vec_x = (coord['XL'], coord['YL'], coord['ZL'])
     vec_xy = (coord['XP'], coord['YP'], coord['ZP'])
     vec_z = cross(vec_x, vec_xy)
@@ -106,40 +114,75 @@ for pi in keyfile['PART_INERTIA']:
   mat = keyfile.getcard ('MAT_RIGID', MID=str(int(pi['MID']))) # int() due to '01' used sometimes
 
   if mat == None:
-    print 'ERROR: MAT_RIGID card with MID =', int(pi['MID']), 'was not found'
-    sys.exit(1)
+    ERROR ('MAT_RIGID card with MID =', int(pi['MID']), 'was not found')
 
-  con1 = mat['CON1']
-  if con1 == 1:
-    lincon = '[1.0, 0.0, 0.0]'
-  elif con1 == 2:
-    lincon = '[0.0, 1.0, 0.0]'
-  elif con1 == 3:
-    lincon = '[0.0, 0.0, 1.0]'
-  elif con1 == 4:
-    lincon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0]'
-  elif con1 == 5:
-    lincon = '[0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
-  elif con1 == 6:
-    lincon = '[0.0, 0.0, 1.0, 1.0, 0.0, 0.0]'
-  elif con1 == 7:
-    lincon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
+  cmo = mat['CMO']
+  if cmo == 1: # constraints in global coordinates
 
-  con2 = mat['CON2']
-  if con2 == 1:
-    angcon = '[1.0, 0.0, 0.0]'
-  elif con2 == 2:
-    angcon = '[0.0, 1.0, 0.0]'
-  elif con2 == 3:
-    angcon = '[0.0, 0.0, 1.0]'
-  elif con2 == 4:
-    angcon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0]'
-  elif con2 == 5:
-    angcon = '[0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
-  elif con2 == 6:
-    angcon = '[0.0, 0.0, 1.0, 1.0, 0.0, 0.0]'
-  elif con2 == 7:
-    angcon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
+    con1 = mat['CON1']
+    if con1 == 1:
+      lincon = '[1.0, 0.0, 0.0]'
+    elif con1 == 2:
+      lincon = '[0.0, 1.0, 0.0]'
+    elif con1 == 3:
+      lincon = '[0.0, 0.0, 1.0]'
+    elif con1 == 4:
+      lincon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0]'
+    elif con1 == 5:
+      lincon = '[0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
+    elif con1 == 6:
+      lincon = '[0.0, 0.0, 1.0, 1.0, 0.0, 0.0]'
+    elif con1 == 7:
+      lincon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
+
+    con2 = mat['CON2']
+    if con2 == 1:
+      angcon = '[1.0, 0.0, 0.0]'
+    elif con2 == 2:
+      angcon = '[0.0, 1.0, 0.0]'
+    elif con2 == 3:
+      angcon = '[0.0, 0.0, 1.0]'
+    elif con2 == 4:
+      angcon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0]'
+    elif con2 == 5:
+      angcon = '[0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
+    elif con2 == 6:
+      angcon = '[0.0, 0.0, 1.0, 1.0, 0.0, 0.0]'
+    elif con2 == 7:
+      angcon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
+
+  elif cmo == -1: # constraints in local coordinates
+ 
+    con1 = mat['CON1']
+    coord = keyfile.getcard ('DEFINE_COORDINATE_SYSTEM', CID=con1)
+    if coord == None:
+      ERROR ('DEFINE_COORDINATE_SYSTEM card with CID =', pi['CID'], 'was not found')
+    vec_x = (coord['XL'], coord['YL'], coord['ZL'])
+    vec_xy = (coord['XP'], coord['YP'], coord['ZP'])
+    vec_z = cross(vec_x, vec_xy)
+    vec_y = cross(vec_z, vec_x)
+    local_base = [list(vec_x), list(vec_y), list(vec_z)]
+
+    con2 = mat['CON2']
+    num2 = 100000.0
+    lincon = []
+    angcon = []
+    for i in range(0,6):
+      if str(con2+num2).find('2') >= 0:
+	if i < 3: lincon += local_base[i]
+	else: angcon += local_base[i-3]
+      num2 = num2 * 0.1
+
+    con1 = len(lincon)
+    con2 = len(angcon)
+    lincon = str(lincon)
+    angcon = str(angcon)
+ 
+  elif cmo == 0: # no constraints
+    con1 = 0
+    con2 = 0
+  else:
+    ERROR ('MAT_RIGID card CMO paramter is invalid:', cmo, '; not one of: {-1, 0, 1}')
 
   if con1 > 0 and con2 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ', ' + angcon + ')\n')
   elif con1 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ')\n')
@@ -177,9 +220,8 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
   for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_NODE']:
     pid = mcnod2pid[bc['NID']]
     if pid == None:
-      print 'ERROR: while prescribing nodal motion -->'
-      print '       node with ID =', bc['NID'], 'was not defined as a mass center in a PART_INERTIA card'
-      sys.exit(1)
+      ERROR ('while prescribing nodal motion -->\n', \
+             '       node with ID =', bc['NID'], 'was not defined as a mass center in a PART_INERTIA card')
     if pid not in pidset:
       parmec.write ('ACC%d_LIN_X = tms0\n' % pid)
       parmec.write ('ACC%d_LIN_Y = tms0\n' % pid)
@@ -197,11 +239,9 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
     vad = bc['VAD']
     lcid = bc['LCID']
     if dof not in (1, 2, 3, 5, 6, 7):
-      print 'ERROR: prescribed node motion DOF not in (1, 2, 3, 5, 6, 7) set'
-      sys.exit(1)
+      ERROR ('prescribed node motion DOF not in (1, 2, 3, 5, 6, 7) set')
     if vad != 1:
-      print 'ERROR: prescribed node motion VAD != 1 (acceleration)'
-      sys.exit(1)
+      ERROR ('prescribed node motion VAD != 1 (acceleration)')
     if dof == 1:
       parmec.write ('ACC%d_LIN_X = tms%d\n' % (pid, lcid))
     elif dof == 2:
@@ -231,9 +271,8 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
     for nid in keyfile.SET_NODE_LISTS[bc['SID']]:
       pid = mcnod2pid[nid]
       if pid == None:
-	print 'ERROR: while prescribing nodal motion -->'
-	print '       node with ID =', nid, 'was not defined as a mass center in a PART_INERTIA card'
-	sys.exit(1)
+	ERROR ('while prescribing nodal motion -->\n', \
+	       '       node with ID =', nid, 'was not defined as a mass center in a PART_INERTIA card')
       if pid not in pidset:
 	parmec.write ('ACC%d_LIN_X = tms0\n' % pid)
 	parmec.write ('ACC%d_LIN_Y = tms0\n' % pid)
@@ -252,11 +291,9 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
     for nid in keyfile.SET_NODE_LISTS[bc['SID']]:
       pid = mcnod2pid[nid]
       if dof not in (1, 2, 3, 5, 6, 7):
-	print 'ERROR: prescribed node motion DOF not in (1, 2, 3, 5, 6, 7) set'
-	sys.exit(1)
+	ERROR ('prescribed node motion DOF not in (1, 2, 3, 5, 6, 7) set')
       if vad != 1:
-	print 'ERROR: prescribed node motion VAD != 1 (acceleration)'
-	sys.exit(1)
+	ERROR ('prescribed node motion VAD != 1 (acceleration)')
       if dof == 1:
 	parmec.write ('ACC%d_LIN_X = tms%d\n' % (pid, lcid))
       elif dof == 2:
@@ -328,15 +365,13 @@ for ed in keyfile['ELEMENT_DISCRETE']:
   if vid != 0:
     dso = vid2dso[vid]
     if dso == None:
-      print 'ERROR: did not find DEFINE_SD_ORIENTATION card with VID = ', vid
-      sys.exit(1)
+      ERROR ('did not find DEFINE_SD_ORIENTATION card with VID = ', vid)
     if dso['IOP'] == 0:
       planar = 'OFF'
     elif dso['IOP'] == 1:
       planar = 'ON'
     else:
-      print 'ERROR: unsupported IOP != (0 or 1) in DEFINE_SD_ORIENTATION card with VID = ', vid
-      sys.exit(1)
+      ERROR ('unsupported IOP != (0 or 1) in DEFINE_SD_ORIENTATION card with VID = ', vid)
     direct = (dso['XT'], dso['YT'], dso['ZT']) # fixed direction
   else: direct = None # direction = (pnt2-pnt1)/|pnt2-pnt1|
 
@@ -373,7 +408,7 @@ for ed in keyfile['ELEMENT_DISCRETE']:
 		       (pid1, str(pnt1), pid2, str(pnt2), spring, unload))
 	parmec.write ('eid2num[%d] = num\n' % ed['EID'])
       else:
-	print 'ERROR: MAT_SPRING_GENERAL_NONLINEAR with MID', mid, 'has not been found'
+	ERROR ('MAT_SPRING_GENERAL_NONLINEAR with MID', mid, 'has not been found')
 
 lbz = keyfile.getcard('LOAD_BODY_Z')
 if lbz != None:
