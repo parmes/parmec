@@ -141,9 +141,9 @@ for pi in keyfile['PART_INERTIA']:
   elif con2 == 7:
     angcon = '[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]'
 
-  if con1 > 0 and con2 > 0: parmec.write ('CONSTRAIN (num, ' + lincon + ', ' + angcon + ')\n')
-  elif con1 > 0: parmec.write ('CONSTRAIN (num, ' + lincon + ')\n')
-  elif con2 > 0: parmec.write ('CONSTRAIN (num, angular = ' + angcon + ')\n')
+  if con1 > 0 and con2 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ', ' + angcon + ')\n')
+  elif con1 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ')\n')
+  elif con2 > 0: parmec.write ('RESTRAIN (num, angular = ' + angcon + ')\n')
 
   parmec.write ('pid2num[%d] = num\n' % pi['PID'])
   mcnod2pid[mcnode] = pi['PID']
