@@ -124,7 +124,7 @@ cd parmec
 \end_layout
 
 \begin_layout Standard
-Edit Makefile variables:
+Edit Config.mak file variables:
 \end_layout
 
 \begin_layout LyX-Code
