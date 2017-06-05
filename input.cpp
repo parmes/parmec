@@ -2499,6 +2499,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
   subset = NULL;
   mode = NULL;
+  format = NULL;
 
   PARSEKEYS ("O|OOO", &entities, &subset, &mode, &format);
 

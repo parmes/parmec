@@ -25,6 +25,7 @@ SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 #include "timeseries.h"
+#include "macros.h"
 #include "mem.h"
 
 #define CHUNK 512
@@ -117,7 +118,11 @@ TMS* TMS_File (char *path)
   {
     if (buf[0] == '#') continue; /* skip comments */
 
+#if REAL_SIZE == 8
     if (sscanf (buf, "%lf%lf", &ts->points [ts->size][0], &ts->points [ts->size][1]) == EOF) break;
+#else
+    if (sscanf (buf, "%f%f", &ts->points [ts->size][0], &ts->points [ts->size][1]) == EOF) break;
+#endif
 
     if (ts->size)
     {

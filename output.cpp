@@ -1053,7 +1053,7 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
     char *mem = (char*)malloc(pos);
     ERRMEM (mem);
     fseek (xmf_file, 0, SEEK_SET);
-    fread (mem, sizeof(char), pos, xmf_file); /* read until the last three lines */
+    ASSERT (fread (mem, sizeof(char), pos, xmf_file) == pos, "XMF markup file read failed"); /* read until the last three lines */
     fclose (xmf_file);
     ASSERT (xmf_file = fopen (xmf_path, "w"), "XMF markup file open failed");
     fwrite (mem, sizeof(char), pos, xmf_file); /* effectively truncate the last three lines */
