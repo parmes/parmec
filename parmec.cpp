@@ -57,10 +57,13 @@ using namespace ispc; /* ISPC calls are used below */
 namespace parmec { /* namespace */
 #endif
 
+char **argv; /* input arguments */
+int argc; /* input arguments count */
+
+int ntasks; /* number of tasks */
+
 char *output_path; /* output path */
 int output_frame; /* output files frame */
-
-int threads; /* number of hardware threads */
 
 REAL curtime; /* current time */
 REAL curstep; /* current step */
@@ -1570,7 +1573,7 @@ void init()
 
   reset ();
 
-  threads = ispc_num_cores();
+  ntasks = ispc_num_cores();
 }
 
 /* reset all data */
@@ -1690,9 +1693,9 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
       output_history ();
     }
 
-    euler (threads, parnum, angular, linear, rotation, position, 0.5*step0);
+    euler (ntasks, parnum, angular, linear, rotation, position, 0.5*step0);
 
-    shapes (threads, ellnum, part, center, radii, orient, nodnum, nodes,
+    shapes (ntasks, ellnum, part, center, radii, orient, nodnum, nodes,
             nodpart, NULL, facnum, facnod, factri, tri, rotation, position);
 
     obstaclev (obsnum, obsang, obslin, anghis, linhis, 0.5*step0);
@@ -1704,30 +1707,30 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     step0 = curstep;
   }
 
-  invert_inertia (threads, parnum, inertia, inverse, mass, invm);
+  invert_inertia (ntasks, parnum, inertia, inverse, mass, invm);
 
-  constrain_velocities (threads, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+  constrain_velocities (ntasks, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
 
-  partitioning *tree = partitioning_create (threads, ellnum-ellcon, icenter);
+  partitioning *tree = partitioning_create (ntasks, ellnum-ellcon, icenter);
 
   /* time stepping */
   for (time = 0.0; time < duration; time += 0.5*(step0+step1), curtime += 0.5*(step0+step1), step0 = step1)
   {
-    if (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
+    if (partitioning_store (ntasks, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) > 0)
     {
       partitioning_destroy (tree);
 
-      tree = partitioning_create (threads, ellnum-ellcon, icenter);
+      tree = partitioning_create (ntasks, ellnum-ellcon, icenter);
 
-      ASSERT (partitioning_store (threads, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) == 0, "Repartitioning failed");
+      ASSERT (partitioning_store (ntasks, tree, ellnum-ellcon, ellcol+ellcon, part+ellcon, icenter, iradii, iorient) == 0, "Repartitioning failed");
     }
 
-    condet (threads, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
+    condet (ntasks, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
     read_gravity_and_damping (time, tms, gravfunc, gravtms, gravity, lindamp, lindamptms, angdamp, angdamptms, damping);
 
-    forces (threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
+    forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
             sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
 	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot,
@@ -1735,21 +1738,21 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
-    constrain_forces (threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
+    constrain_forces (ntasks, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
                             tmsang, angkind, time, mass, inertia, force, torque);
 
     if (adaptive > 0.0 && adaptive <= 1.0)
     {
-      step1 = determine_time_step (threads, parnum, mass, inertia, kact, kmax, emax, krot, step0, adaptive);
+      step1 = determine_time_step (ntasks, parnum, mass, inertia, kact, kmax, emax, krot, step0, adaptive);
     }
     else
     {
       step1 = step0;
     }
 
-    dynamics (threads, master, slave, parnum, angular, linear, rotation,
+    dynamics (ntasks, master, slave, parnum, angular, linear, rotation,
               position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
 
     prescribe_velocity (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
@@ -1775,13 +1778,13 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     if (interval && curtime >= curtime_output + interval[0]) /* full update, due to output */
     {
-      shapes (threads, ellnum, part, center, radii, orient,
+      shapes (ntasks, ellnum, part, center, radii, orient,
 	      nodnum, nodes, nodpart, NULL, facnum, facnod,
 	      factri, tri, rotation, position);
     }
     else /* partial update, skipping analytical particles */
     {
-      shapes (threads, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
+      shapes (ntasks, ellnum-ellcon, part+ellcon, icenter, iradii, iorient,
 	      nodnum, nodes, nodpart, flags, facnum-faccon, ifacnod,
 	      factri+faccon, tri, rotation, position);
     }

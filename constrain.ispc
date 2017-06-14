@@ -134,17 +134,17 @@ task void constrain_forces_task (uniform int span, uniform int cnsnum, uniform i
 }
 
 /* constrain particle motion by adjusting velocities */
-export void constrain_velocities (uniform int threads, uniform int cnsnum, uniform int cnspart[],
+export void constrain_velocities (uniform int ntasks, uniform int cnsnum, uniform int cnspart[],
   uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
   uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
 {
-  launch [threads] constrain_velocities_task (cnsnum/threads, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+  launch [ntasks] constrain_velocities_task (cnsnum/ntasks, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
 }
 
 /* constrain particle motion by adjusting forces */
-export void constrain_forces (uniform int threads, uniform int cnsnum, uniform int cnspart[],
+export void constrain_forces (uniform int ntasks, uniform int cnsnum, uniform int cnspart[],
   uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
-  launch [threads] constrain_forces_task (cnsnum/threads, cnsnum, cnspart, cnslin, cnsang, force, torque);
+  launch [ntasks] constrain_forces_task (cnsnum/ntasks, cnsnum, cnspart, cnslin, cnsang, force, torque);
 }

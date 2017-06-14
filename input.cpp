@@ -76,6 +76,23 @@ memset (&(typedesc), 0, sizeof (PyTypeObject));\
 (typedesc).tp_members = members;\
 (typedesc).tp_getset = getset
 
+/* bool test */
+static int is_bool (PyObject *obj, const char *var)
+{
+  if (obj)
+  {
+    if (!PyBool_Check (obj))
+    {
+      char buf [BUFLEN];
+      sprintf (buf, "'%s' must be Boolean (True/False)", var);
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 /* string test */
 static int is_string (PyObject *obj, const char *var)
 {
@@ -446,6 +463,56 @@ static int is_number_or_list_or_string (PyObject *obj, const char *var, int div,
 #define IFIS(obj, val) if (strcmp (PyString_AsString (obj), val) == 0)
 #define ELIF(obj, val) else if (strcmp (PyString_AsString (obj), val) == 0)
 #define ELSE else
+
+/* test if a string has a specific ending */
+static int endswith (const char *string, const char *ending)
+{
+  if (strlen (string) >= strlen (ending) &&
+      strcmp (string+strlen(string)-strlen(ending), ending) == 0) return 1;
+  else return 0;
+}
+
+/* command line arguments */
+static PyObject* ARGV (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("nonparmec");
+  PyObject *nonparmec, *list;
+
+  nonparmec = Py_True;
+
+  PARSEKEYS ("|O", &nonparmec);
+
+  TYPETEST (is_bool (nonparmec, kwl [0]));
+
+  if (!(list = PyList_New (0))) return NULL;
+
+  if (nonparmec == Py_True)
+  {
+    for (int i = 0; i < argc; i ++)
+    {
+      if (endswith (argv[i], "parmec4")) continue;
+      else if (endswith (argv[i], "parmec8")) continue;
+      else if (strcmp (argv[i], "-ntasks") == 0)
+      {
+	i ++;
+	continue;
+      }
+      else if (strlen (argv[i]) > 3 && strcmp(argv[i]+strlen(argv[i])-3, ".py") == 0) continue;
+      else PyList_Append (list, PyString_FromString (argv[i]));
+    }
+  }
+  else
+  {
+    for (int i = 0; i < argc; i ++)
+    {
+      if (endswith (argv[i], "parmec4")) continue;
+      else if (endswith (argv[i], "parmec8")) continue;
+      else PyList_Append (list, PyString_FromString (argv[i]));
+    }
+  }
+
+  return list;
+}
 
 /* reset simulation */
 static PyObject* RESET (PyObject *self, PyObject *args, PyObject *kwds)
@@ -2090,142 +2157,6 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
   return PyFloat_FromDouble (h);
 }
 
-/* run DEM simulation */
-static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
-{
-  KEYWORDS ("duration", "step", "interval", "prefix", "adaptive");
-  double duration, step, adaptive;
-  PyObject *prefix, *interval;
-  pointer_t dt_func[2];
-  int dt_tms[2];
-  REAL dt[2];
-  char *pre;
-
-  prefix = NULL;
-  interval = NULL;
-  adaptive = 0.0;
-
-  PARSEKEYS ("dd|OOd", &duration, &step, &interval, &prefix, &adaptive);
-
-  TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
-            is_string (prefix, kwl[3]) && is_ge_le (adaptive, 0.0, 1.0, kwl[4]));
-
-  if (interval)
-  {
-    if (PyTuple_Check(interval))
-    {
-      if (PyTuple_Size(interval) != 2)
-      {
-	PyErr_SetString (PyExc_ValueError, "Invalid output interval");
-	return NULL;
-      }
-
-      PyObject *dt0 = PyTuple_GetItem (interval, 0);
-
-      if (PyCallable_Check (dt0))
-      {
-	dt[0] = 0.0;
-	dt_func[0] = dt0;
-	dt_tms[0] = -1;
-      }
-      else if (PyInt_Check (dt0))
-      {
-	dt[0] = 0.0;
-	dt_func[0] = NULL;
-	dt_tms[0] = PyInt_AsLong (dt0);
-
-	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
-	  return NULL;
-	}
-      }
-      else
-      {
-	dt[0] = PyFloat_AsDouble (dt0);
-	dt_func[0] = NULL;
-	dt_tms[0] = -1;
-      }
-
-      PyObject *dt1 = PyTuple_GetItem (interval, 1);
-
-      if (PyCallable_Check (dt1))
-      {
-	dt[1] = 0.0;
-	dt_func[1] = dt1;
-	dt_tms[1] = -1;
-      }
-      else if (PyInt_Check (dt1))
-      {
-	dt[1] = 0.0;
-	dt_func[1] = NULL;
-	dt_tms[1] = PyInt_AsLong (dt1);
-
-	if (dt_tms[1] < 0 || dt_tms[1] >= tmsnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
-	  return NULL;
-	}
-      }
-      else
-      {
-	dt[1] = PyFloat_AsDouble (dt1);
-	dt_func[1] = NULL;
-	dt_tms[1] = -1;
-      }
-    }
-    else 
-    {
-      if (PyCallable_Check (interval))
-      {
-        dt[0] = dt[1] = 0.0;
-	dt_func[0] = dt_func[1] = interval;
-	dt_tms[0] = dt_tms[1] = -1;
-      }
-      else if (PyInt_Check (interval))
-      {
-        dt[0] = dt[1] = 0.0;
-	dt_func[0] = dt_func[1] = NULL;
-	dt_tms[0] = dt_tms[1] = PyInt_AsLong (interval);
-
-	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
-	  return NULL;
-	}
-      }
-      else
-      {
-        dt[0] = dt[1] = PyFloat_AsDouble (interval);
-	dt_func[0] = dt_func[1] = NULL;
-	dt_tms[0] = dt_tms[1] = -1;
-      }
-    }
-
-    if (dt[0] < 0.0 || dt[1] < 0.0)
-    {
-      PyErr_SetString (PyExc_ValueError, "Invalid, negative, output interval");
-      return NULL;
-    }
-  }
-  else
-  {
-    dt[0] = dt[1] = step;
-    dt_func[0] = dt_func[1] = NULL;
-    dt_tms[0] = dt_tms[1] = -1;
-  }
-
-  if (prefix)
-  {
-    pre = PyString_AsString (prefix);
-  }
-  else pre = NULL;
-
-  duration = dem (duration, step, dt, dt_func, dt_tms, pre, 1, adaptive);
-
-  return Py_BuildValue ("d", duration); /* PyFloat_FromDouble (dt) */
-}
-
 /* time history output */
 static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -2789,8 +2720,145 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
+/* run DEM simulation */
+static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("duration", "step", "interval", "prefix", "adaptive");
+  double duration, step, adaptive;
+  PyObject *prefix, *interval;
+  pointer_t dt_func[2];
+  int dt_tms[2];
+  REAL dt[2];
+  char *pre;
+
+  prefix = NULL;
+  interval = NULL;
+  adaptive = 0.0;
+
+  PARSEKEYS ("dd|OOd", &duration, &step, &interval, &prefix, &adaptive);
+
+  TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
+            is_string (prefix, kwl[3]) && is_ge_le (adaptive, 0.0, 1.0, kwl[4]));
+
+  if (interval)
+  {
+    if (PyTuple_Check(interval))
+    {
+      if (PyTuple_Size(interval) != 2)
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+	return NULL;
+      }
+
+      PyObject *dt0 = PyTuple_GetItem (interval, 0);
+
+      if (PyCallable_Check (dt0))
+      {
+	dt[0] = 0.0;
+	dt_func[0] = dt0;
+	dt_tms[0] = -1;
+      }
+      else if (PyInt_Check (dt0))
+      {
+	dt[0] = 0.0;
+	dt_func[0] = NULL;
+	dt_tms[0] = PyInt_AsLong (dt0);
+
+	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+	  return NULL;
+	}
+      }
+      else
+      {
+	dt[0] = PyFloat_AsDouble (dt0);
+	dt_func[0] = NULL;
+	dt_tms[0] = -1;
+      }
+
+      PyObject *dt1 = PyTuple_GetItem (interval, 1);
+
+      if (PyCallable_Check (dt1))
+      {
+	dt[1] = 0.0;
+	dt_func[1] = dt1;
+	dt_tms[1] = -1;
+      }
+      else if (PyInt_Check (dt1))
+      {
+	dt[1] = 0.0;
+	dt_func[1] = NULL;
+	dt_tms[1] = PyInt_AsLong (dt1);
+
+	if (dt_tms[1] < 0 || dt_tms[1] >= tmsnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+	  return NULL;
+	}
+      }
+      else
+      {
+	dt[1] = PyFloat_AsDouble (dt1);
+	dt_func[1] = NULL;
+	dt_tms[1] = -1;
+      }
+    }
+    else 
+    {
+      if (PyCallable_Check (interval))
+      {
+        dt[0] = dt[1] = 0.0;
+	dt_func[0] = dt_func[1] = interval;
+	dt_tms[0] = dt_tms[1] = -1;
+      }
+      else if (PyInt_Check (interval))
+      {
+        dt[0] = dt[1] = 0.0;
+	dt_func[0] = dt_func[1] = NULL;
+	dt_tms[0] = dt_tms[1] = PyInt_AsLong (interval);
+
+	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+	  return NULL;
+	}
+      }
+      else
+      {
+        dt[0] = dt[1] = PyFloat_AsDouble (interval);
+	dt_func[0] = dt_func[1] = NULL;
+	dt_tms[0] = dt_tms[1] = -1;
+      }
+    }
+
+    if (dt[0] < 0.0 || dt[1] < 0.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid, negative, output interval");
+      return NULL;
+    }
+  }
+  else
+  {
+    dt[0] = dt[1] = step;
+    dt_func[0] = dt_func[1] = NULL;
+    dt_tms[0] = dt_tms[1] = -1;
+  }
+
+  if (prefix)
+  {
+    pre = PyString_AsString (prefix);
+  }
+  else pre = NULL;
+
+  duration = dem (duration, step, dt, dt_func, dt_tms, pre, 1, adaptive);
+
+  return Py_BuildValue ("d", duration); /* PyFloat_FromDouble (dt) */
+}
+
 static PyMethodDef methods [] =
 {
+  {"ARGV", (PyCFunction)ARGV, METH_VARARGS|METH_KEYWORDS, "Command line arguments"},
   {"RESET", (PyCFunction)RESET, METH_NOARGS, "Reset simulation"},
   {"TSERIES", (PyCFunction)TSERIES, METH_VARARGS|METH_KEYWORDS, "Create time series"},
   {"MATERIAL", (PyCFunction)MATERIAL, METH_VARARGS|METH_KEYWORDS, "Create material"},
@@ -2806,9 +2874,9 @@ static PyMethodDef methods [] =
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
   {"DAMPING", (PyCFunction)DAMPING, METH_VARARGS|METH_KEYWORDS, "Set global damping"},
   {"CRITICAL", (PyCFunction)CRITICAL, METH_NOARGS, "Estimate critical time step"},
-  {"DEM", (PyCFunction)DEM, METH_VARARGS|METH_KEYWORDS, "Run DEM simulation"},
   {"HISTORY", (PyCFunction)HISTORY, METH_VARARGS|METH_KEYWORDS, "Time history output"},
   {"OUTPUT", (PyCFunction)OUTPUT, METH_VARARGS|METH_KEYWORDS, "Declare output entities"},
+  {"DEM", (PyCFunction)DEM, METH_VARARGS|METH_KEYWORDS, "Run DEM simulation"},
   {NULL, 0, 0, NULL}
 };
 
@@ -2839,7 +2907,8 @@ int input (const char *path)
 
   if (!Py_InitModule3 ("parmec", methods, "parmec module")) return -1;
 
-  PyRun_SimpleString ("from parmec import RESET\n"
+  PyRun_SimpleString ("from parmec import ARGV\n"
+                      "from parmec import RESET\n"
                       "from parmec import TSERIES\n"
                       "from parmec import MATERIAL\n"
                       "from parmec import SPHERE\n"
@@ -2854,9 +2923,9 @@ int input (const char *path)
                       "from parmec import GRAVITY\n"
                       "from parmec import DAMPING\n"
                       "from parmec import CRITICAL\n"
-                      "from parmec import DEM\n"
                       "from parmec import HISTORY\n"
-                      "from parmec import OUTPUT\n");
+                      "from parmec import OUTPUT\n"
+                      "from parmec import DEM\n");
 
   ERRMEM (line = new char [128 + strlen (path)]);
   sprintf (line, "execfile ('%s')", path);

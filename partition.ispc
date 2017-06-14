@@ -185,9 +185,9 @@ static uniform int init_leaf (uniform int left, uniform int right, uniform merge
 }
 
 /* sort n unsigned integers and return their ordering */
-static void parallel_sort (uniform int n, uniform uint a[], uniform int order[], uniform int threads)
+static void parallel_sort (uniform int n, uniform uint a[], uniform int order[], uniform int ntasks)
 {
-  uniform int num = threads;
+  uniform int num = ntasks;
   uniform int span = n/num + 1; /* one extre stopgap item per range */
   uniform int i, j, start, end;
 
@@ -661,18 +661,18 @@ task void store_ellipsoids (uniform int span, uniform partitioning tree[], unifo
 }
 
 /* create partitioning tree */
-export uniform partitioning * uniform partitioning_create (uniform int threads, uniform int ellnum, uniform REAL * uniform center[6])
+export uniform partitioning * uniform partitioning_create (uniform int ntasks, uniform int ellnum, uniform REAL * uniform center[6])
 {
   if (ellnum == 0) return NULL;
 
-  uniform int span = ellnum/threads;
+  uniform int span = ellnum/ntasks;
 
-  uniform REAL * uniform extents = uniform new uniform REAL [6*threads];
+  uniform REAL * uniform extents = uniform new uniform REAL [6*ntasks];
 
-  launch[threads] extrema (span, ellnum, center[0], center[1], center[2], extents);
+  launch[ntasks] extrema (span, ellnum, center[0], center[1], center[2], extents);
   sync;
 
-  for (uniform int i = 1; i < threads; i ++)
+  for (uniform int i = 1; i < ntasks; i ++)
   {
     uniform REAL * uniform e = &extents [6*i];
 
@@ -686,13 +686,13 @@ export uniform partitioning * uniform partitioning_create (uniform int threads, 
 
   uniform uint * uniform code = uniform new uniform uint [ellnum];
 
-  launch[threads] morton (span, ellnum, center[0], center[1], center[2], extents, code);
+  launch[ntasks] morton (span, ellnum, center[0], center[1], center[2], extents, code);
   sync;
 
   uniform int * uniform order = uniform new uniform int [ellnum];
 
 #if 1
-  parallel_sort (ellnum, code, order, threads);
+  parallel_sort (ellnum, code, order, ntasks);
   /* FIXME/TODO: use scalabe sort from ISPC instead */
 #else
   foreach (i = 0 ... ellnum) order[i] = i;
@@ -701,7 +701,7 @@ export uniform partitioning * uniform partitioning_create (uniform int threads, 
 
   uniform radix_tree * uniform rtree = uniform new uniform radix_tree [ellnum];
 
-  launch[threads] radix_tree_create (span, ellnum, code, rtree, order, center);
+  launch[ntasks] radix_tree_create (span, ellnum, code, rtree, order, center);
   sync;
 
 #if 0
@@ -744,7 +744,7 @@ export uniform partitioning * uniform partitioning_create (uniform int threads, 
 }
 
 /* store ellipsoids in the partitioning tree leaves */
-export uniform int partitioning_store (uniform int threads, uniform partitioning * uniform tree,
+export uniform int partitioning_store (uniform int ntasks, uniform partitioning * uniform tree,
   uniform int ellnum, uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
   uniform REAL * uniform radii[3], uniform REAL * uniform orient[18])
 {
@@ -754,7 +754,7 @@ export uniform int partitioning_store (uniform int threads, uniform partitioning
 
   uniform int repart = 0;
 
-  launch [threads] store_ellipsoids (ellnum/threads, tree, ellnum, ellcol, part, center, radii, orient, &repart);
+  launch [ntasks] store_ellipsoids (ellnum/ntasks, tree, ellnum, ellcol, part, center, radii, orient, &repart);
 
   return repart;
 }

@@ -166,7 +166,7 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
 }
 
 /* update dynamics */
-export void dynamics (uniform int threads, uniform master_conpnt master[], uniform slave_conpnt slave[],
+export void dynamics (uniform int ntasks, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
@@ -174,6 +174,6 @@ export void dynamics (uniform int threads, uniform master_conpnt master[], unifo
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL step0, uniform REAL step1)
 {
-  launch [threads] dynamics_task (parnum/threads, master, slave, parnum, angular, linear,
+  launch [ntasks] dynamics_task (parnum/ntasks, master, slave, parnum, angular, linear,
           rotation, position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
 }

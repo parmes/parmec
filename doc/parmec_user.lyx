@@ -643,6 +643,41 @@ target "http://www.python.org/"
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "subsec:ARGV"
+
+\end_inset
+
+ARGV
+\end_layout
+
+\begin_layout Standard
+List command line arguments.
+\end_layout
+
+\begin_layout Subsection*
+list = ARGV (| nonparmec)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+list
+\series default
+ - Python list (possibly empty) of command line arguments
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+nonparmec
+\series default
+ - optional boolean flag enabling filtering out parmec arguments; default:
+ True
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "subsec:RESET"
 
 \end_inset

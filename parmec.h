@@ -35,7 +35,10 @@ namespace parmec { /* namespace */
 
 typedef void* pointer_t; /* generall Python callback */
 
-extern int threads; /* number of hardware threads */
+extern char **argv; /* input arguments */
+extern int argc; /* input arguments count */
+
+extern int ntasks; /* number of tasks */
 
 extern char *output_path; /* output path */
 extern int output_frame; /* output files frame */

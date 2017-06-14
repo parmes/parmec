@@ -1127,7 +1127,7 @@ loading:
 }
 
 /* update forces */
-export void forces (uniform int threads, uniform master_conpnt master[], uniform slave_conpnt slave[],
+export void forces (uniform int ntasks, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL * uniform inertia[9],
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[], uniform REAL obspnt[],
@@ -1141,23 +1141,23 @@ export void forces (uniform int threads, uniform master_conpnt master[], uniform
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
 {
-  launch [threads] zero_force_torque_kmax (parnum/threads, parnum, force, torque, kmax, emax);
+  launch [ntasks] zero_force_torque_kmax (parnum/ntasks, parnum, force, torque, kmax, emax);
 
-  launch [threads] clear_slaves (parnum/threads, slave, parnum);
+  launch [ntasks] clear_slaves (parnum/ntasks, slave, parnum);
   sync;
 
-  launch [threads] contacts_task (parnum/threads, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass,
+  launch [ntasks] contacts_task (parnum/ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass,
                                   invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step);
   sync;
 
-  launch [threads] contacts_acc_task (parnum/threads, master, slave, parnum, rotation,
+  launch [ntasks] contacts_acc_task (parnum/ntasks, master, slave, parnum, rotation,
                     position, mass, gravity, force, torque, kact, kmax, emax, krot, adaptive);
   sync;
 
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
-  launch [threads] springs_task (sprnum/threads, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
+  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
                      sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
   sync;
 

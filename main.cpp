@@ -36,20 +36,31 @@ int main (int argc, char *argv[])
 {
   if (argc == 1)
   {
-    printf ("SYNOPSIS: parmec [-threads n] path/to/file.py\n");
-    printf ("         -threads n: number of threads (default: hardware supported maximum)\n");
+    printf ("SYNOPSIS: parmec [-ntasks n] path/to/file.py\n");
+    printf ("         -ntasks n: number of tasks (default: hardware supported maximum)\n");
     return 1;
   }
   else
   {
     init();
 
-    if (strcmp (argv[1], "-threads") == 0 && argc > 2)
+    if (strcmp (argv[1], "-ntasks") == 0 && argc > 2)
     {
-      threads = atoi (argv[2]);
+      ntasks = atoi (argv[2]);
     }
 
-    input (argv[argc-1]);
+    parmec::argv = argv;
+    parmec::argc = argc;
+
+    for (int i = 1; i < argc; i ++)
+    {
+      int len = strlen(argv[i]);
+      if (len > 3 && strcmp(argv[i]+len-3, ".py") == 0)
+      {
+        input (argv[i]);
+	break;
+      }
+    }
   }
 
   return 0;

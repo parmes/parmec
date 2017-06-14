@@ -778,17 +778,17 @@ export void slave_free (uniform slave_conpnt * uniform con, uniform int size)
 }
 
 /* perform contact detection */
-export void condet (uniform int threads, uniform partitioning tree[], uniform master_conpnt master[],
+export void condet (uniform int ntasks, uniform partitioning tree[], uniform master_conpnt master[],
   uniform int parnum, uniform int ellnum, uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
   uniform REAL * uniform radii[3], uniform REAL * uniform orient[18], uniform int trinum,
   uniform int tricol[], uniform int triobs[], uniform REAL * uniform tri[3][3])
 {
   if (tree == NULL) return;
 
-  launch [threads] update_existing (parnum/threads, parnum, master, center, radii, orient, tri);
+  launch [ntasks] update_existing (parnum/ntasks, parnum, master, center, radii, orient, tri);
   sync;
 
-  launch [threads] test_ellipsoids (ellnum/threads, tree, ellnum, ellcol, part, center, radii, orient, master);
+  launch [ntasks] test_ellipsoids (ellnum/ntasks, tree, ellnum, ellcol, part, center, radii, orient, master);
 
-  launch [threads] test_triangles (trinum/threads, tree, trinum, tricol, triobs, tri, master);
+  launch [ntasks] test_triangles (trinum/ntasks, tree, trinum, tricol, triobs, tri, master);
 }

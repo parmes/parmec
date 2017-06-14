@@ -25,7 +25,7 @@ SOFTWARE.
 #include "constants.h"
 #include "macros.h"
 
-/* optimal number of hardware threads */
+/* optimal number of hardware ntasks */
 export uniform int ispc_num_cores ()
 {
   return num_cores();
@@ -86,10 +86,10 @@ task void invert (uniform int span, uniform int size,
 }
 
 /* invert inertia properties */
-export void invert_inertia (uniform int threads, uniform int size, uniform REAL * uniform inertia[9],
+export void invert_inertia (uniform int ntasks, uniform int size, uniform REAL * uniform inertia[9],
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[])
 {
-  uniform int num = threads;
+  uniform int num = ntasks;
   uniform int span = size / num;
 
   launch[num] invert (span, size, inertia, inverse, mass, invm);
@@ -392,14 +392,14 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
 }
 
 /* explicit Euler step */
-export void euler (uniform int threads, uniform int parnum, uniform REAL * uniform angular[6],
+export void euler (uniform int ntasks, uniform int parnum, uniform REAL * uniform angular[6],
   uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
 {
-  launch [threads] euler_task (parnum/threads, parnum, angular, linear, rotation, position, step);
+  launch [ntasks] euler_task (parnum/ntasks, parnum, angular, linear, rotation, position, step);
 }
 
 /* determine stable time step */
-export uniform REAL determine_time_step (uniform int threads, uniform int parnum, uniform REAL mass[],
+export uniform REAL determine_time_step (uniform int ntasks, uniform int parnum, uniform REAL mass[],
   uniform REAL * uniform inertia[9], uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[],
   uniform REAL * uniform krot[6], uniform REAL step_current, uniform REAL adaptive)
 {
@@ -407,11 +407,11 @@ export uniform REAL determine_time_step (uniform int threads, uniform int parnum
   {
     uniform REAL step_min = 1E99;
 
-    uniform REAL * uniform step = uniform new uniform REAL [threads];
+    uniform REAL * uniform step = uniform new uniform REAL [ntasks];
 
-    launch [threads] time_step_task (parnum/threads, parnum, mass, inertia, kact, kmax, emax, krot, step);
+    launch [ntasks] time_step_task (parnum/ntasks, parnum, mass, inertia, kact, kmax, emax, krot, step);
 
-    for (uniform int i = 0; i < threads; i ++)
+    for (uniform int i = 0; i < ntasks; i ++)
     {
       if (step[i] < step_min) step_min = step[i];
     }

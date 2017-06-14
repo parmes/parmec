@@ -211,16 +211,16 @@ task void faces_task (uniform int span, uniform int facnum, uniform int * unifor
 }
 
 /* update shapes */
-export void shapes (uniform int threads, uniform int ellnum, uniform int part[],
+export void shapes (uniform int ntasks, uniform int ellnum, uniform int part[],
   uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
   uniform int nodnum, uniform REAL * uniform nodes[6], uniform int nodpart[], uniform int * uniform flags,
   uniform int facnum, uniform int * uniform facnod[3], uniform int factri[], uniform REAL * uniform tri[3][3],
   uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
 {
-  launch [threads] ellipsoids_task (ellnum/threads, ellnum, part, center, radii, orient, rotation, position);
+  launch [ntasks] ellipsoids_task (ellnum/ntasks, ellnum, part, center, radii, orient, rotation, position);
 
-  launch [threads] nodes_task (nodnum/threads, nodnum, nodes, nodpart, flags, rotation, position);
+  launch [ntasks] nodes_task (nodnum/ntasks, nodnum, nodes, nodpart, flags, rotation, position);
   sync;
 
-  launch [threads] faces_task (facnum/threads, facnum, facnod, factri, nodes, tri);
+  launch [ntasks] faces_task (facnum/ntasks, facnum, facnod, factri, nodes, tri);
 }
