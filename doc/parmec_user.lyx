@@ -638,6 +638,12 @@ target "http://www.python.org/"
 
 .
  Subroutines related to input processing are listed below.
+ 
+\series bold
+In all cases below, when an object number is returned, indexing starts at
+ 0 and increments on each call
+\series default
+.
 \end_layout
 
 \begin_layout Section
