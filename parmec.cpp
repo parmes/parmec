@@ -1728,7 +1728,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     condet (ntasks, tree, master, parnum, ellnum-ellcon, ellcol+ellcon, part+ellcon,
             icenter, iradii, iorient, trinum-tricon, tricol+tricon, triobs+tricon, itri);
 
-    read_gravity_and_damping (time, tms, gravfunc, gravtms, gravity, lindamp, lindamptms, angdamp, angdamptms, damping);
+    read_gravity_and_damping (curtime, tms, gravfunc, gravtms, gravity, lindamp, lindamptms, angdamp, angdamptms, damping);
 
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
@@ -1741,7 +1741,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     constrain_forces (ntasks, cnsnum, cnspart, cnslin, cnsang, force, torque);
 
     prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
-                            tmsang, angkind, time, mass, inertia, force, torque);
+                            tmsang, angkind, curtime, mass, inertia, force, torque);
 
     if (adaptive > 0.0 && adaptive <= 1.0)
     {
@@ -1789,7 +1789,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 	      factri+faccon, tri, rotation, position);
     }
 
-    obstaclev (obsnum, obsang, obslin, anghis, linhis, time+step0);
+    obstaclev (obsnum, obsang, obslin, anghis, linhis, curtime+step0);
 
     obstacles (obsnum, trirng, obspnt, obsang, obslin, tri, 0.5*(step0+step1));
 
