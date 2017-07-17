@@ -1160,6 +1160,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
 
     declare_analytical (particle);
 
+    i = particle;
+
     if (position)
     {
       parmec::position[0][i] = vposition[0];
@@ -2401,9 +2403,9 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (kind == HIS_LIST && list_size == 1 && point)
   {
-    parmec::source[0][i] = PyFloat_AsDouble (PyTuple_GetItem (point, 0));
-    parmec::source[1][i] = PyFloat_AsDouble (PyTuple_GetItem (point, 1));
-    parmec::source[2][i] = PyFloat_AsDouble (PyTuple_GetItem (point, 2));
+    s[0] = PyFloat_AsDouble (PyTuple_GetItem (point, 0));
+    s[1] = PyFloat_AsDouble (PyTuple_GetItem (point, 1));
+    s[2] = PyFloat_AsDouble (PyTuple_GetItem (point, 2));
 
     kind = HIS_LIST|HIS_POINT;
   }
