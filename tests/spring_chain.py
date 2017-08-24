@@ -26,7 +26,7 @@ for i in range (0, 10):
 
 SPRING (parnum, (i+1, i+1, i+1), -1, (i+1, i+1, i+1), [-1,-1E7, 1,1E7], [-1, -8E5, 1, 8E5])
 
-GRAVITY (0, 0, -10)
+GRAVITY (0., 0., -10.)
 
 t = HISTORY ('TIME')
 z = HISTORY ('PZ', parnum)

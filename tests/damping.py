@@ -14,7 +14,7 @@ def lindamp(t): return (1, 1, 1)
 def angdamp(t): return (0, 0, 0)
 DAMPING (lindamp, angdamp)
 
-GRAVITY (0, 0, -gravity)
+GRAVITY (0., 0., -gravity)
 
 T = HISTORY('TIME')
 X = HISTORY('PX', num)

@@ -24,7 +24,7 @@ SPRING (parnum, (0, 1, 1), -1, (0, 1, 0), [0, 0, 1, 0, 2, 1E7], [-1, -8E5, 1, 8E
 
 VELOCITY (parnum, angular=(0.25, 0.5, 0))
 
-GRAVITY (0, 0, -10)
+GRAVITY (0., 0., -10.)
 
 t = HISTORY ('TIME')
 z = HISTORY ('PZ', parnum)
