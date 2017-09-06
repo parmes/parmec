@@ -2478,8 +2478,8 @@ OUTPUT (entities | subset, mode, format)
 entities
 \series default
  - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'ORIENT',
- 'LINVEL', 'ANGVEL', 'FORCE', 'TORQUE', 'F', 'FN', 'FT', 'SF', 'AREA', 'PAIR']
- where:
+ 'ORIENT1', 'ORIENT2', 'ORIENT3', 'LINVEL', 'ANGVEL', 'FORCE', 'TORQUE',
+ 'F', 'FN', 'FT', 'SF', 'AREA', 'PAIR'] where:
 \end_layout
 
 \begin_deeper
@@ -2500,9 +2500,13 @@ entities
 \end_layout
 
 \begin_layout Itemize
-'ORIENT' - three 3-component vector fields representing columns of rigid
- rotation matrix (orientation vectors) (modes: 'RB'), or 3-component vector
- field of spring orientations (modes: 'SD')
+'ORIENT' - 9-component tensor field representing rigid rotation matrix (modes:
+ 'RB'), or 3-component vector field of spring orientations (modes: 'SD')
+\end_layout
+
+\begin_layout Itemize
+'ORIENT1', 'ORIENT2', 'ORIENT3' - three 3-component vector fields representing
+ columns of rigid rotation matrix (orientation vectors) (modes: 'RB')
 \end_layout
 
 \begin_layout Itemize

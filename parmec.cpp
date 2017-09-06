@@ -983,8 +983,8 @@ int output_buffer_init ()
   outpart = aligned_int_alloc (output_list_size);
   outidx = aligned_int_alloc (output_buffer_size+1);
   outent = aligned_int_alloc (output_buffer_size);
-  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
-               OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|
+               OUT_LINVEL|OUT_ANGVEL| OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
   outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
   outformat = OUT_FORMAT_XDMF;
 
@@ -1608,8 +1608,8 @@ void reset ()
   springs_changed = 0; /* unset springs changed flag */
 
   /* unselected particles default output flags */
-  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|
-               OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
+  outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_ORIENT|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|
+               OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR;
   outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
   outformat = OUT_FORMAT_XDMF;
 

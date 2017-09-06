@@ -2619,6 +2619,21 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
       if (subset) outent[i] |= OUT_ORIENT;
       else outrest[0] |= OUT_ORIENT;
     }
+    ELIF (item, "ORIENT1")
+    {
+      if (subset) outent[i] |= OUT_ORIENT1;
+      else outrest[0] |= OUT_ORIENT1;
+    }
+    ELIF (item, "ORIENT2")
+    {
+      if (subset) outent[i] |= OUT_ORIENT2;
+      else outrest[0] |= OUT_ORIENT2;
+    }
+    ELIF (item, "ORIENT3")
+    {
+      if (subset) outent[i] |= OUT_ORIENT3;
+      else outrest[0] |= OUT_ORIENT3;
+    }
     ELIF (item, "LINVEL")
     {
       if (subset) outent[i] |= OUT_LINVEL;

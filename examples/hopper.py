@@ -52,7 +52,7 @@ OBSTACLE (triangles, 2)
 GRANULAR (0, 0, kn, da, mu)
 
 # define gravity
-GRAVITY (0, 0, -10)
+GRAVITY (0., 0., -10.)
 
 # estimate critical time step
 hcrit = CRITICAL()

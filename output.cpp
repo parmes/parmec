@@ -52,14 +52,14 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
     out << position [0][j] << " " << position[1][j] << " " << position[2][j] << "\n";
   }
 
-  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_ORIENT|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE))
+  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE))
   {
     out << "POINT_DATA " << num << "\n";
   }
 
   if (ent & OUT_NUMBER)
   {
-    out << "SCALARS number int\n";
+    out << "SCALARS NUMBER int\n";
     out << "LOOKUP_TABLE default\n";
     for (i = 0; i < num; i ++)
     {
@@ -69,7 +69,7 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_DISPL)
   {
-    out << "VECTORS displ float\n";
+    out << "VECTORS DISPL float\n";
 
     for (i = 0; i < num; i ++)
     {
@@ -83,23 +83,29 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
     }
   }
 
-  if (ent & OUT_ORIENT)
+  if (ent & OUT_ORIENT1)
   {
-    out << "VECTORS orient1 float\n";
+    out << "VECTORS ORIENT1 float\n";
     for (i = 0; i < num; i ++)
     {
       j = set[i];
       out << rotation[0][j] << " " << rotation[1][j] << " " << rotation[2][j] << "\n";
     }
+  }
 
-    out << "VECTORS orient2 float\n";
+  if (ent & OUT_ORIENT2)
+  {
+    out << "VECTORS ORIENT2 float\n";
     for (i = 0; i < num; i ++)
     {
       j = set[i];
       out << rotation[3][j] << " " << rotation[4][j] << " " << rotation[5][j] << "\n";
     }
+  }
 
-    out << "VECTORS orient3 float\n";
+  if (ent & OUT_ORIENT3)
+  {
+    out << "VECTORS ORIENT3 float\n";
     for (i = 0; i < num; i ++)
     {
       j = set[i];
@@ -109,7 +115,7 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_LINVEL)
   {
-    out << "VECTORS linvel float\n";
+    out << "VECTORS LINVEL float\n";
 
     for (i = 0; i < num; i ++)
     {
@@ -121,7 +127,7 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_ANGVEL)
   {
-    out << "VECTORS angvel float\n";
+    out << "VECTORS ANGVEL float\n";
 
     for (i = 0; i < num; i ++)
     {
@@ -133,7 +139,7 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_FORCE)
   {
-    out << "VECTORS force float\n";
+    out << "VECTORS FORCE float\n";
 
     for (i = 0; i < num; i ++)
     {
@@ -145,7 +151,7 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 
   if (ent & OUT_TORQUE)
   {
-    out << "VECTORS torque float\n";
+    out << "VECTORS TORQUE float\n";
 
     for (i = 0; i < num; i ++)
     {
@@ -270,6 +276,42 @@ static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
 
     hsize_t dims[2] = {num, 9};
     ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_ORIENT1)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      pdata[0] = rotation[0][j]; pdata[1] = rotation[1][j]; pdata[2] = rotation[2][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT1", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_ORIENT2)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      pdata[0] = rotation[3][j]; pdata[1] = rotation[4][j]; pdata[2] = rotation[5][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT2", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_ORIENT3)
+  {
+    pdata = data;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      pdata[0] = rotation[6][j]; pdata[1] = rotation[7][j]; pdata[2] = rotation[8][j]; pdata += 3;
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT3", 2, dims, data) >= 0, "HDF5 file write error");
   }
 
   delete [] data;
@@ -1216,6 +1258,33 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Tensor\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d 9\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
       fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ORIENT1)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ORIENT1\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/ORIENT1\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ORIENT2)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ORIENT2\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/ORIENT2\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_ORIENT3)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"ORIENT3\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/ORIENT3\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }
