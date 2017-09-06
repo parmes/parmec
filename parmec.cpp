@@ -159,7 +159,7 @@ int *dashidx; /* dashpot force lookup start index */
 REAL *unload[2]; /* spring unloading lookup tables */
 int *unidx; /* spring unloading lookup start index */
 REAL *yield[2]; /* spring yield limits: 0 compression and 1 tension */
-REAL *sprdir[3]; /* spring direction */
+REAL *sprdir[6]; /* spring direction (0:3 current and 3:6 reference) */
 int *sprflg; /* spring flags */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
@@ -731,6 +731,9 @@ int spring_buffer_init ()
   sprdir[0] = aligned_real_alloc (spring_buffer_size);
   sprdir[1] = aligned_real_alloc (spring_buffer_size);
   sprdir[2] = aligned_real_alloc (spring_buffer_size);
+  sprdir[3] = aligned_real_alloc (spring_buffer_size);
+  sprdir[4] = aligned_real_alloc (spring_buffer_size);
+  sprdir[5] = aligned_real_alloc (spring_buffer_size);
   sprflg = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke[0] = aligned_real_alloc (spring_buffer_size);
@@ -778,6 +781,9 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
     real_buffer_grow(sprdir[0], sprnum, spring_buffer_size);
     real_buffer_grow(sprdir[1], sprnum, spring_buffer_size);
     real_buffer_grow(sprdir[2], sprnum, spring_buffer_size);
+    real_buffer_grow(sprdir[3], sprnum, spring_buffer_size);
+    real_buffer_grow(sprdir[4], sprnum, spring_buffer_size);
+    real_buffer_grow(sprdir[5], sprnum, spring_buffer_size);
     integer_buffer_grow(sprflg, sprnum, spring_buffer_size);
     real_buffer_grow(stroke0, sprnum, spring_buffer_size);
     real_buffer_grow(stroke[0], sprnum, spring_buffer_size);
@@ -1324,7 +1330,7 @@ static void sort_springs ()
   REAL *unload[2]; /* unload force lookup tables */
   int *unidx; /* unload force lookup start index */
   REAL *yield[2]; /* spring yield limits */
-  REAL *sprdir[3]; /* spring direction */
+  REAL *sprdir[6]; /* spring direction */
   int *sprflg; /* spring flags */
   REAL *stroke0; /* initial spring stroke */
   REAL *stroke[3]; /* current stroke */
@@ -1360,6 +1366,9 @@ static void sort_springs ()
   sprdir[0] = aligned_real_alloc (spring_buffer_size);
   sprdir[1] = aligned_real_alloc (spring_buffer_size);
   sprdir[2] = aligned_real_alloc (spring_buffer_size);
+  sprdir[3] = aligned_real_alloc (spring_buffer_size);
+  sprdir[4] = aligned_real_alloc (spring_buffer_size);
+  sprdir[5] = aligned_real_alloc (spring_buffer_size);
   sprflg = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke[0] = aligned_real_alloc (spring_buffer_size);
@@ -1396,6 +1405,9 @@ static void sort_springs ()
     sprdir[0][i] = parmec::sprdir[0][x->number];
     sprdir[1][i] = parmec::sprdir[1][x->number];
     sprdir[2][i] = parmec::sprdir[2][x->number];
+    sprdir[3][i] = parmec::sprdir[3][x->number];
+    sprdir[4][i] = parmec::sprdir[4][x->number];
+    sprdir[5][i] = parmec::sprdir[5][x->number];
     sprflg[i] = parmec::sprflg[x->number];
     stroke0[i] = parmec::stroke0[x->number];
     stroke[0][i] = parmec::stroke[0][x->number];
@@ -1456,6 +1468,9 @@ static void sort_springs ()
   aligned_real_free (parmec::sprdir[0]);
   aligned_real_free (parmec::sprdir[1]);
   aligned_real_free (parmec::sprdir[2]);
+  aligned_real_free (parmec::sprdir[3]);
+  aligned_real_free (parmec::sprdir[4]);
+  aligned_real_free (parmec::sprdir[5]);
   aligned_int_free (parmec::sprflg);
   aligned_real_free (parmec::stroke0);
   aligned_real_free (parmec::stroke[0]);
@@ -1494,6 +1509,9 @@ static void sort_springs ()
   parmec::sprdir[0] = sprdir[0];
   parmec::sprdir[1] = sprdir[1];
   parmec::sprdir[2] = sprdir[2];
+  parmec::sprdir[3] = sprdir[3];
+  parmec::sprdir[4] = sprdir[4];
+  parmec::sprdir[5] = sprdir[5];
   parmec::sprflg = sprflg;
   parmec::stroke0 = stroke0;
   parmec::stroke[0] = stroke[0];

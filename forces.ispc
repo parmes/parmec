@@ -588,7 +588,7 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[],
-  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3],
+  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
   uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
@@ -761,11 +761,11 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
     case SPRDIR_PLANAR:
 
-      inv = w[0]*sprdir[0][i]+w[1]*sprdir[1][i]+w[2]*sprdir[2][i]; /* dot of (q-p) and constant direction */
+      inv = w[0]*sprdir[3][i]+w[1]*sprdir[4][i]+w[2]*sprdir[5][i]; /* dot of (q-p) and constant direction */
 
-      w[0] -= inv*sprdir[0][i];
-      w[1] -= inv*sprdir[1][i];
-      w[2] -= inv*sprdir[2][i];
+      w[0] -= inv*sprdir[3][i];
+      w[1] -= inv*sprdir[4][i];
+      w[2] -= inv*sprdir[5][i];
 
       len = LEN(w);
       inv = len > 0.0 ? 1.0/len : 0.0; /* zero force in case of zero length via (temporary) zero direction */
@@ -773,6 +773,10 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       z[0] = inv*w[0];
       z[1] = inv*w[1];
       z[2] = inv*w[2];
+
+      sprdir[0][i] = z[0]; /* store current direction */
+      sprdir[1][i] = z[1];
+      sprdir[2][i] = z[2];
       break;
     }
 
@@ -1136,7 +1140,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
-  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[3], uniform int sprflg[], uniform REAL stroke0[],
+  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)

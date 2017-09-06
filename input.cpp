@@ -1439,6 +1439,9 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     sprdir[0][i] = dir[0];
     sprdir[1][i] = dir[1];
     sprdir[2][i] = dir[2];
+    sprdir[3][i] = dir[0];
+    sprdir[4][i] = dir[1];
+    sprdir[5][i] = dir[2];
 
     if (planar)
     {

@@ -955,9 +955,9 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     for (i = 0; i < num; i ++)
     {
       j = set[i];
-      out << (sprpnt[1][0][j]-sprpnt[0][0][j]) << " "
-	  << (sprpnt[1][1][j]-sprpnt[0][1][j]) << " "
-	  << (sprpnt[1][2][j]-sprpnt[0][2][j]) << "\n";
+      out << sprdir[0][j] << " "
+	  << sprdir[1][j] << " "
+	  << sprdir[2][j] << "\n";
     }
   }
 
@@ -1034,9 +1034,9 @@ static void h5_spring_dataset (int num, int *set, int ent, hid_t h5_step)
     for (pdata = data, i = 0; i < num; i ++, pdata += 3)
     {
       j = set[i];
-      pdata[0] = (sprpnt[1][0][j]-sprpnt[0][0][j]);
-      pdata[1] = (sprpnt[1][1][j]-sprpnt[0][1][j]);
-      pdata[2] = (sprpnt[1][2][j]-sprpnt[0][2][j]);
+      pdata[0] = sprdir[0][j];
+      pdata[1] = sprdir[1][j];
+      pdata[2] = sprdir[2][j];
     }
 
     ASSERT (H5LTmake_dataset_double (h5_step, "ORIENT", 2, dims, data) >= 0, "HDF5 file write error");
