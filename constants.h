@@ -57,6 +57,8 @@ enum {SPRING_NONLINEAR_ELASTIC, SPRING_GENERAL_NONLINEAR}; /* spring type */
 
 enum {SPRING_YIELDED = 1, SPRING_UNLOADING = 2, SPRDIR_CONSTANT = 4, SPRDIR_PLANAR = 8, SPRDIR_FOLLOWER = 16}; /* spring flags */
 
+enum {OP_SUM, OP_MAX, OP_MIN}; /* unspring operators */
+
 #ifdef __cplusplus
 }
 #endif

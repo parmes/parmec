@@ -1596,6 +1596,303 @@ TODO: include figures like in LS-DYNA manuals and change formulas in order
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "sec:UNSPRING"
+
+\end_inset
+
+UNSPRING 
+\color red
+(under development)
+\end_layout
+
+\begin_layout Subsection*
+UNSPRING (tsprings, msprings, limits | entity, operator, abs, nsteps, nfreq,
+ unload)
+\end_layout
+
+\begin_layout Standard
+Undoes user defined selection of springs (
+\series bold
+msprings
+\series default
+) based on the value of spring entities experienced by a different user
+ defined selection of springs (
+\series bold
+tsprings
+\series default
+).
+ Modifications to the spring curves occur during a simulation.
+ Undone springs remain in the simulation but generate zero forces.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+tsprings
+\series default
+ - tuple of unique spring numbers whose spring entities are assessed against
+ a criteria defined by limits; must be nonempty
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+msprings
+\series default
+ - tuple of unique spring numbers which are to be modified if 
+\series bold
+tsprings
+\series default
+ meet the limits criteria (springs defined in 
+\series bold
+tsprings
+\series default
+ are not modified unless also specified in 
+\series bold
+msprings
+\series default
+); must be nonempty
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+limits
+\series default
+ - tuple of (min, max) 
+\series bold
+tsprings
+\series default
+ 
+\series bold
+operator
+\series default
+ 
+\series bold
+entity
+\series default
+ limit values which need to be exceeded for 
+\series bold
+msprings
+\series default
+ to be modified; if either value is 
+\emph on
+None
+\emph default
+ then no failure limit is assumed e.g.
+ (
+\emph on
+None
+\emph default
+, max) only has an upper failure limit; also min < max
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+entity
+\series default
+ - scalar spring entity string: (spring stroke) 'STROKE', (spring total
+ force) 'STF', (spring force without damping) 'SF', cf.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:HISTORY"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+; default: 'SF'
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+operator
+\series default
+ - collective 
+\series bold
+tsprings
+\series default
+ operator string: 'SUM', 'MIN', 'MAX'; default: 'SUM'
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+abs
+\series default
+ - boolean, if 
+\emph on
+True
+\emph default
+ then spring forces are converted to absolute values before summation of
+ the spring forces; default: 
+\emph on
+False
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+nsteps
+\series default
+ - int, number of time steps between calls of UNSPRING; default: 1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+nfreq
+\series default
+ - int, number of 
+\series bold
+nsteps
+\series default
+ for which 
+\series bold
+tsprings
+\series default
+ exceed 
+\series bold
+limits
+\series default
+ before 
+\series bold
+msprings
+\series default
+ are modified; default: 1
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+unload
+\series default
+ - Python dictionary (i.e.
+ 
+\series bold
+unload
+\series default
+[
+\emph on
+key
+\emph default
+] = 
+\emph on
+value
+\emph default
+), where 
+\emph on
+key
+\emph default
+ (int) - unique spring number (must be present in 
+\series bold
+msprings
+\series default
+) and 
+\emph on
+value
+\emph default
+ (int) - time series number (TSERIES) defining the unload spring curve;
+ an unloading curve must originate at zero and increase monotonically; once
+ modification is activated, for each spring in 
+\series bold
+msprings
+\series default
+, the unloading curve is individually applied with a shift specific to the
+ current displacement; both negative and positive displacement increments
+ decrease total spring forces until zero; the spring force remains zero
+ ever after; dashpot force is zero during unloading; default: instantaneous
+ unloading to zero total force
+\end_layout
+
+\begin_layout Standard
+\noindent
+By default, modification of 
+\series bold
+msprings
+\series default
+ is based on the sum of the elastic spring force values across all spring
+ numbers defined in 
+\series bold
+tsprings
+\series default
+.
+ This is a sum of absolute values if 
+\series bold
+abs
+\series default
+ = 
+\emph on
+True
+\emph default
+.
+ Forces in all 
+\series bold
+tsprings
+\series default
+ must exceed the specific min/max values defined in 
+\series bold
+limits
+\series default
+ for the spring curves to be modified (i.e.
+ spring curve modification is an 
+\emph on
+and
+\emph default
+ operation, not 
+\emph on
+or
+\emph default
+).
+ For example:
+\end_layout
+
+\begin_layout LyX-Code
+\noindent
+tsprings = (1,2)
+\end_layout
+
+\begin_layout LyX-Code
+\noindent
+msprings = (3,4)
+\end_layout
+
+\begin_layout LyX-Code
+\noindent
+limits = (-1.0, 1.0)
+\end_layout
+
+\begin_layout LyX-Code
+\noindent
+UNSPRING(tsprings, msprings, limits)
+\end_layout
+
+\begin_layout Standard
+results in the resultant elastic spring force (SF) being assessed against
+ the (-1.0, 1.0) limits.
+ For the spring curves of springs 3 and 4 to be modified, the sum of the
+ forces of springs 1 and 2 must be outside of the (-1.0,1.0) limits for 
+\series bold
+nfreq
+\series default
+ (=1) number of 
+\series bold
+nsteps
+\series default
+ (=1).
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "subsec:GRANULAR"
 
 \end_inset

@@ -164,11 +164,28 @@ int *sprflg; /* spring flags */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 REAL *sprfrc[2]; /* total and spring force magnitude */
+int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use unload curve */
 int springs_changed; /* spring input data changed flag */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
 int unload_lookup_size; /* size of the unload force lookup tables */
+
+int unsprnum; /* number of unspring definitions */
+int *tsprings; /* test springs */
+int *trange[2]; /* test springs range */
+int *msprings; /* modified springs */
+int *mrange[2]; /* modified springs range */
+REAL *unlim[2];  /* entity limits */
+int *unent; /* entity type */
+int *unop; /* test springs operator */
+int *unabs; /* absolute value flag */
+int *nsteps; /* number of steps between checks */
+int *nfreq; /* number of nsteps for which tsprings exceed limits before msprings are modified */
+int *uncurve; /* index of time series storing an unloading curve; -1: instantaneous unloading to zero */
+int unspring_buffer_size; /* size of unspring buffer */
+int tsprings_buffer_size; /* size of tsprings buffer */
+int msprings_buffer_size; /* size of msprings buffer */
 
 int cnsnum; /* number of constraints */
 int *cnspart; /* constrained particle numbers */
