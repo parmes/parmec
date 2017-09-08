@@ -136,6 +136,7 @@ extern int sprnum; /* number of spring constraints */
 extern int *sprid; /* spring id --> number returned to user */
 extern int *sprmap; /* map of spring ids to spring indices */
 extern int *sprtype; /* spring type */
+extern int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use unload curve */
 extern int *sprpart[2]; /* spring constraint particle numbers */
 extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 extern REAL *spring[2]; /* spring force lookup tables */
@@ -150,7 +151,6 @@ extern int *sprflg; /* spring flags */
 extern REAL *stroke0; /* initial spring stroke */
 extern REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 extern REAL *sprfrc[2]; /* total and spring force magnitude */
-extern int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use unload curve */
 extern int springs_changed; /* spring input data changed flag */
 extern int spring_buffer_size; /* size of the spring constraint buffer */
 extern int spring_lookup_size; /* size of the spring force lookup tables */
@@ -160,16 +160,16 @@ extern void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unloa
 
 extern int unsprnum; /* number of unspring definitions */
 extern int *tsprings; /* test springs */
-extern int *trange[2]; /* test springs range */
+extern int *tspridx; /* test springs index range */
 extern int *msprings; /* modified springs */
-extern int *mrange[2]; /* modified springs range */
+extern int *mspridx; /* modified springs index range */
 extern REAL *unlim[2];  /* entity limits */
 extern int *unent; /* entity type */
 extern int *unop; /* test springs operator */
 extern int *unabs; /* absolute value flag */
 extern int *nsteps; /* number of steps between checks */
 extern int *nfreq; /* number of nsteps for which tsprings exceed limits before msprings are modified */
-extern int *uncurve; /* index of time series storing an unloading curve; -1: instantaneous unloading to zero */
+extern int *unaction; /* unloading action; -1: instantaneous unloading, >=0: use uncurve */
 extern int unspring_buffer_size; /* size of unspring buffer */
 extern int tsprings_buffer_size; /* size of tsprings buffer */
 extern int msprings_buffer_size; /* size of msprings buffer */
@@ -186,6 +186,14 @@ extern int tmsnum; /* number of time series */
 extern pointer_t *tms; /* time series */
 extern int time_series_buffer_size; /* size of time series buffer */
 extern int time_series_buffer_grow (); /* grow buffer */
+
+extern int lcnum; /* number of load curves */
+extern REAL *lcurve[2]; /* load curve data */
+extern int *lcidx; /* load curve start index */
+extern int lcurve_buffer_size; /* size of load curves buffer */
+extern int lcurve_data_size; /* size of load curves data buffer */
+extern void lcurve_buffer_grow (int increment); /* grow buffer */
+extern int lcurve_from_time_series (int ts); /* get load curve from time series */
 
 extern int prsnum; /* number of particles with prescribed motion */
 extern int *prspart; /* prescribed motion particle numbers */

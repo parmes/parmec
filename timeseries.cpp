@@ -71,6 +71,7 @@ TMS* TMS_Copy (TMS *ts)
   ERRMEM (out->points = (REAL(*)[2])malloc (sizeof (REAL [2]) * ts->size));
   out->marker = ts->marker;
   out->size = ts->size;
+  out->lc = ts->lc;
   memcpy (out->points, ts->points, sizeof (REAL [2]) * ts->size);
 
   return out;
@@ -86,6 +87,7 @@ TMS* TMS_Create (int size, REAL *times, REAL *values)
   ERRMEM (ts->points = (REAL(*)[2])malloc (sizeof (REAL [2]) * size));
   ts->marker = 0;
   ts->size = size;
+  ts->lc = -1;
 
   for (i = 0; i < size; i ++)
   {
@@ -148,6 +150,7 @@ TMS* TMS_File (char *path)
   }
 
   ts->marker = 0;
+  ts->lc = -1;
 
   return ts;
 }
@@ -159,6 +162,7 @@ TMS* TMS_Constant (REAL value)
   ERRMEM (ts = (TMS*)malloc (sizeof (TMS)));
   ts->value = value;
   ts->size = 0; /* indicates constant value */
+  ts->lc = -1;
 
   return ts;
 }
@@ -172,6 +176,7 @@ TMS* TMS_Integral (TMS *ts)
   ASSERT (ts->size > 0, "Cannot integrate constant time series");
   ERRMEM (out = (TMS*)malloc (sizeof (TMS)));
   out->size = ts->size;
+  out->lc = -1;
 
   if (out->size == 0)
   {
@@ -212,6 +217,7 @@ TMS* TMS_Derivative (TMS *ts)
 
   ERRMEM (out = (TMS*)malloc (sizeof (TMS)));
   out->size = 2*(ts->size-1); /* constant value per interval with linear trend: two ends of the interval */
+  out->lc = -1;
 
   ERRMEM (out->points = (REAL(*)[2])MEM_CALLOC (sizeof (REAL [2]) * out->size));
 

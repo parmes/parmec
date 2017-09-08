@@ -1520,6 +1520,184 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   return PyInt_FromLong (i);
 }
 
+/* add collective spring undoing condition */
+static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("tsprings", "msprings", "limits", "entity", "operator", "abs", "nsteps", "nfreq", "unload");
+  PyObject *tsprings, *msprings, *limits, *entity, *operat, *abs;
+  int nsteps, nfreq, unload;
+
+  entity = NULL;
+  operat = NULL;
+  abs = Py_False;
+  nsteps = 1;
+  nfreq = 1;
+  unload = -1;
+
+  PARSEKEYS ("OOO|OOOiiO", &tsprings, &msprings, &limits, &entity, &operat, &abs, &nsteps, &nfreq, &unload);
+
+  TYPETEST (is_tuple (tsprings, kwl[0], 0) && is_tuple (msprings, kwl[1], 0) && is_tuple (limits, kwl[2], 2) &&
+            is_string (entity, kwl[3]) && is_string (operat, kwl[4]) && is_bool (abs, kwl[5]) &&
+	    is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]) && is_non_negative (unload, kwl[8]));
+
+  if (unload >= tmsnum)
+  {
+    PyErr_SetString (PyExc_ValueError, "unload TSERIES index is out of range");
+    return NULL;
+  }
+  else if (unload >= 0)
+  {
+    TMS *ts = (TMS*)tms[unload];
+
+    for (int j = 0; j < ts->size; j ++)
+    {
+      REAL stroke = ts->points[0][j];
+      REAL force = ts->points[1][j];
+
+      if (j)
+      {
+	REAL slope = (force - ts->points[1][j-1])/(stroke - ts->points[0][j-1]);
+	if (slope <= 0.0) /* unloading curve must be monotonic --> (x,y) slope search */
+	{
+	  PyErr_SetString (PyExc_ValueError, "Unloading curve must be monotonically increasing");
+	  return NULL;
+	}
+      }
+    }
+  }
+
+  for (int i = 0; i < PyTuple_Size (tsprings); i ++)
+  {
+    int j = PyInt_AsLong(PyTuple_GetItem(tsprings, i));
+
+    if (j < 0 || j >= sprnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "tsprings SPRING index is out of range");
+      return NULL;
+    }
+  }
+
+  for (int i = 0; i < PyTuple_Size (msprings); i ++)
+  {
+    int j = PyInt_AsLong(PyTuple_GetItem(msprings, i));
+
+    if (j < 0 || j >= sprnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "msprings SPRING index is out of range");
+      return NULL;
+    }
+  }
+
+  unspring_buffer_grow (PyTuple_Size (tsprings), PyTuple_Size (msprings));
+
+  int i = unsprnum ++;
+
+  tspridx[i+1] = tspridx[i];
+  for (int i = 0; i < PyTuple_Size (tsprings); i ++)
+  {
+    int j = PyInt_AsLong(PyTuple_GetItem(tsprings, i));
+    parmec::tsprings[tspridx[i+1]] = j;
+    tspridx[i+1] ++;
+  }
+
+  mspridx[i+1] = mspridx[i];
+  for (int i = 0; i < PyTuple_Size (msprings); i ++)
+  {
+    int j = PyInt_AsLong(PyTuple_GetItem(msprings, i));
+    parmec::msprings[mspridx[i+1]] = j;
+    mspridx[i+1] ++;
+  }
+
+  PyObject *lim0 = PyTuple_GetItem (limits, 0);
+
+  if (lim0 == Py_None) unlim[0][i] = -REAL_MAX;
+  else if (PyNumber_Check (lim0))
+  {
+    unlim[0][i] = PyFloat_AsDouble (lim0);
+  }
+  else 
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid lower limit");
+    return NULL;
+  }
+
+  PyObject *lim1 = PyTuple_GetItem (limits, 1);
+
+  if (lim1 == Py_None) unlim[1][i] = REAL_MAX;
+  else if (PyNumber_Check (lim1))
+  {
+    unlim[1][i] = PyFloat_AsDouble (lim1);
+  }
+  else 
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid upper limit");
+    return NULL;
+  }
+
+  if (unlim[0][i] >= unlim[1][i])
+  {
+    PyErr_SetString (PyExc_ValueError, "Lower limit >= upper limit");
+    return NULL;
+  }
+
+  if (entity)
+  {
+    IFIS (entity, "STROKE")
+    {
+      unent[i] = HIS_STROKE;
+    }
+    ELIF (entity, "STF") /* total force */
+    {
+      unent[i] = HIS_STF;
+    }
+    ELIF (entity, "SF") /* elastic force */
+    {
+      unent[i] = HIS_SF;
+    }
+    ELSE
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid entity");
+      return NULL;
+    }
+  }
+  else /* default */
+  {
+    unent[i] = HIS_SF;
+  }
+
+  if (operat)
+  {
+    IFIS (operat, "SUM")
+    {
+      unop[i] = OP_SUM;
+    }
+    ELIF (operat, "MIN")
+    {
+      unop[i] = OP_MIN;
+    }
+    ELIF (operat, "MAX")
+    {
+      unop[i] = OP_MAX;
+    }
+    ELSE
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid operator");
+      return NULL;
+    }
+  }
+  else /* default */
+  {
+    unent[i] = HIS_SF;
+  }
+
+  unabs[i] = abs == Py_True ? 1 : 0;
+  parmec::nsteps[i] = nsteps;
+  parmec::nfreq[i] = nfreq;
+  unaction[i] = unload < 0 ? unload : lcurve_from_time_series (unload);
+
+  return PyInt_FromLong (i);
+}
+
 /* define surface pairing for the granular interaction model */
 static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -2887,6 +3065,7 @@ static PyMethodDef methods [] =
   {"ANALYTICAL", (PyCFunction)::ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
+  {"UNSPRING", (PyCFunction)::UNSPRING, METH_VARARGS|METH_KEYWORDS, "Undo translational springs"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"RESTRAIN", (PyCFunction)RESTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
   {"PRESCRIBE", (PyCFunction)PRESCRIBE, METH_VARARGS|METH_KEYWORDS, "Prescribe particle motion"},
@@ -2936,6 +3115,7 @@ int input (const char *path)
                       "from parmec import ANALYTICAL\n"
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
+                      "from parmec import UNSPRING\n"
                       "from parmec import GRANULAR\n"
                       "from parmec import RESTRAIN\n"
                       "from parmec import PRESCRIBE\n"

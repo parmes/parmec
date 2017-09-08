@@ -150,6 +150,7 @@ int sprnum; /* number of spring constraints */
 int *sprid; /* spring id --> number returned to user */
 int *sprmap; /* map of spring ids to spring indices */
 int *sprtype; /* spring type */
+int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use lcurve */
 int *sprpart[2]; /* spring constraint particle numbers */
 REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 REAL *spring[2]; /* spring force lookup tables */
@@ -164,7 +165,6 @@ int *sprflg; /* spring flags */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 REAL *sprfrc[2]; /* total and spring force magnitude */
-int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use unload curve */
 int springs_changed; /* spring input data changed flag */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
@@ -173,16 +173,16 @@ int unload_lookup_size; /* size of the unload force lookup tables */
 
 int unsprnum; /* number of unspring definitions */
 int *tsprings; /* test springs */
-int *trange[2]; /* test springs range */
+int *tspridx; /* test springs index range */
 int *msprings; /* modified springs */
-int *mrange[2]; /* modified springs range */
+int *mspridx; /* modified springs index range */
 REAL *unlim[2];  /* entity limits */
 int *unent; /* entity type */
 int *unop; /* test springs operator */
 int *unabs; /* absolute value flag */
 int *nsteps; /* number of steps between checks */
 int *nfreq; /* number of nsteps for which tsprings exceed limits before msprings are modified */
-int *uncurve; /* index of time series storing an unloading curve; -1: instantaneous unloading to zero */
+int *unaction; /* unloading action; -1: instantaneous unloading, >=0: use lcurve */
 int unspring_buffer_size; /* size of unspring buffer */
 int tsprings_buffer_size; /* size of tsprings buffer */
 int msprings_buffer_size; /* size of msprings buffer */
@@ -196,6 +196,12 @@ int constrain_buffer_size; /* size of constrained particles buffer */
 int tmsnum; /* number of time series */
 pointer_t *tms; /* time series */
 int time_series_buffer_size; /* size of time series buffer */
+
+int lcnum; /* number of load curves */
+REAL *lcurve[2]; /* load curve data */
+int *lcidx; /* load curve start index */
+int lcurve_buffer_size; /* size of load curves buffer */
+int lcurve_data_size; /* size of load curves data buffer */
 
 int prsnum; /* number of particles with prescribed motion */
 int *prspart; /* prescribed motion particle numbers */
@@ -720,6 +726,7 @@ int spring_buffer_init ()
   sprid = aligned_int_alloc (spring_buffer_size);
   sprmap = aligned_int_alloc (spring_buffer_size);
   sprtype = aligned_int_alloc (spring_buffer_size);
+  unspring = aligned_int_alloc (spring_buffer_size);
   sprpart[0] = aligned_int_alloc (spring_buffer_size);
   sprpart[1] = aligned_int_alloc (spring_buffer_size);
   sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
@@ -776,6 +783,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
     integer_buffer_grow(sprid, sprnum, spring_buffer_size);
     integer_buffer_grow(sprmap, sprnum, spring_buffer_size);
     integer_buffer_grow(sprtype, sprnum, spring_buffer_size);
+    integer_buffer_grow(unspring, sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[0], sprnum, spring_buffer_size);
     integer_buffer_grow(sprpart[1], sprnum, spring_buffer_size);
     real_buffer_grow(sprpnt[0][0], sprnum, spring_buffer_size);
@@ -829,6 +837,63 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
     unload_lookup_size = 2 * (unidx[sprnum] + unload_lookup);
     real_buffer_grow (unload[0], unidx[sprnum], unload_lookup_size);
     real_buffer_grow (unload[1], unidx[sprnum], unload_lookup_size);
+  }
+}
+
+/* init unspring buffer */
+int unspring_buffer_init ()
+{
+  unspring_buffer_size = 256;
+  tsprings_buffer_size = 1024;
+  msprings_buffer_size = 1024;
+
+  tsprings = aligned_int_alloc (tsprings_buffer_size);
+  tspridx = aligned_int_alloc (unspring_buffer_size+1);
+  msprings = aligned_int_alloc (msprings_buffer_size);
+  mspridx = aligned_int_alloc (unspring_buffer_size+1);
+  unlim[0] = aligned_real_alloc (unspring_buffer_size);
+  unlim[1] = aligned_real_alloc (unspring_buffer_size);
+  unent = aligned_int_alloc (tsprings_buffer_size);
+  unop = aligned_int_alloc (tsprings_buffer_size);
+  unabs = aligned_int_alloc (tsprings_buffer_size);
+  nsteps = aligned_int_alloc (tsprings_buffer_size);
+  nfreq = aligned_int_alloc (tsprings_buffer_size);
+  unaction = aligned_int_alloc (tsprings_buffer_size);
+
+  unsprnum = 0;
+  tspridx[unsprnum] = 0;
+  mspridx[unsprnum] = 0;
+}
+
+/* grow unspring buffer */
+void unspring_buffer_grow (int tsprings_increment, int msprings_increment)
+{
+  if (unsprnum+1 >= unspring_buffer_size)
+  {
+    unspring_buffer_size *= 2;
+
+    integer_buffer_grow(tspridx, unsprnum+1, unspring_buffer_size+1);
+    integer_buffer_grow(mspridx, unsprnum+1, unspring_buffer_size+1);
+    real_buffer_grow(unlim[0], unsprnum, unspring_buffer_size);
+    real_buffer_grow(unlim[1], unsprnum, unspring_buffer_size);
+    integer_buffer_grow(unent, unsprnum, unspring_buffer_size);
+    integer_buffer_grow(unop, unsprnum, unspring_buffer_size);
+    integer_buffer_grow(unabs, unsprnum, unspring_buffer_size);
+    integer_buffer_grow(nsteps, unsprnum, unspring_buffer_size);
+    integer_buffer_grow(nfreq, unsprnum, unspring_buffer_size);
+    integer_buffer_grow(unaction, unsprnum, unspring_buffer_size);
+  }
+
+  if (tsprings_buffer_size < tspridx[unsprnum] + tsprings_increment)
+  {
+    tsprings_buffer_size = 2 * (tspridx[unsprnum] + tsprings_increment);
+    integer_buffer_grow(tsprings, tspridx[unsprnum], tsprings_buffer_size);
+  }
+
+  if (msprings_buffer_size < mspridx[unsprnum] + msprings_increment)
+  {
+    msprings_buffer_size = 2 * (mspridx[unsprnum] + msprings_increment);
+    integer_buffer_grow(msprings, mspridx[unsprnum], msprings_buffer_size);
   }
 }
 
@@ -906,6 +971,69 @@ int time_series_buffer_grow ()
   pointer_buffer_grow (tms, tmsnum, time_series_buffer_size);
 
   return time_series_buffer_size;
+}
+
+/* init load curve buffer */
+void lcurve_buffer_init ()
+{
+  lcurve_buffer_size = 256;
+  lcurve_data_size = 1024;
+
+  lcurve[0] = aligned_real_alloc (lcurve_data_size);
+  lcurve[1] = aligned_real_alloc (lcurve_data_size);
+  lcidx = aligned_int_alloc (lcurve_buffer_size+1);
+
+  lcnum = 0;
+  lcidx[lcnum] = 0;
+}
+
+/* grow load curve buffer */
+void lcurve_buffer_grow (int increment)
+{
+  if (lcnum+1 >= lcurve_buffer_size)
+  {
+    lcurve_buffer_size *= 2;
+
+    integer_buffer_grow(lcidx, lcnum+1, lcurve_buffer_size+1);
+  }
+
+  if (lcurve_data_size < lcidx[lcnum] + increment)
+  {
+    lcurve_data_size = 2 * (lcidx[lcnum] + increment);
+    real_buffer_grow (lcurve[0], lcidx[lcnum], lcurve_data_size);
+    real_buffer_grow (lcurve[1], lcidx[lcnum], lcurve_data_size);
+  }
+}
+
+/* get load curve from time series */
+int lcurve_from_time_series (int ts)
+{
+  if (ts >= 0 && ts < tmsnum)
+  {
+    TMS *x = (TMS*)tms[ts];
+
+    int j = x->lc;
+
+    if (j < 0)
+    {
+      j = lcnum;
+
+      lcurve_buffer_grow (x->size);
+
+      int i = ++lcnum;
+
+      lcidx[i] = lcidx[i-1];
+      for (int k = 0; k < x->size; k ++)
+      {
+	lcurve[0][lcidx[i]] = x->points[0][k];
+	lcurve[1][lcidx[i]] = x->points[1][k];
+	lcidx[i] ++;
+      }
+    }
+
+    return j;
+  }
+  else return -1;
 }
 
 /* init prescribed particles motion buffer */
@@ -1338,6 +1466,7 @@ static void sort_springs ()
 
   int *sprid; /* spring id --> number returned to user */
   int *sprtype; /* spring type */
+  int *unspring; /* unspring action */
   int *sprpart[2]; /* spring constraint particle numbers */
   REAL *sprpnt[2][6]; /* spring constraint current and reference points */
   REAL *spring[2]; /* spring force lookup tables */
@@ -1355,6 +1484,7 @@ static void sort_springs ()
 
   sprid = aligned_int_alloc (spring_buffer_size);
   sprtype = aligned_int_alloc (spring_buffer_size);
+  unspring = aligned_int_alloc (spring_buffer_size);
   sprpart[0] = aligned_int_alloc (spring_buffer_size);
   sprpart[1] = aligned_int_alloc (spring_buffer_size);
   sprpnt[0][0] = aligned_real_alloc (spring_buffer_size);
@@ -1403,6 +1533,7 @@ static void sort_springs ()
     sprid[i] = parmec::sprid[x->number];
     parmec::sprmap[sprid[i]] = i; /* reverse mapping --> id to current index */
     sprtype[i] = parmec::sprtype[x->number];
+    unspring[i] = parmec::unspring[x->number];
     sprpart[0][i] = parmec::sprpart[0][x->number];
     sprpart[1][i] = parmec::sprpart[1][x->number];
     sprpnt[0][0][i] = parmec::sprpnt[0][0][x->number];
@@ -1457,6 +1588,7 @@ static void sort_springs ()
 
   aligned_int_free (parmec::sprid);
   aligned_int_free (parmec::sprtype);
+  aligned_int_free (parmec::unspring);
   aligned_int_free (parmec::sprpart[0]);
   aligned_int_free (parmec::sprpart[1]);
   aligned_real_free (parmec::sprpnt[0][0]);
@@ -1498,6 +1630,7 @@ static void sort_springs ()
 
   parmec::sprid = sprid;
   parmec::sprtype = sprtype;
+  parmec::unspring = sprtype;
   parmec::sprpart[0] = sprpart[0];
   parmec::sprpart[1] = sprpart[1];
   parmec::sprpnt[0][0] = sprpnt[0][0];
@@ -1600,8 +1733,10 @@ void init()
   element_buffer_init ();
   obstacle_buffer_init ();
   spring_buffer_init ();
+  unspring_buffer_init ();
   constrain_buffer_init ();
   time_series_buffer_init ();
+  lcurve_buffer_init ();
   prescribe_buffer_init ();
   history_buffer_init ();
   output_buffer_init ();

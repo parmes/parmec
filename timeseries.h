@@ -36,6 +36,7 @@ struct time_series
   REAL (*points) [2]; /* vector of (time, value) pairs */
   int marker; /* index of the last read interval */
   int size; /* total number of pairs */
+  int lc; /* load curve index or -1 */
 };
 
 /* create a copy */
