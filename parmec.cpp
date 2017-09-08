@@ -1018,6 +1018,8 @@ int lcurve_from_time_series (int ts)
     {
       j = lcnum;
 
+      x->lc = j;
+
       lcurve_buffer_grow (x->size);
 
       int i = ++lcnum;
