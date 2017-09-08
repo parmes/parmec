@@ -136,7 +136,7 @@ extern int sprnum; /* number of spring constraints */
 extern int *sprid; /* spring id --> number returned to user */
 extern int *sprmap; /* map of spring ids to spring indices */
 extern int *sprtype; /* spring type */
-extern int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use unload curve */
+extern int *unspring; /* unspring action; -3 unused, -2 inactive, -1 zero force, >= 0 use lcurve */
 extern int *sprpart[2]; /* spring constraint particle numbers */
 extern REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 extern REAL *spring[2]; /* spring force lookup tables */

@@ -150,7 +150,7 @@ int sprnum; /* number of spring constraints */
 int *sprid; /* spring id --> number returned to user */
 int *sprmap; /* map of spring ids to spring indices */
 int *sprtype; /* spring type */
-int *unspring; /* unspring action; 0 none, -1 zero force, > 0 use lcurve */
+int *unspring; /* unspring action; -3 unused, -2 inactive, -1 zero force, >= 0 use lcurve */
 int *sprpart[2]; /* spring constraint particle numbers */
 REAL *sprpnt[2][6]; /* spring constraint current and reference points */
 REAL *spring[2]; /* spring force lookup tables */

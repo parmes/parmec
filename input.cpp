@@ -1414,6 +1414,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
   }
 
+  parmec::unspring[i] = -3; /* unsued by UNSPRING */
+
   if (direction)
   {
     REAL dir[3];
@@ -1586,6 +1588,13 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
       PyErr_SetString (PyExc_ValueError, "msprings SPRING index is out of range");
       return NULL;
     }
+    else if (parmec::unspring[j] == -2) /* spring index already used in msprings by an earlier UNSPRING call */
+    {
+      char message [1024];
+      snprintf (message, 1024, "in msprings, spring index %d already in use by an earlier UNSPRING call", j);
+      PyErr_SetString (PyExc_ValueError, message);
+      return NULL;
+    }
   }
 
   unspring_buffer_grow (PyTuple_Size (tsprings), PyTuple_Size (msprings));
@@ -1605,6 +1614,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   {
     int j = PyInt_AsLong(PyTuple_GetItem(msprings, i));
     parmec::msprings[mspridx[i+1]] = j;
+    parmec::unspring[j] = -2; /* mark as used by UNSPRING */
     mspridx[i+1] ++;
   }
 
