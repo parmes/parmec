@@ -18,6 +18,9 @@ def ERROR(*args):
  sys.exit(1)
 
 # auxiliary vector/matrix operations
+def sub(a, b):
+  return (a[0]-b[0], a[1]-b[1], a[2]-b[2])
+
 def cross(a, b):
   return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
 
@@ -34,6 +37,10 @@ def matmat(a, b):
 
 def trans(a):
   return (a[0], a[3], a[6], a[1], a[4], a[7], a[2], a[5], a[8])
+
+def unit(a):
+  il = 1.0/(a[0]*a[0]+a[1]*a[1]+a[2]*a[2])**0.5
+  return (il*a[0], il*a[1], il*a[2])
 
 # parse command line arguments
 skip_general_nonlinear_springs = 0
@@ -87,9 +94,10 @@ for pi in keyfile['PART_INERTIA']:
     coord = keyfile.getcard ('DEFINE_COORDINATE_SYSTEM', CID=pi['CID'])
     if coord == None:
       ERROR ('DEFINE_COORDINATE_SYSTEM card with CID =', pi['CID'], 'was not found')
-    vec_x = (coord['XL'], coord['YL'], coord['ZL'])
+    vec_0 = (coord['X0'], coord['Y0'], coord['Z0'])
+    vec_x = unit(sub((coord['XL'], coord['YL'], coord['ZL']), vec_0))
     vec_xy = (coord['XP'], coord['YP'], coord['ZP'])
-    vec_z = cross(vec_x, vec_xy)
+    vec_z = unit(cross(vec_x, vec_xy))
     vec_y = cross(vec_z, vec_x)
     T_mat = vec_x + vec_y + vec_z
     I_loc = (pi['IXX'], pi['IXY'], pi['IXZ'],\
@@ -157,9 +165,10 @@ for pi in keyfile['PART_INERTIA']:
     coord = keyfile.getcard ('DEFINE_COORDINATE_SYSTEM', CID=con1)
     if coord == None:
       ERROR ('DEFINE_COORDINATE_SYSTEM card with CID =', pi['CID'], 'was not found')
-    vec_x = (coord['XL'], coord['YL'], coord['ZL'])
+    vec_0 = (coord['X0'], coord['Y0'], coord['Z0'])
+    vec_x = unit(sub((coord['XL'], coord['YL'], coord['ZL']), vec_0))
     vec_xy = (coord['XP'], coord['YP'], coord['ZP'])
-    vec_z = cross(vec_x, vec_xy)
+    vec_z = unit(cross(vec_x, vec_xy))
     vec_y = cross(vec_z, vec_x)
     local_base = [list(vec_x), list(vec_y), list(vec_z)]
 
