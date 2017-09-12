@@ -585,11 +585,12 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
 }
 
 /* update spring foces */
-task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
-  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
-  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[],
-  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
+task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int unspring[],
+  uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2],
+  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2],
+  uniform int unidx[], uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
   uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
+  uniform REAL * uniform lcurve[2], uniform int lcidx[],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
@@ -780,60 +781,118 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       break;
     }
 
-    switch (sprtype[i])
-    {
-    case SPRING_NONLINEAR_ELASTIC:
-    {
-      stroke[0][i] = len - stroke0[i];
+    uniform int unspr = unspring[i];
 
-      spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
-    }
-    break;
-    case SPRING_GENERAL_NONLINEAR:
+    if (unspr <= -2) /* unused or inactive unspring action */
     {
-      if ((sprflg[i]&SPRING_YIELDED) == 0) /* elastic */
+      switch (sprtype[i])
+      {
+      case SPRING_NONLINEAR_ELASTIC:
       {
 	stroke[0][i] = len - stroke0[i];
 
 	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
-
-	if (spring_force < yield[0][i] || spring_force > yield[1][i])
+      }
+      break;
+      case SPRING_GENERAL_NONLINEAR:
+      {
+	if ((sprflg[i]&SPRING_YIELDED) == 0) /* elastic */
 	{
-	  sprflg[i] |= SPRING_YIELDED;
+	  stroke[0][i] = len - stroke0[i];
 
-	  if (spring_force < 0)
+	  spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
+
+	  if (spring_force < yield[0][i] || spring_force > yield[1][i])
 	  {
-	    stroke[1][i] = stroke[0][i]; /* initial total accumulated stroke */
-            stroke[2][i] = 0.0;
-	    yield[1][i] = 0.0;
-	  }
-	  else
-	  {
-	    stroke[1][i] = 0.0;
-            stroke[2][i] = stroke[0][i];
-	    yield[0][i] = 0.0;
+	    sprflg[i] |= SPRING_YIELDED;
+
+	    if (spring_force < 0)
+	    {
+	      stroke[1][i] = stroke[0][i]; /* initial total accumulated stroke */
+	      stroke[2][i] = 0.0;
+	      yield[1][i] = 0.0;
+	    }
+	    else
+	    {
+	      stroke[1][i] = 0.0;
+	      stroke[2][i] = stroke[0][i];
+	      yield[0][i] = 0.0;
+	    }
 	  }
 	}
-      }
-      else /* yielded */
-      {
-	uniform REAL s0 = stroke[0][i];
-
-	uniform REAL s1 = len - stroke0[i];
-
-	uniform REAL ds = s1 - s0;
-
-	uniform REAL f0 = sprfrc[1][i];
-
-	stroke[0][i] = s1;
-
-	if (f0 * ds > 0) /* loading or re-loading */
+	else /* yielded */
 	{
-	  if (sprflg[i]&SPRING_UNLOADING)
+	  uniform REAL s0 = stroke[0][i];
+
+	  uniform REAL s1 = len - stroke0[i];
+
+	  uniform REAL ds = s1 - s0;
+
+	  uniform REAL f0 = sprfrc[1][i];
+
+	  stroke[0][i] = s1;
+
+	  if (f0 * ds > 0) /* loading or re-loading */
 	  {
-            uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, NULL);
+	    if (sprflg[i]&SPRING_UNLOADING)
+	    {
+	      uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, NULL);
+
+	      spring_force = f0 + dfds*ds;
+
+	      if (spring_force < yield[0][i] || spring_force > yield[1][i])
+	      {
+		sprflg[i] &= ~SPRING_UNLOADING;
+
+		goto loading;
+	      }
+
+	      //print ("re-loading at force %\n", spring_force);
+	    }
+	    else /* loading */
+	    {
+  loading:
+	      if (ds < 0)
+	      {
+		stroke[1][i] += ds;
+	      }
+	      else
+	      {
+		stroke[2][i] += ds;
+	      }
+
+	      spring_force = look_up (spring, spridx[i], spridx[i+1], ds < 0 ? stroke[1][i] : stroke[2][i], &stiffness);
+
+	      if (ds < 0)
+	      {
+		yield[0][i] = spring_force;
+	      }
+	      else
+	      {
+		yield[1][i] = spring_force;
+	      }
+
+	      //print ("loading at force %\n", spring_force);
+	    }
+	  }
+	  else /* unloading */
+	  {
+	    uniform REAL at;
+
+	    uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, &at);
+
+	    stiffness = dfds;
 
 	    spring_force = f0 + dfds*ds;
+
+	    if (spring_force * f0 < 0.0) /* zero crossing */
+	    {
+	      //print ("instead of overshooting to % --> crossing zero from % ", spring_force, f0);
+
+	      spring_force = look_up (unload, unidx[i], unidx[i+1], ds+at, &stiffness); /* rather than overshooting by linear extrapolation
+											   find an actual value on the other side */
+	      //print ("to %\n", spring_force);
+	    }
 
 	    if (spring_force < yield[0][i] || spring_force > yield[1][i])
 	    {
@@ -841,77 +900,72 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	      goto loading;
 	    }
-
-	    //print ("re-loading at force %\n", spring_force);
-	  }
-	  else /* loading */
-	  {
-loading:
-	    if (ds < 0)
-	    {
-	      stroke[1][i] += ds;
-	    }
 	    else
 	    {
-	      stroke[2][i] += ds;
+	      sprflg[i] |= SPRING_UNLOADING;
 	    }
 
-	    spring_force = look_up (spring, spridx[i], spridx[i+1], ds < 0 ? stroke[1][i] : stroke[2][i], &stiffness);
-
-	    if (ds < 0)
-	    {
-	      yield[0][i] = spring_force;
-	    }
-	    else
-	    {
-	      yield[1][i] = spring_force;
-	    }
-
-	    //print ("loading at force %\n", spring_force);
+	    //print ("unloading at force %\n", spring_force);
 	  }
-	}
-	else /* unloading */
-	{
-	  uniform REAL at;
-
-          uniform REAL dfds = look_up_slope (1, unload, unidx[i], unidx[i+1], f0, &at);
-
-	  stiffness = dfds;
-
-	  spring_force = f0 + dfds*ds;
-
-	  if (spring_force * f0 < 0.0) /* zero crossing */
-	  {
-	    //print ("instead of overshooting to % --> crossing zero from % ", spring_force, f0);
-
-	    spring_force = look_up (unload, unidx[i], unidx[i+1], ds+at, &stiffness); /* rather than overshooting by linear extrapolation
-	                                                                                 find an actual value on the other side */
-	    //print ("to %\n", spring_force);
-	  }
-
-	  if (spring_force < yield[0][i] || spring_force > yield[1][i])
-	  {
-	    sprflg[i] &= ~SPRING_UNLOADING;
-
-	    goto loading;
-	  }
-	  else
-	  {
-	    sprflg[i] |= SPRING_UNLOADING;
-	  }
-
-	  //print ("unloading at force %\n", spring_force);
 	}
       }
+      break;
+      }
+
+      velocity = DOT (z, u);
+
+      dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity, &damping);
+
+      total_force = spring_force + (spring_force == 0.0 ? 0.0 : dashpot_force);
     }
-    break;
+    else if (unspr == -1) /* zero force */
+    {
+      stroke[0][i] = len - stroke0[i];
+
+      stiffness = 0.;
+      damping = 0.;
+
+      spring_force =
+      dashpot_force =
+      total_force = 0.;
     }
+    else /* use lcurve */
+    {
+      uniform REAL s0 = stroke[0][i];
 
-    velocity = DOT (z, u);
+      uniform REAL s1 = len - stroke0[i];
 
-    dashpot_force = look_up (dashpot, dashidx[i], dashidx[i+1], velocity, &damping);
+      uniform REAL ds = s1 - s0;
 
-    total_force = spring_force + (spring_force == 0.0 ? 0.0 : dashpot_force);
+      uniform REAL f0 = sprfrc[1][i];
+
+      uniform REAL sgn = f0 > 0. ? 1. : -1.;
+
+      stroke[0][i] = s1;
+
+      /* incremental unloading until zero */
+
+      uniform REAL at;
+
+      uniform REAL dfds = look_up_slope (1, lcurve, lcidx[unspr], lcidx[unspr+1], f0, &at);
+
+      stiffness = dfds;
+
+      spring_force = f0 - sgn*abs(dfds*ds);
+
+      if (spring_force * f0 < 0.0) /* zero crossing */
+      {
+	unspring[i] = -1; /* zero ever after */
+
+	spring_force = 0.;
+      }
+
+      damping = 0.;
+
+      dashpot_force = 0.;
+
+      total_force = spring_force;
+    }
 
     MUL (z, total_force, frc);
 
@@ -1137,11 +1191,11 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[], uniform REAL obspnt[],
   uniform REAL obslin[], uniform REAL obsang[], uniform int parmat[], uniform REAL * uniform mparam[NMAT],
   uniform int pairnum, uniform int pairs[], uniform int ikind[], uniform REAL * uniform iparam[NIPARAM],
-  uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
+  uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int unspring[], uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform REAL stroke0[],
-  uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
+  uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2], uniform int lcidx[],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
 {
@@ -1161,8 +1215,8 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
-  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
-                     sprflg, stroke0, stroke, sprfrc, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
+  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
+               sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
   sync;
 
   delete lock;

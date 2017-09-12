@@ -1632,7 +1632,7 @@ static void sort_springs ()
 
   parmec::sprid = sprid;
   parmec::sprtype = sprtype;
-  parmec::unspring = sprtype;
+  parmec::unspring = unspring;
   parmec::sprpart[0] = sprpart[0];
   parmec::sprpart[1] = sprpart[1];
   parmec::sprpnt[0][0] = sprpnt[0][0];
@@ -1904,9 +1904,9 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
-            sprnum, sprtype, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield,
-	    sprdir, sprflg, stroke0, stroke, sprfrc, gravity, force, torque, kact, kmax, emax, krot,
-	    (adaptive > 0.0 && adaptive <= 1.0));
+            sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx,
+	    yield, sprdir, sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, gravity, force, torque, kact,
+	    kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0));
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
