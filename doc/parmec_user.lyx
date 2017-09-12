@@ -1630,7 +1630,7 @@ tsprings
 \series bold
 tsprings
 \series default
- - tuple of unique spring numbers whose spring entities are assessed against
+ - list of unique spring numbers whose spring entities are assessed against
  a criteria defined by limits; must be nonempty
 \end_layout
 
@@ -1639,7 +1639,7 @@ tsprings
 \series bold
 msprings
 \series default
- - tuple of unique spring numbers which are to be modified if 
+ - list of unique spring numbers which are to be modified if 
 \series bold
 tsprings
 \series default

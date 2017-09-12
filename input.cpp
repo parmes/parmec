@@ -1538,11 +1538,11 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   PARSEKEYS ("OOO|OOOiiO", &tsprings, &msprings, &limits, &entity, &operat, &abs, &nsteps, &nfreq, &unload);
 
-  TYPETEST (is_tuple (tsprings, kwl[0], 0) && is_tuple (msprings, kwl[1], 0) && is_tuple (limits, kwl[2], 2) &&
+  TYPETEST (is_list (tsprings, kwl[0], 0) && is_list (msprings, kwl[1], 0) && is_tuple (limits, kwl[2], 2) &&
             is_string (entity, kwl[3]) && is_string (operat, kwl[4]) && is_bool (abs, kwl[5]) &&
-	    is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]) && is_non_negative (unload, kwl[8]));
+	    is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]));
 
-  if (unload >= tmsnum)
+  if (unload < -1 || unload >= tmsnum)
   {
     PyErr_SetString (PyExc_ValueError, "unload TSERIES index is out of range");
     return NULL;
@@ -1568,9 +1568,9 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
-  for (int i = 0; i < PyTuple_Size (tsprings); i ++)
+  for (int i = 0; i < PyList_Size (tsprings); i ++)
   {
-    int j = PyInt_AsLong(PyTuple_GetItem(tsprings, i));
+    int j = PyInt_AsLong(PyList_GetItem(tsprings, i));
 
     if (j < 0 || j >= sprnum)
     {
@@ -1579,9 +1579,9 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
-  for (int i = 0; i < PyTuple_Size (msprings); i ++)
+  for (int i = 0; i < PyList_Size (msprings); i ++)
   {
-    int j = PyInt_AsLong(PyTuple_GetItem(msprings, i));
+    int j = PyInt_AsLong(PyList_GetItem(msprings, i));
 
     if (j < 0 || j >= sprnum)
     {
@@ -1597,22 +1597,22 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
-  unspring_buffer_grow (PyTuple_Size (tsprings), PyTuple_Size (msprings));
+  unspring_buffer_grow (PyList_Size (tsprings), PyList_Size (msprings));
 
   int i = unsprnum ++;
 
   tspridx[i+1] = tspridx[i];
-  for (int i = 0; i < PyTuple_Size (tsprings); i ++)
+  for (int k = 0; k < PyList_Size (tsprings); k ++)
   {
-    int j = PyInt_AsLong(PyTuple_GetItem(tsprings, i));
+    int j = PyInt_AsLong(PyList_GetItem(tsprings, k));
     parmec::tsprings[tspridx[i+1]] = j;
     tspridx[i+1] ++;
   }
 
   mspridx[i+1] = mspridx[i];
-  for (int i = 0; i < PyTuple_Size (msprings); i ++)
+  for (int k = 0; k < PyList_Size (msprings); k ++)
   {
-    int j = PyInt_AsLong(PyTuple_GetItem(msprings, i));
+    int j = PyInt_AsLong(PyList_GetItem(msprings, k));
     parmec::msprings[mspridx[i+1]] = j;
     parmec::unspring[j] = -2; /* mark as used by UNSPRING */
     mspridx[i+1] ++;

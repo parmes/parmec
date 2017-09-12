@@ -43,6 +43,7 @@ extern int ntasks; /* number of tasks */
 extern char *output_path; /* output path */
 extern int output_frame; /* output files frame */
 
+extern int stepnum; /* current step number */
 extern REAL curtime; /* current time */
 extern REAL curstep; /* current step */
 extern REAL curtime_output; /* current output time */

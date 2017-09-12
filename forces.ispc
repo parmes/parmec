@@ -1184,6 +1184,71 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   }
 }
 
+/* unspring tests task */
+task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform int unspring[], uniform int sprmap[],
+  uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2],
+  uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[], uniform int nfreq[], uniform int unaction[], uniform int stepnum)
+{
+  uniform int start = taskIndex*span;
+  uniform int end = taskIndex == taskCount-1 ? unsprnum: start+span;
+
+  for (uniform int i = start; i < end; i ++)
+  {
+    uniform REAL result;
+
+    if (stepnum % nsteps[i]) continue;
+
+    if (nfreq[i] == 0) continue; /* already failed */
+
+    uniform int op = unop[i];
+
+    switch (op)
+    {
+    case OP_MIN: result = REAL_MAX; break;
+    case OP_MAX: result = -REAL_MAX; break;
+    case OP_SUM: result = 0.; break;
+    }
+
+    uniform int ab = unabs[i];
+
+    uniform int en = unent[i];
+
+    for (uniform int j = tspridx[i]; j < tspridx[i+1]; j ++)
+    {
+      uniform REAL value;
+
+      switch (en)
+      {
+      case HIS_STROKE: value = stroke[0][sprmap[tsprings[j]]]; break;
+      case HIS_STF: value = sprfrc[0][sprmap[tsprings[j]]]; break;
+      case HIS_SF: value = sprfrc[1][sprmap[tsprings[j]]]; break;
+      }
+       
+      if (ab) value = abs(value);
+
+      switch (op)
+      {
+      case OP_MIN: result = min(value, result); break;
+      case OP_MAX: result = max(value, result); break;
+      case OP_SUM: result += value; break;
+      }
+    }
+
+    if (result < unlim[0][i] || result > unlim[1][i])
+    {
+      nfreq[i] --; /* count down failures */
+
+      if (nfreq[i] == 0) /* trigger spring failures */
+      {
+	for (uniform int j = mspridx[i]; j < mspridx[i+1]; j ++)
+	{
+	  unspring[sprmap[msprings[j]]] = unaction[i];
+	}
+      }
+    }
+  }
+}
+
 /* update forces */
 export void forces (uniform int ntasks, uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
@@ -1191,13 +1256,17 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[], uniform REAL obspnt[],
   uniform REAL obslin[], uniform REAL obsang[], uniform int parmat[], uniform REAL * uniform mparam[NMAT],
   uniform int pairnum, uniform int pairs[], uniform int ikind[], uniform REAL * uniform iparam[NIPARAM],
-  uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int unspring[], uniform int * uniform sprpart[2],
-  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int unspring[], uniform int sprmap[],
+  uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2], uniform int lcidx[],
   uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive)
+  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
+  uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[],
+  uniform REAL * uniform unlim[2], uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[],
+  uniform int nfreq[], uniform int unaction[], uniform int stepnum)
+
 {
   launch [ntasks] zero_force_torque_kmax (parnum/ntasks, parnum, force, torque, kmax, emax);
 
@@ -1220,4 +1289,10 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   sync;
 
   delete lock;
+
+  if (unsprnum)
+  {
+    launch [ntasks] unspring_task (unsprnum/ntasks, stroke, sprfrc, unspring, sprmap, unsprnum, tsprings, tspridx,
+                                  msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, stepnum);
+  }
 }

@@ -65,6 +65,7 @@ int ntasks; /* number of tasks */
 char *output_path; /* output path */
 int output_frame; /* output files frame */
 
+int stepnum; /* current step number */
 REAL curtime; /* current time */
 REAL curstep; /* current step */
 REAL curtime_output; /* current output time */
@@ -1753,6 +1754,7 @@ void reset ()
 {
   output_frame = 0;
 
+  stepnum = 0;
   curtime = 0.0;
   curstep = 0.0;
   curtime_output = 0.0;
@@ -1904,9 +1906,10 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
             mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
-            sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx,
-	    yield, sprdir, sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, gravity, force, torque, kact,
-	    kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0));
+            sprnum, sprtype, unspring, sprmap, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload,
+	    unidx, yield, sprdir, sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, gravity, force, torque,
+	    kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0), unsprnum, tsprings, tspridx,
+	    msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, stepnum);
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
@@ -1985,6 +1988,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
   partitioning_destroy (tree);
 
   curstep = step1;
+
+  stepnum ++;
 
   dt = timerend (&tt);
 
