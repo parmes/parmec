@@ -16,10 +16,11 @@ from progress_bar import *
 from scipy import spatial
 import numpy as np
 
-nx = 10
-ny = 10
-nz = 10
+nx = 20
+ny = 5
+nz = 5
 radius = 1.
+dura = 0.001
 
 # materials
 matnum = MATERIAL (1E3, 1E9, 0.25)
@@ -28,7 +29,7 @@ dashpot = [-1, -8E5, 1, 8E5]
 
 # (nx,ny,nz) array of unit cubes
 iend = nx*ny*nz-1
-printProgressBar(0, iend, 'Adding particles:')
+progress_bar(0, iend, 'Adding particles:')
 x, y, z = np.mgrid[0:nx, 0:ny, 0:nz]
 data = zip(x.ravel(), y.ravel(), z.ravel())
 datarange = range (0, len(data))
@@ -44,25 +45,31 @@ for i in datarange:
 	   p[0], p[1]+1, p[2]+1]
   elements = [8, 0, 1, 2, 3, 4, 5, 6, 7, matnum]
   parnum = MESH (nodes, elements, matnum, 0)
-  printProgressBar(i, iend, 'Adding particles:')
+  progress_bar(i, iend, 'Adding particles:')
 
 # randomized springs within radius
-printProgressBar(0, iend, 'Adding springs:')
+def add(a,b): return (a[0]+b[0],a[1]+b[2],a[2]+b[2])
+def sub(a,b): return (a[0]-b[0],a[1]-b[2],a[2]-b[2])
+def mul(a,b): return (a[0]*b,a[1]*b,a[2]*b)
+progress_bar(0, iend, 'Adding springs:')
 tree = spatial.KDTree(data)
+o5 = (.5,.5,.5)
 for i in datarange:
    adj = tree.query_ball_point(np.array(data[i]), radius)
    for j in adj:
-     p = tuple((np.array(data[i])+ np.random.rand(1,3)).ravel())
-     q = tuple((np.array(data[j])+ np.random.rand(1,3)).ravel())
-     SPRING (i, p, j, q, spring, dashpot)
-   printProgressBar(i, iend, 'Adding springs:')
+     p = add(data[i],o5)
+     q = add(data[j],o5)
+     x = mul(add(p,q),.5)
+     sprnum = SPRING (i, x, j, x, spring, dashpot)
+   progress_bar(i, iend, 'Adding springs:')
 
 # fix at far end
 for i in datarange[-ny*nz:]:
-  SPRING (i, data[i], -1, data[i], spring, dashpot)
+  RESTRAIN (i, [1,0,0,0,1,0,0,0,1], [1,0,0,0,1,0,0,0,1])
 
 GRAVITY (0., 0., -10.)
 
-step = 0.05 * CRITICAL()
-print 'Time step:', step
-DEM (5.0, step, (0.05, step))
+step = 0.001 * CRITICAL()
+print '%d particles and %d springs' % (parnum, sprnum)
+print 'Running %d steps of size %g:' % (int(dura/step), step)
+DEM (dura, step, (0.05, 0.01))

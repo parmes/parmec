@@ -2466,6 +2466,11 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   {
     hisent = HIS_TL;
   }
+  ELIF (entity, "LENGTH")
+  {
+    hisent = HIS_LENGTH;
+    srckind = 1;
+  }
   ELIF (entity, "STROKE")
   {
     hisent = HIS_STROKE;
@@ -2804,6 +2809,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       if (subset) outent[i] |= OUT_DISPL;
       else outrest[0] |= OUT_DISPL;
+    }
+    ELIF (item, "LENGTH")
+    {
+      if (subset) outent[i] |= OUT_LENGTH;
+      else outrest[0] |= OUT_LENGTH;
     }
     ELIF (item, "ORIENT")
     {

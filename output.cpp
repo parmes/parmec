@@ -949,6 +949,20 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     }
   }
 
+  if (ent & OUT_LENGTH)
+  {
+    out << "SCALARS length float\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      REAL q[3] = {sprpnt[1][0][j]-sprpnt[0][0][j],
+		   sprpnt[1][1][j]-sprpnt[0][1][j],
+		   sprpnt[1][2][j]-sprpnt[0][2][j]};
+      out << LEN(q) << "\n";
+    }
+  }
+
   if (ent & OUT_ORIENT)
   {
     out << "VECTORS orient float\n";
@@ -1027,6 +1041,21 @@ static void h5_spring_dataset (int num, int *set, int ent, hid_t h5_step)
 
     hsize_t length = num;
     ASSERT (H5LTmake_dataset_double (h5_step, "DISPL", 1, &length, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_LENGTH)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      REAL q[3] = {sprpnt[1][0][j]-sprpnt[0][0][j],
+		   sprpnt[1][1][j]-sprpnt[0][1][j],
+		   sprpnt[1][2][j]-sprpnt[0][2][j]};
+      data[i] = LEN(q);
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_double (h5_step, "LENGTH", 1, &length, data) >= 0, "HDF5 file write error");
   }
 
   if (ent & OUT_ORIENT)
@@ -1305,6 +1334,15 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Scalar\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
       fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_LENGTH)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"LENGTH\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/LENGTH\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }
@@ -2041,6 +2079,15 @@ void output_history ()
 	  case HIS_TL:
 	  {
 	    REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
+	    value += LEN(q);
+	  }
+	  break;
+	  case HIS_LENGTH:
+	  {
+	    int l = sprmap[k];
+	    REAL q[3] = {sprpnt[1][0][l]-sprpnt[0][0][l],
+	                 sprpnt[1][1][l]-sprpnt[0][1][l],
+	                 sprpnt[1][2][l]-sprpnt[0][2][l]};
 	    value += LEN(q);
 	  }
 	  break;

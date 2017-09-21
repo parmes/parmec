@@ -2575,8 +2575,8 @@ entity
  (position) 'PX', 'PY', 'PZ', '|P|', (displacement) 'DX', 'DY', 'DZ', '|D|',
  (linear velocity) 'VX', 'VY', 'VZ', '|V|', (angular velocity) 'OX', 'OY',
  'OZ', '|O|', (body force) 'FX', 'FY', 'FZ', '|F|', (body torque) 'TX',
- 'TY', 'TZ', '|T|'; spring entities: (spring stroke) 'STROKE', (spring total
- force) 'STF', (spring force without damping) 'SF';
+ 'TY', 'TZ', '|T|'; spring entities: (spring length) 'LENGTH', (spring stroke)
+ 'STROKE', (spring total force) 'STF', (spring force without damping) 'SF';
 \end_layout
 
 \begin_layout Itemize
@@ -2774,9 +2774,9 @@ OUTPUT (entities | subset, mode, format)
 \series bold
 entities
 \series default
- - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL', 'ORIENT',
- 'ORIENT1', 'ORIENT2', 'ORIENT3', 'LINVEL', 'ANGVEL', 'FORCE', 'TORQUE',
- 'F', 'FN', 'FT', 'SF', 'AREA', 'PAIR'] where:
+ - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL','LENGTH',
+ 'ORIENT', 'ORIENT1', 'ORIENT2', 'ORIENT3', 'LINVEL', 'ANGVEL', 'FORCE',
+ 'TORQUE', 'F', 'FN', 'FT', 'SF', 'AREA', 'PAIR'] where:
 \end_layout
 
 \begin_deeper
@@ -2794,6 +2794,10 @@ entities
 'DISPL' - 3-component vector field of displacements (modes: 'SPH', 'MESH',
  'RB'), or scalar field of contact depths (modes: 'CD'), or scalar field
  of spring strokes (modes: 'SD')
+\end_layout
+
+\begin_layout Itemize
+'LENGTH' - scalar field of spring lengths (modes: 'SD')
 \end_layout
 
 \begin_layout Itemize

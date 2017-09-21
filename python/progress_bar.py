@@ -1,7 +1,7 @@
 # https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 
-# Print iterations progress
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 0, length = 50, fill = '#'):
+# print iterations progress bar
+def progress_bar (iteration, total, prefix = '', suffix = '', decimals = 0, length = 50, fill = '#'):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -32,10 +32,10 @@ items = list(range(0, 57))
 l = len(items)
 
 # Initial call to print 0% progress
-printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+progress_bar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 for i, item in enumerate(items):
     # Do stuff...
     sleep(0.1)
     # Update Progress Bar
-    printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    progress_bar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 '''
