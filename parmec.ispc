@@ -101,7 +101,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
   uniform REAL * uniform dashpot[2], uniform int dashidx[])
 {
   uniform REAL kmax, emax, mmin, omax, step;
-  uniform int j;
+  uniform int j, sppmax;
   REAL k, e, m;
 
   k = 0.0;
@@ -116,6 +116,26 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
   kmax = reduce_max(k);
   emax = reduce_max(e);
 
+  uniform int * uniform spp = uniform new uniform int [parnum];
+  foreach (i = 0 ... parnum) spp[i] = 0; /* springs per particle */
+  for (j = 0; j < sprnum; j ++)
+  {
+    if (sprpart[1][j] == -1)
+    {
+      spp[sprpart[0][j]] ++;
+    }
+    else
+    {
+      spp[sprpart[0][j]] ++;
+      spp[sprpart[1][j]] ++;
+    }
+  }
+  for (sppmax = j = 0; j < parnum; j ++)
+  {
+    sppmax = max(spp[j], sppmax);
+  }
+  delete spp;
+
   for (j = 0; j < sprnum; j ++) /* spring constraints */
   {
     uniform REAL kspr = 0.0;
@@ -126,6 +146,8 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
       kspr = max(abs(k), kspr);
     }
+
+    kspr *= sppmax;
 
     kmax = max(kspr, kmax);
 

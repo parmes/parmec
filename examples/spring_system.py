@@ -69,7 +69,9 @@ for i in datarange[-ny*nz:]:
 
 GRAVITY (0., 0., -10.)
 
-step = 0.001 * CRITICAL()
+hcri = CRITICAL()
+step = 0.01 * hcri
 print '%d particles and %d springs' % (parnum, sprnum)
+print 'Critical step estimated as %g' % hcri
 print 'Running %d steps of size %g:' % (int(dura/step), step)
 DEM (dura, step, (0.05, 0.01))
