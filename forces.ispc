@@ -584,18 +584,76 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
   }
 }
 
-/* update spring foces */
-task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int unspring[],
-  uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2],
-  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2],
-  uniform int unidx[], uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
-  uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
-  uniform REAL * uniform lcurve[2], uniform int lcidx[],
-  uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
-  uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
-  uniform int lock[])
+struct spring_task_args
 {
+  uniform int sprnum;
+  uniform int * uniform sprtype;
+  uniform int * uniform unspring;
+  uniform int * uniform sprpart[2];
+  uniform REAL * uniform sprpnt[2][6];
+  uniform REAL * uniform spring[2];
+  uniform int * uniform spridx;
+  uniform REAL * uniform dashpot[2];
+  uniform int * uniform dashidx;
+  uniform REAL * uniform unload[2];
+  uniform int * uniform unidx;
+  uniform REAL * uniform yield[2];
+  uniform REAL * uniform sprdir[6];
+  uniform int * uniform sprflg;
+  uniform REAL * uniform stroke0;
+  uniform REAL * uniform stroke[3];
+  uniform REAL * uniform sprfrc[2];
+  uniform REAL * uniform lcurve[2];
+  uniform int * uniform lcidx;
+  uniform REAL * uniform angular[6];
+  uniform REAL * uniform linear[3];
+  uniform REAL * uniform rotation[9];
+  uniform REAL * uniform position[6];
+  uniform REAL * uniform force[3];
+  uniform REAL * uniform torque[3];
+  uniform REAL * uniform kact[3];
+  uniform REAL * uniform kmax;
+  uniform REAL * uniform emax;
+  uniform REAL * uniform krot[6];
+  uniform int adaptive;
+};
+
+/* update spring foces */
+task void springs_task (uniform int span, uniform struct spring_task_args * uniform args, uniform int lock[])
+{
+  /* workaround to https://github.com/ispc/ispc/issues/1293 */
+  uniform int sprnum = args->sprnum;
+  uniform int * uniform sprtype = args->sprtype;
+  uniform int * uniform unspring = args->unspring;
+  uniform int * uniform sprpart[2] = {args->sprpart[0], args->sprpart[1]};
+  uniform REAL * uniform sprpnt[2][6] = {{args->sprpnt[0][0], args->sprpnt[0][1], args->sprpnt[0][2], args->sprpnt[0][3], args->sprpnt[0][4], args->sprpnt[0][5]},
+                                         {args->sprpnt[1][0], args->sprpnt[1][1], args->sprpnt[1][2], args->sprpnt[1][3], args->sprpnt[1][4], args->sprpnt[1][5]}};
+  uniform REAL * uniform spring[2] = {args->spring[0], args->spring[1]};
+  uniform int * uniform spridx = args->spridx;
+  uniform REAL * uniform dashpot[2] = {args->dashpot[0], args->dashpot[1]};
+  uniform int * uniform dashidx = args->dashidx;
+  uniform REAL * uniform unload[2] = {args->unload[0], args->unload[1]};
+  uniform int * uniform unidx = args->unidx;
+  uniform REAL * uniform yield[2] = {args->yield[0], args->yield[1]};
+  uniform REAL * uniform sprdir[6] = {args->sprdir[0], args->sprdir[1], args->sprdir[2], args->sprdir[3], args->sprdir[4], args->sprdir[5]};
+  uniform int * uniform sprflg = args->sprflg;
+  uniform REAL * uniform stroke0 = args->stroke0;
+  uniform REAL * uniform stroke[3] = {args->stroke[0], args->stroke[1], args->stroke[2]};
+  uniform REAL * uniform sprfrc[2] = {args->sprfrc[0], args->sprfrc[1]};
+  uniform REAL * uniform lcurve[2] = {args->lcurve[0], args->lcurve[1]};
+  uniform int * uniform lcidx = args->lcidx;
+  uniform REAL * uniform angular[6] = {args->angular[0], args->angular[1], args->angular[2], args->angular[3], args->angular[4], args->angular[5]};
+  uniform REAL * uniform linear[3] = {args->linear[0], args->linear[1], args->linear[2]};
+  uniform REAL * uniform rotation[9] = {args->rotation[0], args->rotation[1], args->rotation[2], args->rotation[3],
+                                        args->rotation[4], args->rotation[5], args->rotation[6], args->rotation[7], args->rotation[8]};
+  uniform REAL * uniform position[6] = {args->position[0], args->position[1], args->position[2], args->position[3], args->position[4], args->position[5]};
+  uniform REAL * uniform force[3] = {args->force[0], args->force[1], args->force[2]};
+  uniform REAL * uniform torque[3] = {args->torque[0], args->torque[1], args->torque[2]};
+  uniform REAL * uniform kact[3] = {args->kact[0], args->kact[1], args->kact[2]};
+  uniform REAL * uniform kmax = args->kmax;
+  uniform REAL * uniform emax = args->emax;
+  uniform REAL * uniform krot[6] = {args->krot[0], args->krot[1], args->krot[2], args->krot[3], args->krot[4], args->krot[5]};
+  uniform int adaptive = args->adaptive;
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
 
@@ -1284,8 +1342,20 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
-  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
-               sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
+  /* workaround to https://github.com/ispc/ispc/issues/1293 */
+  uniform spring_task_args args = {sprnum, sprtype, unspring, {sprpart[0], sprpart[1]},
+        {{sprpnt[0][0], sprpnt[0][1], sprpnt[0][2], sprpnt[0][3], sprpnt[0][4], sprpnt[0][5]},
+	 {sprpnt[1][0], sprpnt[1][1], sprpnt[1][2], sprpnt[1][3], sprpnt[1][4], sprpnt[1][5]}},
+	{spring[0], spring[1]}, spridx, {dashpot[0], dashpot[1]}, dashidx, {unload[0], unload[1]}, unidx,
+	{yield[0], yield[1]}, {sprdir[0], sprdir[1], sprdir[2], sprdir[3], sprdir[4], sprdir[5]}, sprflg,
+	stroke0, {stroke[0], stroke[1], stroke[2]}, {sprfrc[0], sprfrc[1]}, {lcurve[0], lcurve[1]}, lcidx,
+	{angular[0], angular[1], angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]},
+	{rotation[0], rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
+	rotation[8]}, {position[0], position[1], position[2], position[3], position[4], position[5]}, {force[0],
+	force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax, emax, {krot[0],
+	krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive};
+
+  launch [ntasks] springs_task (sprnum/ntasks, &args, lock);
   sync;
 
   delete lock;

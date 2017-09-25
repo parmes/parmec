@@ -452,3 +452,14 @@ export uniform REAL determine_time_step (uniform int ntasks, uniform int parnum,
   }
   else return step_current;
 }
+
+#if 0
+/* estimate critical time step */
+export uniform REAL critical (uniform int ntasks, uniform int parnum, uniform REAL * uniform position[6],
+  uniform REAL mass[], uniform REAL * uniform inertia[9], uniform REAL * uniform kact[3], uniform REAL kmax[],
+  uniform REAL emax[], uniform REAL * uniform krot[6], uniform int pairnum,  uniform REAL * uniform iparam[NIPARAM],
+  uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform sprpnt[2][6])
+{
+}
+#endif

@@ -103,7 +103,7 @@ REAL *mass; /* scalar mass */
 REAL *invm; /* inverse scalar mass */
 REAL *force[3]; /* total spatial force */
 REAL *torque[3]; /* total spatial torque */
-REAL *kact[3]; /* time step control --> number of active constraints per particle */
+REAL *kact[3]; /* time step control --> number of active constraints per particle per dimension */
 REAL *kmax; /* time step control --> maximum stiffness coefficient per particle */
 REAL *emax; /* time step control --> maximum damper coefficient per particle */
 REAL *krot[6]; /* time step control --> symmetric rotational unit stiffness matrix per particle */
