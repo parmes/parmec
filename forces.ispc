@@ -584,6 +584,7 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
   }
 }
 
+#if 1
 struct spring_task_args
 {
   uniform int sprnum;
@@ -654,6 +655,20 @@ task void springs_task (uniform int span, uniform struct spring_task_args * unif
   uniform REAL * uniform emax = args->emax;
   uniform REAL * uniform krot[6] = {args->krot[0], args->krot[1], args->krot[2], args->krot[3], args->krot[4], args->krot[5]};
   uniform int adaptive = args->adaptive;
+#else
+/* update spring foces */
+task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int unspring[],
+  uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2],
+  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2],
+  uniform int unidx[], uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
+  uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
+  uniform REAL * uniform lcurve[2], uniform int lcidx[],
+  uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
+  uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
+  uniform int lock[])
+{
+#endif
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
 
@@ -1342,6 +1357,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
 
+#if 1
   /* workaround to https://github.com/ispc/ispc/issues/1293 */
   uniform spring_task_args args = {sprnum, sprtype, unspring, {sprpart[0], sprpart[1]},
         {{sprpnt[0][0], sprpnt[0][1], sprpnt[0][2], sprpnt[0][3], sprpnt[0][4], sprpnt[0][5]},
@@ -1356,6 +1372,10 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
 	krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive};
 
   launch [ntasks] springs_task (sprnum/ntasks, &args, lock);
+#else
+  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
+               sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
+#endif
   sync;
 
   delete lock;

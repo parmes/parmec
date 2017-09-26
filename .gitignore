@@ -10,3 +10,8 @@ condet4.h
 condet8.h
 *.swp
 *.pyc
+*.dump
+*.vtk.*
+*.h5
+*.xmf
+*.png
