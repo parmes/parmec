@@ -176,4 +176,6 @@ export void dynamics (uniform int ntasks, uniform master_conpnt master[], unifor
 {
   launch [ntasks] dynamics_task (parnum/ntasks, master, slave, parnum, angular, linear,
           rotation, position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
+
+  sync;
 }

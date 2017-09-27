@@ -1384,5 +1384,6 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   {
     launch [ntasks] unspring_task (unsprnum/ntasks, stroke, sprfrc, unspring, sprmap, unsprnum, tsprings, tspridx,
                                   msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, stepnum);
+    sync;
   }
 }

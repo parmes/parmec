@@ -93,6 +93,8 @@ export void invert_inertia (uniform int ntasks, uniform int size, uniform REAL *
   uniform int span = size / num;
 
   launch[num] invert (span, size, inertia, inverse, mass, invm);
+
+  sync;
 }
 
 /* estimate critical time step */
@@ -418,6 +420,8 @@ export void euler (uniform int ntasks, uniform int parnum, uniform REAL * unifor
   uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
 {
   launch [ntasks] euler_task (parnum/ntasks, parnum, angular, linear, rotation, position, step);
+
+  sync;
 }
 
 /* determine stable time step */
@@ -432,6 +436,8 @@ export uniform REAL determine_time_step (uniform int ntasks, uniform int parnum,
     uniform REAL * uniform step = uniform new uniform REAL [ntasks];
 
     launch [ntasks] time_step_task (parnum/ntasks, parnum, mass, inertia, kact, kmax, emax, krot, step);
+
+    sync;
 
     for (uniform int i = 0; i < ntasks; i ++)
     {

@@ -209,6 +209,7 @@ static void parallel_sort (uniform int n, uniform uint a[], uniform int order[],
   }
 
   launch[num] quick_task (span, n+num, b, p); /* parallel fragmented quick sort */
+
   sync;
 
   uniform merge_tree * uniform tree = uniform new uniform merge_tree [2*num]; /* tree and leaves size */
@@ -670,6 +671,7 @@ export uniform partitioning * uniform partitioning_create (uniform int ntasks, u
   uniform REAL * uniform extents = uniform new uniform REAL [6*ntasks];
 
   launch[ntasks] extrema (span, ellnum, center[0], center[1], center[2], extents);
+
   sync;
 
   for (uniform int i = 1; i < ntasks; i ++)
@@ -687,6 +689,7 @@ export uniform partitioning * uniform partitioning_create (uniform int ntasks, u
   uniform uint * uniform code = uniform new uniform uint [ellnum];
 
   launch[ntasks] morton (span, ellnum, center[0], center[1], center[2], extents, code);
+
   sync;
 
   uniform int * uniform order = uniform new uniform int [ellnum];
@@ -702,6 +705,7 @@ export uniform partitioning * uniform partitioning_create (uniform int ntasks, u
   uniform radix_tree * uniform rtree = uniform new uniform radix_tree [ellnum];
 
   launch[ntasks] radix_tree_create (span, ellnum, code, rtree, order, center);
+
   sync;
 
 #if 0
@@ -755,6 +759,8 @@ export uniform int partitioning_store (uniform int ntasks, uniform partitioning 
   uniform int repart = 0;
 
   launch [ntasks] store_ellipsoids (ellnum/ntasks, tree, ellnum, ellcol, part, center, radii, orient, &repart);
+
+  sync;
 
   return repart;
 }

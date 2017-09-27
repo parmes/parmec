@@ -786,9 +786,12 @@ export void condet (uniform int ntasks, uniform partitioning tree[], uniform mas
   if (tree == NULL) return;
 
   launch [ntasks] update_existing (parnum/ntasks, parnum, master, center, radii, orient, tri);
+
   sync;
 
   launch [ntasks] test_ellipsoids (ellnum/ntasks, tree, ellnum, ellcol, part, center, radii, orient, master);
 
   launch [ntasks] test_triangles (trinum/ntasks, tree, trinum, tricol, triobs, tri, master);
+
+  sync;
 }

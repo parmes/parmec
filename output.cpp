@@ -1094,6 +1094,8 @@ static void h5_spring_dataset (int num, int *set, int ent, hid_t h5_step)
     hsize_t length = num;
     ASSERT (H5LTmake_dataset_double (h5_step, "SF", 1, &length, data) >= 0, "HDF5 file write error");
   }
+
+  delete [] data;
 }
 
 /* append an XMF file */

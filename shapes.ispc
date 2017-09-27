@@ -220,7 +220,10 @@ export void shapes (uniform int ntasks, uniform int ellnum, uniform int part[],
   launch [ntasks] ellipsoids_task (ellnum/ntasks, ellnum, part, center, radii, orient, rotation, position);
 
   launch [ntasks] nodes_task (nodnum/ntasks, nodnum, nodes, nodpart, flags, rotation, position);
+
   sync;
 
   launch [ntasks] faces_task (facnum/ntasks, facnum, facnod, factri, nodes, tri);
+
+  sync;
 }

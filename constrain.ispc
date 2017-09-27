@@ -139,6 +139,8 @@ export void constrain_velocities (uniform int ntasks, uniform int cnsnum, unifor
   uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
 {
   launch [ntasks] constrain_velocities_task (cnsnum/ntasks, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+
+  sync;
 }
 
 /* constrain particle motion by adjusting forces */
@@ -147,4 +149,6 @@ export void constrain_forces (uniform int ntasks, uniform int cnsnum, uniform in
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   launch [ntasks] constrain_forces_task (cnsnum/ntasks, cnsnum, cnspart, cnslin, cnsang, force, torque);
+
+  sync;
 }
