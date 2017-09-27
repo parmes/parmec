@@ -1,4 +1,4 @@
-# looking for the parmec path
+# find parmec path
 import os, sys
 def where(program):
   for path in os.environ["PATH"].split(os.pathsep):
@@ -8,19 +8,39 @@ def where(program):
 path = where('parmec4')
 if path == None:
   print 'ERROR: parmec4 not found in PATH!'
-  print '       Download and compile parmec; add parmec directory to PATH variable;'
+  print '       Download and compile parmec;',
+  print 'add parmec directory to PATH variable;'
   sys.exit(1)
 print '(Found parmec4 at:', path + ')'
 sys.path.append(os.path.join (path, 'python'))
-from progress_bar import *
-from scipy import spatial
-import numpy as np
+from progress_bar import * # and import progress bar
+from scipy import spatial  # import scipy
+import numpy as np # and numpy
 
-nx = 10
-ny = 5
-nz = 5
-radius = 2.
-dura = 5.
+# command line arguments
+av = ARGV()
+if '-h' in av or '--help' in av:
+  print 'Beam-like spring-system example:',
+  print 'cantilever beam fixed at x-far-end'
+  print 'Unit cubes interact via springs',
+  print 'connected within a radius of influence'
+  print 'Available arguments:'
+  print '  -nx int --> x resolution (or 10)'
+  print '  -ny int --> y resolution (or 5)'
+  print '  -nz int --> z resolution (or 5)'
+  print '  -du float --> duration (or 5.)'
+  print '  -st float --> time step (or auto)'
+  print '  -ra float --> spring influence radius (or 2.)'
+  print '  -h or --help --> print this help'
+  sys.exit(0)
+
+# input parameters
+nx = int(av[av.index('-nx')+1]) if '-nx' in av else 10
+ny = int(av[av.index('-ny')+1]) if '-ny' in av else 5
+nz = int(av[av.index('-nz')+1]) if '-nz' in av else 5
+du = float(av[av.index('-du')+1]) if '-du' in av else 5.
+st = float(av[av.index('-st')+1]) if '-st' in av else -1
+ra = float(av[av.index('-ra')+1]) if '-ra' in av else  2.
 
 # materials
 matnum = MATERIAL (1E3, 1E9, 0.25)
@@ -47,30 +67,35 @@ for i in datarange:
   parnum = MESH (nodes, elements, matnum, 0)
   progress_bar(i, iend, 'Adding particles:')
 
-# randomized springs within radius
+# connecting springs within radius
 def add(a,b): return (a[0]+b[0],a[1]+b[1],a[2]+b[2])
-def sub(a,b): return (a[0]-b[0],a[1]-b[2],a[2]-b[2])
 def mul(a,b): return (a[0]*b,a[1]*b,a[2]*b)
 progress_bar(0, iend, 'Adding springs:')
 tree = spatial.KDTree(data)
 for i in datarange:
    p = data[i]
-   adj = tree.query_ball_point(np.array(p), radius)
+   adj = tree.query_ball_point(np.array(p), ra)
    for j in [k for k in adj if k < i]:
      q = data[j]
      x = mul(add(p,q),.5)
      sprnum = SPRING (i, x, j, x, spring, dashpot)
    progress_bar(i, iend, 'Adding springs:')
 
-# fix at far end
+# fixed at x-far-end
 for i in datarange[-ny*nz:]:
   RESTRAIN (i, [1,0,0,0,1,0,0,0,1], [1,0,0,0,1,0,0,0,1])
 
-GRAVITY (0., 0., -10.)
+# gravity acceleration
+GRAVITY (0., 0., -9.8)
 
-hcri = CRITICAL()
-step = 0.1 * hcri
-print '%d particles and %d springs' % (parnum, sprnum)
-print 'Critical step estimated as %g' % hcri
-print 'Running %d steps of size %g:' % (int(dura/step), step)
-DEM (dura, step, (0.05, 0.01))
+# time step
+hc = CRITICAL()
+if st < 0: st = 0.1 * hc
+
+# print out statistics
+print '%dx%dx%d=%d particles and %d springs' % (nx,ny,nz,parnum,sprnum)
+print 'Critical step estimated as %g' % hc
+print 'Running %d steps of size %g:' % (int(du/st),st)
+
+# run simulation
+DEM (du, st, (0.05, 0.01))
