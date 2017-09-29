@@ -220,6 +220,7 @@ int *hisidx; /* history source list start index */
 int *hisent; /* history entity */
 int *hiskind; /* history kind */
 REAL *source[6]; /* source sphere or box definition or optional point */
+pointer_t *h5file; /* optional paths to existing .h5 result files */
 pointer_t *history; /* Python list storing history */
 int history_buffer_size; /* size of history buffer */
 int history_list_size; /* size of history particle lists buffer */
@@ -1095,6 +1096,7 @@ int history_buffer_init ()
   source[3] = aligned_real_alloc (history_buffer_size);
   source[4] = aligned_real_alloc (history_buffer_size);
   source[5] = aligned_real_alloc (history_buffer_size);
+  h5file = new pointer_t [history_buffer_size];
   history = new pointer_t [history_buffer_size];
 
   hisnum = 0;
@@ -1117,6 +1119,7 @@ void history_buffer_grow (int list_size)
     real_buffer_grow (source[3], hisnum, history_buffer_size);
     real_buffer_grow (source[4], hisnum, history_buffer_size);
     real_buffer_grow (source[5], hisnum, history_buffer_size);
+    pointer_buffer_grow (h5file, hisnum, history_buffer_size);
     pointer_buffer_grow (history, hisnum, history_buffer_size);
   }
 

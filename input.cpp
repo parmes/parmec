@@ -36,6 +36,7 @@ SOFTWARE.
 #include "timeseries.h"
 #include "macros.h"
 #include "parmec.h"
+#include "output.h"
 #include "timer.h"
 #include "mesh.h"
 #include "constants.h"
@@ -105,6 +106,33 @@ static int is_string (PyObject *obj, const char *var)
       PyErr_SetString (PyExc_TypeError, buf);
       return 0;
     }
+  }
+
+  return 1;
+}
+
+/* file path test */
+static int is_file (PyObject *obj, const char *var)
+{
+  if (obj)
+  {
+    if (!PyString_Check (obj))
+    {
+      char buf [BUFLEN];
+      sprintf (buf, "'%s' must be a string", var);
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+
+    FILE *f = fopen (PyString_AsString (obj), "r");
+    if (!f)
+    {
+      char buf [BUFLEN];
+      sprintf (buf, "'%s = %s' must be an existing file path", var, PyString_AsString(obj));
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+    fclose (f);
   }
 
   return 1;
@@ -2353,18 +2381,21 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
 /* time history output */
 static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("entity", "source", "point");
-  PyObject *entity, *source, *point;
+  KEYWORDS ("entity", "source", "point", "h5file", "h5last");
+  PyObject *entity, *source, *point, *h5file, *h5last;
   REAL s[6] = {0., 0., 0., 0., 0., 0.};
   int list_size, *list, kind, hisent;
   int srckind = 0; /* 0: partilce, 1: spring */
 
   point = NULL;
   source = NULL;
+  h5file = NULL;
+  h5last = Py_False;
 
-  PARSEKEYS ("O|OO", &entity, &source, &point);
+  PARSEKEYS ("O|OOOO", &entity, &source, &point, &h5file, &h5last);
 
-  TYPETEST (is_string (entity, kwl[0]) && is_tuple (point, kwl[2], 3));
+  TYPETEST (is_string (entity, kwl[0]) && is_tuple (point, kwl[2], 3) &&
+            is_file (h5file, kwl[3]) && is_bool (h5last, kwl[4]));
 
   IFIS (entity, "TIME")
   {
@@ -2497,7 +2528,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     list_size = 1;
     list = new int;
     list [0] = 0;
-    if (!parnum)
+    if (!parnum && !h5file)
     {
       PyErr_SetString (PyExc_ValueError, "No particle has been defined");
       return NULL;
@@ -2509,12 +2540,12 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     list_size = 1;
     list = new int;
     list [0] = PyInt_AsLong (source);
-    if (srckind == 0 && (list[0] < 0 || list[0] >= parnum))
+    if (!h5file && srckind == 0 && (list[0] < 0 || list[0] >= parnum))
     {
       PyErr_SetString (PyExc_ValueError, "Particle index out of range");
       return NULL;
     }
-    if (srckind == 1 && (list[0] < 0 || list[0] >= sprnum))
+    if (!h5file && srckind == 1 && (list[0] < 0 || list[0] >= sprnum))
     {
       PyErr_SetString (PyExc_ValueError, "Spring index out of range");
       return NULL;
@@ -2528,12 +2559,12 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     for (int j = 0; j < list_size; j ++)
     {
       list[j] = PyInt_AsLong (PyList_GetItem(source, j));
-      if (srckind == 0 && (list[j] < 0 || list[j] >= parnum))
+      if (!h5file && srckind == 0 && (list[j] < 0 || list[j] >= parnum))
       {
 	PyErr_SetString (PyExc_ValueError, "Particle index out of range");
 	return NULL;
       }
-      if (srckind == 1 && (list[j] < 0 || list[j] >= sprnum))
+      if (!h5file && srckind == 1 && (list[j] < 0 || list[j] >= sprnum))
       {
 	PyErr_SetString (PyExc_ValueError, "Spring index out of range");
 	return NULL;
@@ -2616,6 +2647,11 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   parmec::source[5][i] = s[5];
 
   history[i] = PyList_New(0);
+
+  if (h5file) parmec::h5file[i] = PyString_AsString(h5file);
+  else parmec::h5file[i] = NULL;
+
+  if (h5last == Py_True) output_h5history();
 
   return (PyObject*) history[i];
 }

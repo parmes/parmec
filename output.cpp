@@ -1446,6 +1446,8 @@ static void output_xdmf_files ()
 	h5_text.clear();
 	h5_text << output_frame;
 	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+	double time = curtime;
+        ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
 
 	h5_triangle_dataset (num, set, ent, h5_step); /* append h5 file */
 
@@ -1518,6 +1520,8 @@ static void output_xdmf_files ()
 	h5_text.clear();
 	h5_text << output_frame;
 	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+	double time = curtime;
+        ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
    
 	h5_rb_dataset (num, pset, ent, h5_step); /* append h5 file */
 
@@ -1605,6 +1609,8 @@ static void output_xdmf_files ()
 	h5_text.clear();
 	h5_text << output_frame;
 	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+	double time = curtime;
+        ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
  
 	h5_spring_dataset (num, set, ent, h5_step); /* append h5 dataset */
 
@@ -1818,7 +1824,7 @@ static void output_vtk_files ()
   }
 }
 
-/* output files */
+/* runtime file output */
 void output_files ()
 {
   if (ellnum)
@@ -1859,7 +1865,7 @@ void output_files ()
   output_frame ++; 
 }
 
-/* output time history */
+/* runtime history output */
 void output_history ()
 {
   int i, j, k;
@@ -2131,5 +2137,483 @@ void output_history ()
     }
     break;
     }
+  }
+}
+
+/* read .h5 dataset */
+static double* h5read (hid_t h5_step, const char *name, int *size)
+{
+  double *values = NULL;
+
+  /* XXX
+   * if (H5LTfind_dataset(h5_step, name)) is unreliable as
+   * it passes for names being substrings of dataset names;
+   * hence the below workaround */
+
+  hsize_t num;
+  char buf[128];
+  H5Gget_num_objs (h5_step, &num);
+  for (num--; num>0; num--)
+  {
+    H5Gget_objname_by_idx (h5_step, num, buf, 128);
+    if (strcmp (buf, name) == 0) break;
+  }
+
+  if (num)
+  {
+    int rank;
+    H5LTget_dataset_ndims (h5_step, name, &rank);
+    ASSERT (rank <= 2, "HDF5 file read error: rank > 2");
+    hsize_t dims[2] = {0, 1};
+    H5T_class_t class_id;
+    size_t type_size;
+    H5LTget_dataset_info (h5_step, name, dims, &class_id, &type_size);
+    ASSERT (type_size == 8, "HDF5 file read error: expected double precision float");
+    ERRMEM (values = (double*)malloc (type_size*dims[0]*dims[1]));
+    ASSERT (H5LTread_dataset_double (h5_step, name, values) >= 0, "HDF5 file read error");
+    if (size) *size = dims[0];
+  }
+  else if (size) *size = 0;
+
+  return values;
+}
+
+/* output history from existing .h5 files */
+void output_h5history ()
+{
+  MAP *h5map;
+  int i;
+
+  for (i = 0, h5map = NULL; i < hisnum; i ++)
+  {
+    if (h5file[i])
+    {
+      MAP *node = MAP_Find_Node (h5map, h5file[i], (MAP_Compare)strcmp);
+
+      if (node) /* .h5 path already mapped */
+      {
+	MAP_Insert (NULL, (MAP**) &node->data, (void*) (long) i, NULL, NULL); /* append history index */
+      }
+      else  /* .h5 path not mapped */
+      {
+	MAP *h5set = NULL; /* empty index set */
+	MAP_Insert (NULL, &h5set, (void*) (long) i, NULL, NULL); /* append history index */
+	MAP_Insert (NULL, &h5map, h5file[i], h5set, (MAP_Compare)strcmp); /* map path to index set */
+      }
+
+      if (PyList_Size((PyObject*)history[i]) > 0)
+      {
+	Py_DECREF ((PyObject*)history[i]);
+	history[i] = PyList_New(0); /* avoid appending to nonempty lists */
+      }
+    }
+  }
+
+  for (MAP *h5_path = MAP_First(h5map); h5_path; h5_path = MAP_Next (h5_path)) /* for each .h5 file */
+  {
+    MAP *ent2data = (MAP*)h5_path->data;
+    hid_t h5_file, h5_step;
+    hsize_t nsteps;
+    double time;
+
+    ASSERT((h5_file = H5Fopen((const char*)h5_path->key, H5F_ACC_RDONLY, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+    H5Gget_num_objs (h5_file, &nsteps);
+
+    ASSERT ((h5_step = H5Gopen (h5_file, "/0", H5P_DEFAULT)) >= 0, "HDF5 file read error");
+    int NUM0;
+    double *GEOM0 = h5read (h5_step, "GEOM", &NUM0);
+    H5Gclose (h5_step);
+
+    for (int n = 0; n < nsteps; n ++)
+    {
+      char buf[1024];
+
+      snprintf (buf, 1024, "/%d", n);
+      ASSERT ((h5_step = H5Gopen (h5_file, buf, H5P_DEFAULT)) >= 0, "HDF5 file read error");
+
+      int NUM = 0;
+      double *ANGVEL = h5read (h5_step, "ANGVEL", &NUM);
+      double *DISPL = h5read (h5_step, "DISPL", &NUM);
+      double *FORCE = h5read (h5_step, "FORCE", &NUM);
+      double *GEOM = h5read (h5_step, "FORCE", &NUM);
+      double *LINVEL = h5read (h5_step, "LINVEL", &NUM);
+      double *ORIENT = h5read (h5_step, "ORIENT", &NUM);
+      double *TORQUE = h5read (h5_step, "TORQUE", &NUM);
+      double *F = h5read (h5_step, "F", &NUM);
+      double *LENGTH = h5read (h5_step, "LENGTH", &NUM);
+      double *SF = h5read (h5_step, "SF", &NUM);
+
+      for (MAP *item = MAP_First (ent2data); item; item = MAP_Next (item))
+      {
+	i = (int) (long) item->key;
+	
+	if (hisent[i] == HIS_TIME)
+	{
+          ASSERT (H5LTget_attribute_double (h5_step, ".", "TIME", &time) >= 0, "HDF5 file read error");
+          PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(time));
+	}
+	else switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
+	{
+	case HIS_LIST:
+	{
+	  if (hiskind[i] & HIS_POINT) /* one particle point based */
+	  {
+	    int k = hislst[hisidx[i]];
+	    REAL value;
+
+	    switch(hisent[i])
+	    {
+	    case HIS_PX:
+	    case HIS_PY:
+	    case HIS_PZ:
+	    case HIS_PL:
+	    case HIS_DX:
+	    case HIS_DY:
+	    case HIS_DZ:
+	    case HIS_DL:
+	    {
+	      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+	      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
+	      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+	      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+	      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
+	      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
+	      REAL v[3] = {LINVEL[k*3], LINVEL[k*3+1], LINVEL[k*3+2]};
+	      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
+	      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
+			   ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
+			   ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
+	      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
+	      REAL Q[3], p[3], a[3];
+
+	      SUB (P, X, Q);
+	      NVADDMUL (x, L, Q, p);
+	      SUB (p, x, a);
+
+	      switch (hisent[i])
+	      {
+	      case HIS_PX:
+		value = p[0];
+	      break;
+	      case HIS_PY:
+		value = p[1];
+	      break;
+	      case HIS_PZ:
+		value = p[2];
+	      break;
+	      case HIS_PL:
+		value = LEN(p);
+	      break;
+	      case HIS_DX:
+		value = p[0]-P[0];
+	      break;
+	      case HIS_DY:
+		value = p[1]-P[1];
+	      break;
+	      case HIS_DZ:
+		value = p[2]-P[2];
+	      break;
+	      case HIS_DL:
+	      {
+		REAL q[3] = {p[0]-P[0], p[1]-P[1], p[2]-P[2]};
+		value = LEN(q);
+	      }
+	      break;
+	      case HIS_VX:
+		value = v[0] + a[1]*o[2] - a[2]*o[1];
+	      break;
+	      case HIS_VY:
+		value = v[1] + a[2]*o[0] - a[0]*o[2];
+	      break;
+	      case HIS_VZ:
+		value = v[2] + a[0]*o[1] - a[1]*o[0];
+	      break;
+	      case HIS_VL:
+	      {
+		REAL q[3] = {v[0] + a[1]*o[2] - a[2]*o[1], v[1] + a[2]*o[0] - a[0]*o[2], v[2] + a[0]*o[1] - a[1]*o[0]};
+		value = LEN(q);
+	      }
+	      break;
+	      }
+	    }
+	    break;
+	    case HIS_OX:
+	    case HIS_OY:
+	    case HIS_OZ:
+	    case HIS_OL:
+	    {
+	      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+	      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
+
+	      switch (hisent[i])
+	      {
+	      case HIS_OX:
+		value = o[0];
+	      break;
+	      case HIS_OY:
+		value = o[1];
+	      break;
+	      case HIS_OZ:
+		value = o[2];
+	      break;
+	      case HIS_OL:
+	      {
+		value = LEN(o);
+	      }
+	      break;
+	      }
+	    }
+	    break;
+	    case HIS_FX:
+	    case HIS_FY:
+	    case HIS_FZ:
+	    case HIS_FL:
+	    {
+	      ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+	      REAL f[3] = {FORCE[k*3], FORCE[k*3+1], FORCE[k*3+2]};
+
+	      switch (hisent[i])
+	      {
+	      case HIS_FX:
+		value = f[0];
+	      break;
+	      case HIS_FY:
+		value = f[1];
+	      break;
+	      case HIS_FZ:
+		value = f[2];
+	      break;
+	      case HIS_FL:
+	      {
+		value = LEN(f);
+	      }
+	      break;
+	      }
+	    }
+	    break;
+	    case HIS_TX:
+	    case HIS_TY:
+	    case HIS_TZ:
+	    case HIS_TL:
+	    {
+	      ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+	      REAL t[3] = {TORQUE[k*3], TORQUE[k*3+1], TORQUE[k*3+2]};
+
+	      switch (hisent[i])
+	      {
+	      case HIS_TX:
+		value = t[0];
+	      break;
+	      case HIS_TY:
+		value = t[1];
+	      break;
+	      case HIS_TZ:
+		value = t[2];
+	      break;
+	      case HIS_TL:
+	      {
+		value = LEN(t);
+	      }
+	      break;
+	      }
+	    }
+	    break;
+	    }
+
+	    PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
+	  }
+	  else /* particle or spring list based */
+	  {
+	    REAL value = 0.0;
+
+	    for (int j = hisidx[i]; j < hisidx[i+1]; j ++)
+	    {
+	      int k = hislst[j];
+
+	      switch (hisent[i])
+	      {
+	      case HIS_PX:
+	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+		value += GEOM[3*k];
+	      break;
+	      case HIS_PY:
+	      {
+	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+		value += GEOM[3*k+1];
+	      }
+	      break;
+	      case HIS_PZ:
+	      {
+	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+		value += GEOM[3*k+2];
+	      }
+	      break;
+	      case HIS_PL:
+	      {
+	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+		REAL q[3] = {GEOM[3*k], GEOM[3*k+1], GEOM[3*k+2]};
+		value += LEN(q);
+	      }
+	      break;
+	      case HIS_DX:
+	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+		value += GEOM[3*k] - GEOM0[3*k];
+	      break;
+	      case HIS_DY:
+	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+		value += GEOM[3*k+1] - GEOM0[3*k+1];
+	      break;
+	      case HIS_DZ:
+	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+		value += GEOM[3*k+2] - GEOM0[3*k+2];
+	      break;
+	      case HIS_DL:
+	      {
+	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+		REAL q[3] = {GEOM[3*k]-GEOM0[3*k], GEOM[3*k+1]-GEOM0[3*k+1], GEOM[3*k+2]-GEOM[3*k+2]};
+		value += LEN(q);
+	      }
+	      break;
+	      case HIS_VX:
+	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+		value += LINVEL[3*k];
+	      break;
+	      case HIS_VY:
+	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+		value += LINVEL[3*k+1];
+	      break;
+	      case HIS_VZ:
+	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+		value += LINVEL[3*k+2];
+	      break;
+	      case HIS_VL:
+	      {
+	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+		REAL q[3] = {LINVEL[3*k], LINVEL[3*k+1], LINVEL[3*k+2]};
+		value += LEN(q);
+	      }
+	      break;
+	      case HIS_OX:
+	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+		value += ANGVEL[3*k];
+	      break;
+	      case HIS_OY:
+	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+		value += ANGVEL[3*k+1];
+	      break;
+	      case HIS_OZ:
+	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+		value += ANGVEL[3*k+2];
+	      break;
+	      case HIS_OL:
+	      {
+	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+		REAL q[3] = {ANGVEL[3*k], ANGVEL[3*k+1], ANGVEL[3*k+2]};
+		value += LEN(q);
+	      }
+	      break;
+	      case HIS_FX:
+	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+		value += FORCE[3*k];
+	      break;
+	      case HIS_FY:
+	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+		value += FORCE[3*k+1];
+	      break;
+	      case HIS_FZ:
+	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+		value += FORCE[3*k+2];
+	      break;
+	      case HIS_FL:
+	      {
+	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+		REAL q[3] = {FORCE[3*k], FORCE[3*k+1], FORCE[3*k+2]};
+		value += LEN(q);
+	      }
+	      break;
+	      case HIS_TX:
+	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+		value += TORQUE[3*k];
+	      break;
+	      case HIS_TY:
+	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+		value += TORQUE[3*k+1];
+	      break;
+	      case HIS_TZ:
+	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+		value += TORQUE[3*k+2];
+	      break;
+	      case HIS_TL:
+	      {
+	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+		REAL q[3] = {TORQUE[3*k], TORQUE[3*k+1], TORQUE[3*k+2]};
+		value += LEN(q);
+	      }
+	      break;
+	      case HIS_LENGTH:
+	      {
+		int l = sprmap[k];
+	        ASSERT (LENGTH, "HDF5 file read error: LENGTH dataset missing");
+		value += LENGTH[l];
+	      }
+	      break;
+	      case HIS_STROKE:
+	      {
+		int l = sprmap[k];
+	        ASSERT (DISPL, "HDF5 file read error: DISPL dataset missing");
+		value += DISPL[l];
+	      }
+	      break;
+	      case HIS_STF:
+	      {
+		int l = sprmap[k];
+	        ASSERT (F, "HDF5 file read error: F dataset missing");
+		value += F[l];
+	      }
+	      break;
+	      case HIS_SF:
+	      {
+		int l = sprmap[k];
+	        ASSERT (SF, "HDF5 file read error: SF dataset missing");
+		value += SF[l];
+	      }
+	      break;
+	      }
+	    }
+
+	    int j = hisidx[i+1]-hisidx[i];
+
+	    PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value/(REAL)j));
+	  }
+	}
+	break;
+	case HIS_SPHERE:
+	{
+	  ASSERT (0, "Sphere based time history is not yet implemented");
+	}
+	break;
+	case HIS_BOX:
+	{
+	  ASSERT (0, "Box based time history is not yet implemented");
+	}
+	break;
+	}
+      }
+
+      free (ANGVEL);
+      free (DISPL);
+      free (FORCE);
+      free (GEOM);
+      free (LINVEL);
+      free (ORIENT);
+      free (TORQUE);
+      free (F);
+      free (LENGTH);
+      free (SF);
+      H5Gclose (h5_step);
+    }
+
+    free (GEOM0);
+    H5Fclose (h5_file);
   }
 }

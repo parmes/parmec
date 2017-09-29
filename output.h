@@ -25,8 +25,10 @@ SOFTWARE.
 #ifndef __output__
 #define __output__
 
-void output_files (); /* output files */
+void output_files (); /* runtime file output */
 
-void output_history (); /* output time history */
+void output_history (); /* runtime history output */
+
+void output_h5history (); /* output history from existing .h5 files */
 
 #endif

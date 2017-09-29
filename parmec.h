@@ -213,6 +213,7 @@ extern int *hisidx; /* history source list start index */
 extern int *hisent; /* history entity */
 extern int *hiskind; /* history kind */
 extern REAL *source[6]; /* source sphere or box definition or optional point */
+extern pointer_t *h5file; /* optional paths to existing .h5 result files */
 extern pointer_t *history; /* Python list storing history */
 extern int history_buffer_size; /* size of history buffer */
 extern int history_list_size; /* size of history particle lists buffer */

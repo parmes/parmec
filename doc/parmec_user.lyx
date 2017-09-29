@@ -2550,11 +2550,12 @@ HISTORY
 \end_layout
 
 \begin_layout Standard
-Before running a simulation, request time history output.
+Before running a simulation, request time history output; or read history
+ from an existing output file.
 \end_layout
 
 \begin_layout Subsection*
-list = HISTORY (entity | source, point)
+list = HISTORY (entity | source, point, h5file, h5last)
 \end_layout
 
 \begin_layout Itemize
@@ -2625,6 +2626,75 @@ point
 \series default
  - optional referential point used in case of a single particle source;
  default: particle mass centre
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+h5file
+\series default
+ 
+\color red
+(under development)
+\color inherit
+ - optional *.h5 file storing existing results; in this case the history
+ is retrieved from this file (if found) or an error message is issued; an
+ appropriate output file needs to be picked depending on the 
+\series bold
+entity
+\series default
+, cf.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+; the output 
+\series bold
+list
+\series default
+ is not populated until 
+\series bold
+h5last
+\series default
+ = 
+\emph on
+True
+\emph default
+; default: not specified
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+h5last
+\series default
+ 
+\color red
+(under development)
+\color inherit
+ - optional boolean flag marking a last call to HISTORY for which the 
+\series bold
+h5file
+\series default
+ argument is used; for faster reading all such histories are populated once
+ HISTORY(..., 
+\series bold
+h5file
+\series default
+ = ..., 
+\series bold
+h5last
+\series default
+ = 
+\emph on
+True
+\emph default
+) is called; default: 
+\emph on
+False
 \end_layout
 
 \begin_layout Section
