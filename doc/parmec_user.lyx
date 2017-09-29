@@ -2635,7 +2635,7 @@ h5file
 \series default
  
 \color red
-(under development)
+(experimental)
 \color inherit
  - optional *.h5 file storing existing results; in this case the history
  is retrieved from this file (if found) or an error message is issued; an
@@ -2673,7 +2673,7 @@ h5last
 \series default
  
 \color red
-(under development)
+(experimental)
 \color inherit
  - optional boolean flag marking a last call to HISTORY for which the 
 \series bold
