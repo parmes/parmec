@@ -784,12 +784,37 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	Lk[8] = rotation[8][k];
       }
 
-      Y[0] = sprpnt[1][3][i];
-      Y[1] = sprpnt[1][4][i];
-      Y[2] = sprpnt[1][5][i];
+      if (sprflg[i]&SPRDIR_PROJECT) /* co-rotate spring plane with second particle */
+      {
+	w[0] = sprdir[3][i];
+	w[1] = sprdir[4][i];
+	w[2] = sprdir[5][i];
 
-      SUB (Y, Xk, Y);
-      NVADDMUL (xk, Lk, Y, q);
+	NVMUL (Lk, w, z);
+
+	sprdir[0][i] = z[0];
+	sprdir[1][i] = z[1];
+	sprdir[2][i] = z[2];
+
+	len = DOT (z, p);
+	SUBMUL (p, len, z, q); /* q = projection of p onto spring plane */
+
+	SUB (q, xk, w);
+	TVADDMUL (Xk, Lk, w, Y); /* Y = reference image of q */
+
+	sprpnt[1][3][i] = Y[0]; /* update reference image */
+	sprpnt[1][4][i] = Y[1];
+	sprpnt[1][5][i] = Y[2];
+      }
+      else
+      {
+	Y[0] = sprpnt[1][3][i];
+	Y[1] = sprpnt[1][4][i];
+	Y[2] = sprpnt[1][5][i];
+
+	SUB (Y, Xk, Y);
+	NVADDMUL (xk, Lk, Y, q);
+      }
 
       sprpnt[1][0][i] = q[0];
       sprpnt[1][1][i] = q[1];
@@ -804,13 +829,20 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       q[0] = sprpnt[1][0][i];
       q[1] = sprpnt[1][1][i];
       q[2] = sprpnt[1][2][i];
+
+      if (sprflg[i]&SPRDIR_PROJECT) /* read constant plane normal into 'z' */
+      {
+	z[0] = sprdir[0][i];
+	z[1] = sprdir[1][i];
+	z[2] = sprdir[2][i];
+      }
     }
 
-    SUB (q, p, w);
-
-    switch (sprflg[i]&(SPRDIR_FOLLOWER|SPRDIR_CONSTANT|SPRDIR_PLANAR))
+    switch (sprflg[i]&(SPRDIR_FOLLOWER|SPRDIR_CONSTANT|SPRDIR_PLANAR|SPRDIR_PROJECT))
     {
     case SPRDIR_FOLLOWER:
+
+      SUB (q, p, w);
 
       len = LEN(w);
       inv = len > 0.0 ? 1.0/len : 0.0; /* zero force in case of zero length via (temporary) zero direction */
@@ -826,6 +858,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
     case SPRDIR_CONSTANT:
 
+      SUB (q, p, w);
+
       z[0] = sprdir[0][i];
       z[1] = sprdir[1][i];
       z[2] = sprdir[2][i];
@@ -834,6 +868,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       break;
 
     case SPRDIR_PLANAR:
+
+      SUB (q, p, w);
 
       inv = w[0]*sprdir[3][i]+w[1]*sprdir[4][i]+w[2]*sprdir[5][i]; /* dot of (q-p) and constant direction */
 
@@ -851,6 +887,11 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       sprdir[0][i] = z[0]; /* store current direction */
       sprdir[1][i] = z[1];
       sprdir[2][i] = z[2];
+      break;
+    case SPRDIR_PROJECT:
+
+      SUB (p, q, w);
+      len = DOT (w, z);
       break;
     }
 

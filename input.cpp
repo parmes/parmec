@@ -1308,8 +1308,8 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "point2", "spring", "dashpot", "direction", "planar", "unload", "ylim");
-  PyObject *point1, *point2, *spring, *dashpot, *direction, *planar, *unload, *ylim;
+  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar", "unload", "ylim");
+  PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim;
   int part1, part2;
 
   direction = NULL;
@@ -1318,13 +1318,13 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   unload = NULL;
   ylim = NULL;
 
-  PARSEKEYS ("iOiOO|OOOOO", &part1, &point1, &part2, &point2, &spring, &dashpot, &direction, &planar, &unload, &ylim);
+  PARSEKEYS ("iOiOO|OOOOO", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
-            is_tuple (point2, kwl[3], 3) && is_list (spring, kwl[4], 0) &&
-	    is_list (dashpot, kwl[4], 0) && is_tuple (direction, kwl[5], 3) &&
-	    is_string (planar, kwl[6]) && is_list (unload, kwl[7], 0) &&
-	    is_tuple (ylim, kwl[8], 2));
+            (is_tuple (geom2, kwl[3], 3) || is_list_of_tuples (geom2, kwl[3], 2, 3)) &&
+	    is_list (spring, kwl[4], 0) && is_list (dashpot, kwl[4], 0) &&
+	    is_tuple (direction, kwl[5], 3) && is_string (planar, kwl[6]) &&
+	    is_list (unload, kwl[7], 0) && is_tuple (ylim, kwl[8], 2));
 
   if (part2 < -1)
   {
@@ -1373,12 +1373,41 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   sprpnt[0][3][i] = sprpnt[0][0][i];
   sprpnt[0][4][i] = sprpnt[0][1][i];
   sprpnt[0][5][i] = sprpnt[0][2][i];
-  sprpnt[1][0][i] = PyFloat_AsDouble (PyTuple_GetItem (point2,0));
-  sprpnt[1][1][i] = PyFloat_AsDouble (PyTuple_GetItem (point2,1));
-  sprpnt[1][2][i] = PyFloat_AsDouble (PyTuple_GetItem (point2,2));
-  sprpnt[1][3][i] = sprpnt[1][0][i];
-  sprpnt[1][4][i] = sprpnt[1][1][i];
-  sprpnt[1][5][i] = sprpnt[1][2][i];
+
+  if (PyTuple_Check(geom2))
+  {
+    sprpnt[1][0][i] = PyFloat_AsDouble (PyTuple_GetItem (geom2,0));
+    sprpnt[1][1][i] = PyFloat_AsDouble (PyTuple_GetItem (geom2,1));
+    sprpnt[1][2][i] = PyFloat_AsDouble (PyTuple_GetItem (geom2,2));
+    sprpnt[1][3][i] = sprpnt[1][0][i];
+    sprpnt[1][4][i] = sprpnt[1][1][i];
+    sprpnt[1][5][i] = sprpnt[1][2][i];
+  }
+  else
+  {
+    PyObject *point = PyList_GetItem (geom2, 0);
+    PyObject *normal = PyList_GetItem (geom2, 1);
+
+    sprpnt[1][0][i] = PyFloat_AsDouble (PyTuple_GetItem (point,0));
+    sprpnt[1][1][i] = PyFloat_AsDouble (PyTuple_GetItem (point,1));
+    sprpnt[1][2][i] = PyFloat_AsDouble (PyTuple_GetItem (point,2));
+    sprpnt[1][3][i] = sprpnt[1][0][i];
+    sprpnt[1][4][i] = sprpnt[1][1][i];
+    sprpnt[1][5][i] = sprpnt[1][2][i];
+
+    REAL dir[3] = {PyFloat_AsDouble (PyTuple_GetItem (normal,0)),
+                   PyFloat_AsDouble (PyTuple_GetItem (normal,1)),
+                   PyFloat_AsDouble (PyTuple_GetItem (normal,2))};
+
+    NORMALIZE (dir);
+
+    sprdir[0][i] = dir[0];
+    sprdir[1][i] = dir[1];
+    sprdir[2][i] = dir[2];
+    sprdir[3][i] = dir[0];
+    sprdir[4][i] = dir[1];
+    sprdir[5][i] = dir[2];
+  }
 
   sprflg[i] = 0;
 
@@ -1444,84 +1473,99 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   parmec::unspring[i] = -3; /* unsued by UNSPRING */
 
-  if (direction)
+  if (PyList_Check (geom2)) /* project point1 onto plane */
   {
-    REAL dir[3];
+    sprflg[i] |= SPRDIR_PROJECT;
 
-    dir[0] = PyFloat_AsDouble(PyTuple_GetItem(direction,0));
-    dir[1] = PyFloat_AsDouble(PyTuple_GetItem(direction,1));
-    dir[2] = PyFloat_AsDouble(PyTuple_GetItem(direction,2));
+    REAL dif[3] = {sprpnt[0][0][i] - sprpnt[1][0][i],
+		   sprpnt[0][1][i] - sprpnt[1][1][i],
+		   sprpnt[0][2][i] - sprpnt[1][2][i]};
 
-    REAL len = LEN(dir);
+    REAL nor[3] = {sprdir[0][i], sprdir[1][i], sprdir[2][i]};
 
-    if (len == 0.0)
+    stroke0[i] = DOT (dif, nor);
+  }
+  else
+  {
+    if (direction)
     {
-      PyErr_SetString (PyExc_ValueError, "Invalid zero direction");
-      return NULL;
-    }
+      REAL dir[3];
 
-    REAL inv = 1.0/len;
+      dir[0] = PyFloat_AsDouble(PyTuple_GetItem(direction,0));
+      dir[1] = PyFloat_AsDouble(PyTuple_GetItem(direction,1));
+      dir[2] = PyFloat_AsDouble(PyTuple_GetItem(direction,2));
 
-    dir[0] *= inv;
-    dir[1] *= inv;
-    dir[2] *= inv;
+      REAL len = LEN(dir);
 
-    sprdir[0][i] = dir[0];
-    sprdir[1][i] = dir[1];
-    sprdir[2][i] = dir[2];
-    sprdir[3][i] = dir[0];
-    sprdir[4][i] = dir[1];
-    sprdir[5][i] = dir[2];
-
-    if (planar)
-    {
-      IFIS (planar, "ON") /* direction in plane */
+      if (len == 0.0)
       {
-	sprflg[i] |= SPRDIR_PLANAR;
+	PyErr_SetString (PyExc_ValueError, "Invalid zero direction");
+	return NULL;
       }
-      ELIF (planar, "OFF") /* constant direction */
+
+      REAL inv = 1.0/len;
+
+      dir[0] *= inv;
+      dir[1] *= inv;
+      dir[2] *= inv;
+
+      sprdir[0][i] = dir[0];
+      sprdir[1][i] = dir[1];
+      sprdir[2][i] = dir[2];
+      sprdir[3][i] = dir[0];
+      sprdir[4][i] = dir[1];
+      sprdir[5][i] = dir[2];
+
+      if (planar)
+      {
+	IFIS (planar, "ON") /* direction in plane */
+	{
+	  sprflg[i] |= SPRDIR_PLANAR;
+	}
+	ELIF (planar, "OFF") /* constant direction */
+	{
+	  sprflg[i] |= SPRDIR_CONSTANT;
+	}
+	ELSE
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid planar switch");
+	  return NULL;
+	}
+      }
+      else /* constant direction */
       {
 	sprflg[i] |= SPRDIR_CONSTANT;
       }
-      ELSE
+
+      REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
+		     sprpnt[1][1][i] - sprpnt[0][1][i],
+		     sprpnt[1][2][i] - sprpnt[0][2][i]};
+
+      if (sprflg[i] & SPRDIR_CONSTANT)
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid planar switch");
-	return NULL;
+	stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
+      }
+      else /* stroke(0) = length in orthogonal plane */
+      {
+	REAL dot = DOT (dif, dir);
+
+	dif[0] -= dot*dir[0];
+	dif[1] -= dot*dir[1];
+	dif[2] -= dot*dir[2];
+
+	stroke0[i] = LEN (dif);
       }
     }
-    else /* constant direction */
+    else /* direction = (p2 - p1)/|p2 - p1| */
     {
-      sprflg[i] |= SPRDIR_CONSTANT;
-    }
+      sprflg[i] |= SPRDIR_FOLLOWER;
 
-    REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
-                   sprpnt[1][1][i] - sprpnt[0][1][i],
-                   sprpnt[1][2][i] - sprpnt[0][2][i]};
-
-    if (sprflg[i] & SPRDIR_CONSTANT)
-    {
-      stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
-    }
-    else /* stroke(0) = length in orthogonal plane */
-    {
-      REAL dot = DOT (dif, dir);
-
-      dif[0] -= dot*dir[0];
-      dif[1] -= dot*dir[1];
-      dif[2] -= dot*dir[2];
+      REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
+		     sprpnt[1][1][i] - sprpnt[0][1][i],
+		     sprpnt[1][2][i] - sprpnt[0][2][i]};
 
       stroke0[i] = LEN (dif);
     }
-  }
-  else /* direction = (p2 - p1)/|p2 - p1| */
-  {
-    sprflg[i] |= SPRDIR_FOLLOWER;
-
-    REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
-                   sprpnt[1][1][i] - sprpnt[0][1][i],
-                   sprpnt[1][2][i] - sprpnt[0][2][i]};
-
-    stroke0[i] = LEN (dif);
   }
 
   if (ylim)

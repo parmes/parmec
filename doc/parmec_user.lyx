@@ -1354,7 +1354,26 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\text{direction}\left(t\right)=\left(\text{point2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{point2}\left(t\right)-\text{point1}\left(t\right)\right|\text{ \textbf{or} constant}\left(d_{x},d_{y},d_{z}\right)\text{ \textbf{or} tangent}
+\text{direction}\left(t\right)=\left\{ \begin{array}{c}
+\text{d1}\left(t\right)=\left(\text{geom2}\left(t\right)-\text{point1}\left(t\right)\right)/\left|\text{geom2}\left(t\right)-\text{point1}\left(t\right)\right|\mathbf{\,if\,}\text{geom2 = }\left(x,y,z\right)\\
+\left(\text{point0}\left(t\right)-\text{point1}\left(t\right)\right)\cdot\text{normal0}\left(t\right)\mathbf{\,if\,}\text{ geom2 =[point0, normal0]}\\
+\text{constant }\mathbf{direction}=\left(d_{x},d_{y},d_{z}\right)\\
+\text{d1}\left(t\right)-\text{d1}\left(t\right)\cdot\left(d_{x},d_{y},d_{z}\right)\text{if }\mathbf{planar}\text{ is enabled}
+\end{array}\right.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{point2}\left(t\right)=\left\{ \begin{array}{c}
+\text{geom2}\left(t\right)\mathbf{\,if\,}\text{geom2 = }\left(x,y,z\right)\\
+\text{proj}_{\text{geom2}}\left(\text{point1}\right)\mathbf{\,if\,}\text{ geom2 =[point0, normal0]}
+\end{array}\right.
 \]
 
 \end_inset
@@ -1421,8 +1440,10 @@ The
 \end_layout
 
 \begin_layout Subsection*
-sprnum = SPRING (part1, point1, part2, point2, spring | dashpot, direction,
- planar, unload, ylim)
+sprnum = SPRING (part1, point1, part2, geom2, spring | dashpot, direction,
+ planar, unload, ylim) 
+\color red
+(experimental)
 \end_layout
 
 \begin_layout Itemize
@@ -1468,14 +1489,36 @@ part2
 \begin_layout Itemize
 
 \series bold
-point2
+geom2
 \series default
  - tuple 
 \begin_inset Formula $\left(x,y,z\right)$
 \end_inset
 
  defining a second point, either moving with the second particle, or a spatial
- point
+ point; alternatively a list storing a point and a normal [
+\begin_inset Formula $\left(p_{x},p_{y},p_{z}\right)$
+\end_inset
+
+, 
+\begin_inset Formula $\left(n_{x},n_{y},n_{z}\right)$
+\end_inset
+
+] defining a referential plane, moving with the second particle or spatially
+ fixed; when a plane is defined the spring direction and stroke are calculated
+ from a projection of 
+\series bold
+point1
+\series default
+ onto this plane: in this case the input arguments 
+\series bold
+direction
+\series default
+ and 
+\series bold
+planar
+\series default
+ are ignored
 \end_layout
 
 \begin_layout Itemize
