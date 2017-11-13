@@ -1441,7 +1441,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, geom2, spring | dashpot, direction,
- planar, unload, ylim) 
+ planar, unload, ylim, inactive) 
 \color red
 (experimental)
 \end_layout
@@ -1622,6 +1622,21 @@ ylim
  limits is crossed; default: (0, 0)
 \end_layout
 
+\begin_layout Itemize
+
+\series bold
+inactive
+\series default
+ - if 
+\emph on
+True
+\emph default
+ create an inactive spring, that can be activated by the UNSPRING command;
+ default: 
+\emph on
+False
+\end_layout
+
 \begin_layout Standard
 \begin_inset Note Note
 status open
@@ -1650,7 +1665,7 @@ UNSPRING
 
 \begin_layout Subsection*
 UNSPRING (tsprings, msprings, limits | entity, operator, abs, nsteps, nfreq,
- unload)
+ unload, activate)
 \end_layout
 
 \begin_layout Standard
@@ -1854,6 +1869,19 @@ msprings
  decrease total spring forces until zero; the spring force remains zero
  ever after; dashpot force is zero during unloading; default: instantaneous
  unloading to zero total force
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+activate
+\series default
+ - a list of inactive SPRING numbers that will be activated upon complete
+ unloading of all 
+\series bold
+msprings
+\series default
+; default: empty
 \end_layout
 
 \begin_layout Standard

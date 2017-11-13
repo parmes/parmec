@@ -1308,8 +1308,8 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar", "unload", "ylim");
-  PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim;
+  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar", "unload", "ylim", "inactive");
+  PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *inactive;
   int part1, part2;
 
   direction = NULL;
@@ -1317,6 +1317,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   planar = NULL;
   unload = NULL;
   ylim = NULL;
+  inactive = Py_False;
 
   PARSEKEYS ("iOiOO|OOOOO", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim);
 
@@ -1324,7 +1325,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
             (is_tuple (geom2, kwl[3], 3) || is_list_of_tuples (geom2, kwl[3], 2, 3)) &&
 	    is_list (spring, kwl[4], 0) && is_list (dashpot, kwl[4], 0) &&
 	    is_tuple (direction, kwl[5], 3) && is_string (planar, kwl[6]) &&
-	    is_list (unload, kwl[7], 0) && is_tuple (ylim, kwl[8], 2));
+	    is_list (unload, kwl[7], 0) && is_tuple (ylim, kwl[8], 2) && is_bool (inactive, kwl[9]));
 
   if (part2 < -1)
   {
@@ -1471,7 +1472,14 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::sprtype[i] = SPRING_NONLINEAR_ELASTIC;
   }
 
-  parmec::unspring[i] = -3; /* unsued by UNSPRING */
+  if (inactive == Py_True)
+  {
+    parmec::unspring[i] = -1; /* zero force */
+  }
+  else
+  {
+    parmec::unspring[i] = -3; /* unsued by UNSPRING */
+  }
 
   if (PyList_Check (geom2)) /* project point1 onto plane */
   {
@@ -1597,13 +1605,14 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 /* add collective spring undoing condition */
 static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("tsprings", "msprings", "limits", "entity", "operator", "abs", "nsteps", "nfreq", "unload");
-  PyObject *tsprings, *msprings, *limits, *entity, *operat, *abs;
+  KEYWORDS ("tsprings", "msprings", "limits", "entity", "operator", "abs", "nsteps", "nfreq", "unload", "activate");
+  PyObject *tsprings, *msprings, *limits, *entity, *operat, *abs, *activate;
   int nsteps, nfreq, unload;
 
   entity = NULL;
   operat = NULL;
   abs = Py_False;
+  activate = NULL;
   nsteps = 1;
   nfreq = 1;
   unload = -1;
@@ -1612,7 +1621,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   TYPETEST (is_list (tsprings, kwl[0], 0) && is_list (msprings, kwl[1], 0) && is_tuple (limits, kwl[2], 2) &&
             is_string (entity, kwl[3]) && is_string (operat, kwl[4]) && is_bool (abs, kwl[5]) &&
-	    is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]));
+	    is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]) && is_list (activate, kwl[9], 0));
 
   if (unload < -1 || unload >= tmsnum)
   {
@@ -1667,9 +1676,18 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
       PyErr_SetString (PyExc_ValueError, message);
       return NULL;
     }
+    else if (parmec::unspring[j] == -1) /* inactctive SPRING */
+    {
+      char message [1024];
+      snprintf (message, 1024, "in msprings, trying to use an inactive SPRING with index %d", j);
+      PyErr_SetString (PyExc_ValueError, message);
+      return NULL;
+    }
   }
 
-  unspring_buffer_grow (PyList_Size (tsprings), PyList_Size (msprings));
+  int actsize = activate ? PyList_Size (activate) : 0;
+
+  unspring_buffer_grow (PyList_Size (tsprings), PyList_Size (msprings), actsize);
 
   int i = unsprnum ++;
 
@@ -1776,6 +1794,21 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   parmec::nsteps[i] = nsteps;
   parmec::nfreq[i] = nfreq;
   unaction[i] = unload < 0 ? unload : lcurve_from_time_series (unload);
+
+  actidx[i+1] = actidx[i];
+  for (int k = 0; activate && k < PyList_Size (activate); k ++)
+  {
+    int j = PyInt_AsLong(PyList_GetItem(activate, k));
+    if (parmec::unspring[j] != -1) /* test if inactive */
+    {
+      char buff[1024];
+      snprintf (buff, 1024, "in activate list: SPRING %d is already active", j);
+      PyErr_SetString (PyExc_ValueError, buff);
+      return NULL;
+    }
+    parmec::activate[actidx[i+1]] = j;
+    actidx[i+1] ++;
+  }
 
   return PyInt_FromLong (i);
 }

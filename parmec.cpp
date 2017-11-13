@@ -184,9 +184,12 @@ int *unabs; /* absolute value flag */
 int *nsteps; /* number of steps between checks */
 int *nfreq; /* number of nsteps for which tsprings exceed limits before msprings are modified */
 int *unaction; /* unloading action; -1: instantaneous unloading, >=0: use lcurve */
+int *activate; /* spring activation lists */
+int *actidx; /* spring activation index range */
 int unspring_buffer_size; /* size of unspring buffer */
 int tsprings_buffer_size; /* size of tsprings buffer */
 int msprings_buffer_size; /* size of msprings buffer */
+int activate_buffer_size; /* size of activate buffer */
 
 int cnsnum; /* number of constraints */
 int *cnspart; /* constrained particle numbers */
@@ -848,6 +851,7 @@ int unspring_buffer_init ()
   unspring_buffer_size = 256;
   tsprings_buffer_size = 1024;
   msprings_buffer_size = 1024;
+  activate_buffer_size = 1024;
 
   tsprings = aligned_int_alloc (tsprings_buffer_size);
   tspridx = aligned_int_alloc (unspring_buffer_size+1);
@@ -861,14 +865,17 @@ int unspring_buffer_init ()
   nsteps = aligned_int_alloc (tsprings_buffer_size);
   nfreq = aligned_int_alloc (tsprings_buffer_size);
   unaction = aligned_int_alloc (tsprings_buffer_size);
+  activate = aligned_int_alloc (activate_buffer_size);
+  actidx = aligned_int_alloc (unspring_buffer_size+1);
 
   unsprnum = 0;
   tspridx[unsprnum] = 0;
   mspridx[unsprnum] = 0;
+  actidx[unsprnum] = 0;
 }
 
 /* grow unspring buffer */
-void unspring_buffer_grow (int tsprings_increment, int msprings_increment)
+void unspring_buffer_grow (int tsprings_increment, int msprings_increment, int activate_increment)
 {
   if (unsprnum+1 >= unspring_buffer_size)
   {
@@ -884,6 +891,7 @@ void unspring_buffer_grow (int tsprings_increment, int msprings_increment)
     integer_buffer_grow(nsteps, unsprnum, unspring_buffer_size);
     integer_buffer_grow(nfreq, unsprnum, unspring_buffer_size);
     integer_buffer_grow(unaction, unsprnum, unspring_buffer_size);
+    integer_buffer_grow(actidx, unsprnum+1, unspring_buffer_size+1);
   }
 
   if (tsprings_buffer_size < tspridx[unsprnum] + tsprings_increment)
@@ -896,6 +904,12 @@ void unspring_buffer_grow (int tsprings_increment, int msprings_increment)
   {
     msprings_buffer_size = 2 * (mspridx[unsprnum] + msprings_increment);
     integer_buffer_grow(msprings, mspridx[unsprnum], msprings_buffer_size);
+  }
+
+  if (activate_buffer_size < actidx[unsprnum] + activate_increment)
+  {
+    activate_buffer_size = 2 * (actidx[unsprnum] + activate_increment);
+    integer_buffer_grow(activate, actidx[unsprnum], activate_buffer_size);
   }
 }
 
@@ -1912,7 +1926,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
             sprnum, sprtype, unspring, sprmap, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload,
 	    unidx, yield, sprdir, sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, gravity, force, torque,
 	    kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0), unsprnum, tsprings, tspridx,
-	    msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, stepnum);
+	    msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx, stepnum);
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 

@@ -1301,7 +1301,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 /* unspring tests task */
 task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform int unspring[], uniform int sprmap[],
   uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2],
-  uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[], uniform int nfreq[], uniform int unaction[], uniform int stepnum)
+  uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[], uniform int nfreq[], uniform int unaction[], uniform int activate[],
+  uniform int actidx[], uniform int stepnum)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? unsprnum: start+span;
@@ -1358,6 +1359,11 @@ task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uni
 	{
 	  unspring[sprmap[msprings[j]]] = unaction[i];
 	}
+
+        for (uniform int j = actidx[i]; j < actidx[i+1]; j ++)
+	{
+	  unspring[sprmap[activate[j]]] = -3; /* no longer in use by UNSPRING */
+	}
       }
     }
   }
@@ -1379,7 +1385,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
   uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[],
   uniform REAL * uniform unlim[2], uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[],
-  uniform int nfreq[], uniform int unaction[], uniform int stepnum)
+  uniform int nfreq[], uniform int unaction[], uniform int activate[], uniform int actidx[], uniform int stepnum)
 
 {
   launch [ntasks] zero_force_torque_kmax (parnum/ntasks, parnum, force, torque, kmax, emax);
@@ -1424,7 +1430,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   if (unsprnum)
   {
     launch [ntasks] unspring_task (unsprnum/ntasks, stroke, sprfrc, unspring, sprmap, unsprnum, tsprings, tspridx,
-                                  msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, stepnum);
+                 msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx, stepnum);
     sync;
   }
 }

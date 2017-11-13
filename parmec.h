@@ -171,10 +171,13 @@ extern int *unabs; /* absolute value flag */
 extern int *nsteps; /* number of steps between checks */
 extern int *nfreq; /* number of nsteps for which tsprings exceed limits before msprings are modified */
 extern int *unaction; /* unloading action; -1: instantaneous unloading, >=0: use uncurve */
+extern int *activate; /* spring activation lists */
+extern int *actidx; /* spring activation index range */
 extern int unspring_buffer_size; /* size of unspring buffer */
 extern int tsprings_buffer_size; /* size of tsprings buffer */
 extern int msprings_buffer_size; /* size of msprings buffer */
-extern void unspring_buffer_grow (int tsprings_increment, int msprings_increment); /* grow buffer */
+extern int activate_buffer_size; /* size of activate buffer */
+extern void unspring_buffer_grow (int tsprings_increment, int msprings_increment, int activate_increment); /* grow buffer */
 
 extern int cnsnum; /* number of constraints */
 extern int *cnspart; /* constrained particle numbers */
