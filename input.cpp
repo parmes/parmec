@@ -313,6 +313,70 @@ static int is_list_of_tuples (PyObject *obj, const char *var, int min_length, in
   return 1;
 }
 
+/* tuple or list of tuples check */
+static int is_tuple_or_list_of_tuples (PyObject *obj, const char *var, int tuple_length, int min_length)
+{
+  if (obj)
+  {
+    if (PyTuple_Check (obj))
+    {
+      if (tuple_length > 0 && PyTuple_Size (obj) != tuple_length)
+      {
+	char buf [BUFLEN];
+	snprintf (buf, BUFLEN, "tuple '%s' must have %d elements", var, tuple_length);
+	PyErr_SetString (PyExc_ValueError, buf);
+	return 0;
+      }
+    }
+    else if (PyList_Check (obj))
+    {
+      int i, j, n = PyList_Size (obj);
+
+      if (n < min_length)
+      {
+	char buf [BUFLEN];
+	sprintf (buf, "list '%s' must have at least %d items", var, min_length);
+	PyErr_SetString (PyExc_TypeError, buf);
+	return 0;
+      }
+
+      for (i = 0; i < n; i ++)
+      {
+	PyObject *item = PyList_GetItem (obj, i);
+
+	if (!PyTuple_Check (item))
+	{
+	  char buf [BUFLEN];
+	  sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
+	  PyErr_SetString (PyExc_ValueError, buf);
+	  return 0;
+	}
+
+	j = PyTuple_Size (item);
+
+	if (j != tuple_length)
+	{
+	  char buf [BUFLEN];
+	  sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
+	  PyErr_SetString (PyExc_ValueError, buf);
+	  return 0;
+	}
+      }
+
+      return n;
+    }
+    else
+    {
+      char buf [BUFLEN];
+      snprintf (buf, BUFLEN, "'%s' must be a tuple or a list of tuples", var);
+      PyErr_SetString (PyExc_TypeError, buf);
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 /* list made of one integer folowed by tuples => returns length of the list or zero */
 static int is_integer_and_tuples (PyObject *obj, const char *var, int tuple_length)
 {
@@ -1319,13 +1383,13 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   ylim = NULL;
   inactive = Py_False;
 
-  PARSEKEYS ("iOiOO|OOOOO", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim);
+  PARSEKEYS ("iOiOO|OOOOOO", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim, &inactive);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
-            (is_tuple (geom2, kwl[3], 3) || is_list_of_tuples (geom2, kwl[3], 2, 3)) &&
-	    is_list (spring, kwl[4], 0) && is_list (dashpot, kwl[4], 0) &&
-	    is_tuple (direction, kwl[5], 3) && is_string (planar, kwl[6]) &&
-	    is_list (unload, kwl[7], 0) && is_tuple (ylim, kwl[8], 2) && is_bool (inactive, kwl[9]));
+            is_tuple_or_list_of_tuples (geom2, kwl[3], 3, 2) &&
+	    is_list (spring, kwl[4], 0) && is_list (dashpot, kwl[5], 0) &&
+	    is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
+	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]));
 
   if (part2 < -1)
   {
@@ -1491,7 +1555,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
     REAL nor[3] = {sprdir[0][i], sprdir[1][i], sprdir[2][i]};
 
-    stroke0[i] = DOT (dif, nor);
+    stroke0[i] = 0.0; /* point-to-plane contact type spring - no initial stroke in this case */
   }
   else
   {
@@ -1617,7 +1681,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   nfreq = 1;
   unload = -1;
 
-  PARSEKEYS ("OOO|OOOiiO", &tsprings, &msprings, &limits, &entity, &operat, &abs, &nsteps, &nfreq, &unload);
+  PARSEKEYS ("OOO|OOOiiOO", &tsprings, &msprings, &limits, &entity, &operat, &abs, &nsteps, &nfreq, &unload, &activate);
 
   TYPETEST (is_list (tsprings, kwl[0], 0) && is_list (msprings, kwl[1], 0) && is_tuple (limits, kwl[2], 2) &&
             is_string (entity, kwl[3]) && is_string (operat, kwl[4]) && is_bool (abs, kwl[5]) &&

@@ -406,7 +406,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 /* look up table based linear spline interpolation */
 static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform slope)
 {
-  while (hi > lo+1)
+  while (hi > lo+2)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[0][mid]) lo = mid;

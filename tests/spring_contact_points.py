@@ -45,7 +45,7 @@ try:
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
   plt.ylabel ('z(center) $(m)$')
-  plt.savefig ('tests/spring_contact_z.png')
+  plt.savefig ('tests/spring_contact_points_z.png')
 
 except:
   print 't = ', t
