@@ -2662,7 +2662,16 @@ entity
  (linear velocity) 'VX', 'VY', 'VZ', '|V|', (angular velocity) 'OX', 'OY',
  'OZ', '|O|', (body force) 'FX', 'FY', 'FZ', '|F|', (body torque) 'TX',
  'TY', 'TZ', '|T|'; spring entities: (spring length) 'LENGTH', (spring stroke)
- 'STROKE', (spring total force) 'STF', (spring force without damping) 'SF';
+ 'STROKE', (spring total force) 'STF', (spring force without damping) 'SF',
+ (spring state) 'SS', cf.
+ Sec 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+ for description;
 \end_layout
 
 \begin_layout Itemize
@@ -2729,7 +2738,7 @@ h5file
 entity
 \series default
 , cf.
- 
+ Sec 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "subsec:OUTPUT"
@@ -3001,6 +3010,24 @@ entities
 \begin_layout Itemize
 'SF' - scalar field of spring force magnitude, without dashpot contribution
  (modes: 'CD', 'SD')
+\end_layout
+
+\begin_layout Itemize
+'SS' - scalar field of spring states, where -3.0 denotes a regular spring
+ (always active), -2.0 denotes an active spring, -1.0 denotes a deactivated
+ spring (zero force), and values 
+\begin_inset Formula $\ge0$
+\end_inset
+
+ denote a spring currently being unloaded (the number itself denotes TSERIES,
+ Sec 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:TSERIES"
+
+\end_inset
+
+, used as an unloading curve) (modes: 'SD')
 \end_layout
 
 \begin_layout Itemize

@@ -42,6 +42,8 @@ GRAVITY (0., 0., -10.)
 
 t = HISTORY ('TIME')
 z = HISTORY ('PZ', parnum)
+ss16 = HISTORY ('SS', 16)
+ss18 = HISTORY ('SS', 18)
 
 h = 0.05 * CRITICAL()
 
@@ -59,8 +61,19 @@ try:
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
   plt.ylabel ('z(center) $(m)$')
-  plt.savefig ('tests/unspring.png')
+  plt.savefig ('tests/unspring_z.png')
+
+  plt.clf ()
+  plt.plot (t, ss16, label='ss16')
+  plt.plot (t, ss18, label='ss18')
+  plt.xlim ((0, t[-1]))
+  plt.legend ('bottom right')
+  plt.xlabel ('time $(s)$')
+  plt.ylabel ('spring state')
+  plt.savefig ('tests/unspring_ss.png')
 
 except:
   print 't = ', t
   print 'z = ', z
+  print 'ss16 =', ss16
+  print 'ss18 =', ss18

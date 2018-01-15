@@ -2658,6 +2658,11 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     hisent = HIS_SF;
     srckind = 1;
   }
+  ELIF (entity, "SS")
+  {
+    hisent = HIS_SS;
+    srckind = 1;
+  }
   ELSE
   {
     PyErr_SetString (PyExc_ValueError, "Invalid entity");
@@ -3051,6 +3056,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       if (subset) outent[i] |= OUT_SF;
       else outrest[0] |= OUT_SF;
+    }
+    ELIF (item, "SS")
+    {
+      if (subset) outent[i] |= OUT_SS;
+      else outrest[0] |= OUT_SS;
     }
     ELIF (item, "AREA")
     {

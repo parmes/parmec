@@ -922,7 +922,7 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
 	<< 0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]) << "\n";
   }
 
-  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR))
+  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR|OUT_SS))
   {
     out << "POINT_DATA " << num << "\n";
   }
@@ -994,6 +994,17 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     {
       j = set[i];
       out << sprfrc[1][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_SS)
+  {
+    out << "SCALARS SS float\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << (float)unspring[j] << "\n";
     }
   }
 }
@@ -1093,6 +1104,18 @@ static void h5_spring_dataset (int num, int *set, int ent, hid_t h5_step)
 
     hsize_t length = num;
     ASSERT (H5LTmake_dataset_double (h5_step, "SF", 1, &length, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_SS)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      data[i] = unspring[j];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_double (h5_step, "SS", 1, &length, data) >= 0, "HDF5 file write error");
   }
 
   delete [] data;
@@ -1372,6 +1395,15 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "<Attribute Name=\"SF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
       fprintf (xmf_file, "%s:/%d/SF\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_SS)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"SS\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/SS\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }
@@ -2117,6 +2149,12 @@ void output_history ()
 	    value += sprfrc[1][l];
 	  }
 	  break;
+	  case HIS_SS:
+	  {
+	    int l = sprmap[k];
+	    value += (REAL)unspring[l];
+	  }
+	  break;
 	  }
 	}
 
@@ -2242,6 +2280,7 @@ void output_h5history ()
       double *F = h5read (h5_step, "F", &NUM);
       double *LENGTH = h5read (h5_step, "LENGTH", &NUM);
       double *SF = h5read (h5_step, "SF", &NUM);
+      double *SS = h5read (h5_step, "SS", &NUM);
 
       for (MAP *item = MAP_First (ent2data); item; item = MAP_Next (item))
       {
@@ -2578,6 +2617,13 @@ void output_h5history ()
 		value += SF[l];
 	      }
 	      break;
+	      case HIS_SS:
+	      {
+		int l = sprmap[k];
+	        ASSERT (SS, "HDF5 file read error: SS dataset missing");
+		value += SS[l];
+	      }
+	      break;
 	      }
 	    }
 
@@ -2610,6 +2656,7 @@ void output_h5history ()
       free (F);
       free (LENGTH);
       free (SF);
+      free (SS);
       H5Gclose (h5_step);
     }
 
