@@ -1877,6 +1877,87 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   return PyInt_FromLong (i);
 }
 
+/* Calculate equivalent point mass from particle inertia and mass properties */
+static PyObject* EQM (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("part1", "point1", "part2", "point2", "direction");
+  PyObject *point1, *point2, *direction;
+  int part1, part2;
+
+  part2 = -1;
+  point2 = NULL;
+  direction = NULL;
+
+  PARSEKEYS ("iO|iOO", &part1, &point1, &part2, &point2, &direction);
+
+  TYPETEST (is_ge_lt (part1, 0, parnum, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
+            is_tuple (point2, kwl[3], 3) && is_tuple (direction, kwl[4], 3));
+
+  REAL J[9], invm, A[3], Jiv[9], det, Ask[9], Miv[9], mass;
+
+  J[0] = parmec::inertia[0][part1];
+  J[1] = parmec::inertia[1][part1];
+  J[2] = parmec::inertia[2][part1];
+  J[3] = parmec::inertia[3][part1];
+  J[4] = parmec::inertia[4][part1];
+  J[5] = parmec::inertia[5][part1];
+  J[6] = parmec::inertia[6][part1];
+  J[7] = parmec::inertia[7][part1];
+  J[8] = parmec::inertia[8][part1];
+  invm = 1.0/parmec::mass[part1];
+  A[0] = parmec::position[3][part1] - PyFloat_AsDouble(PyTuple_GetItem (point1, 0));
+  A[1] = parmec::position[4][part1] - PyFloat_AsDouble(PyTuple_GetItem (point1, 1));
+  A[2] = parmec::position[5][part1] - PyFloat_AsDouble(PyTuple_GetItem (point1, 2));
+  VECSKEW (A, Ask);
+  INVERT (J, Jiv, det);
+  TNMUL(Ask, Jiv, J);
+  NNMUL (J, Ask, Miv);
+  Miv[0] += invm;
+  Miv[4] += invm;
+  Miv[8] += invm;
+
+  if (part2 >= 0)
+  {
+    TYPETEST (is_ge_lt (part2, 0, parnum, kwl[2]));
+
+    REAL tmp[9];
+
+    J[0] = parmec::inertia[0][part2];
+    J[1] = parmec::inertia[1][part2];
+    J[2] = parmec::inertia[2][part2];
+    J[3] = parmec::inertia[3][part2];
+    J[4] = parmec::inertia[4][part2];
+    J[5] = parmec::inertia[5][part2];
+    J[6] = parmec::inertia[6][part2];
+    J[7] = parmec::inertia[7][part2];
+    J[8] = parmec::inertia[8][part2];
+    invm = 1.0/parmec::mass[part2];
+    A[0] = parmec::position[3][part2] - PyFloat_AsDouble(PyTuple_GetItem (point2, 0));
+    A[1] = parmec::position[4][part2] - PyFloat_AsDouble(PyTuple_GetItem (point2, 1));
+    A[2] = parmec::position[5][part2] - PyFloat_AsDouble(PyTuple_GetItem (point2, 2));
+    VECSKEW (A, Ask);
+    INVERT (J, Jiv, det);
+    TNMUL(Ask, Jiv, J);
+    NNMUL (J, Ask, tmp);
+    tmp[0] += invm;
+    tmp[4] += invm;
+    tmp[8] += invm;
+    NNADD (Miv, tmp, Miv);
+  }
+
+  if (direction)
+  {
+    A[0] = PyFloat_AsDouble(PyTuple_GetItem (direction, 0));
+    A[1] = PyFloat_AsDouble(PyTuple_GetItem (direction, 1));
+    A[2] = PyFloat_AsDouble(PyTuple_GetItem (direction, 2));
+    NVMUL (Miv, A, J);
+    mass = 1.0/DOT(J, A);
+  }
+  else mass = 1.0/extremum_eigenvalue (Miv, 1);
+
+  return PyFloat_FromDouble (mass);
+}
+
 /* define surface pairing for the granular interaction model */
 static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3273,6 +3354,7 @@ static PyMethodDef methods [] =
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"UNSPRING", (PyCFunction)::UNSPRING, METH_VARARGS|METH_KEYWORDS, "Undo translational springs"},
+  {"EQM", (PyCFunction)EQM, METH_VARARGS|METH_KEYWORDS, "Calculate equivalent point mass"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"RESTRAIN", (PyCFunction)RESTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
   {"PRESCRIBE", (PyCFunction)PRESCRIBE, METH_VARARGS|METH_KEYWORDS, "Prescribe particle motion"},
@@ -3323,6 +3405,7 @@ int input (const char *path)
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
                       "from parmec import UNSPRING\n"
+                      "from parmec import EQM\n"
                       "from parmec import GRANULAR\n"
                       "from parmec import RESTRAIN\n"
                       "from parmec import PRESCRIBE\n"

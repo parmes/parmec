@@ -1978,11 +1978,107 @@ nsteps
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "sec:EQM"
+
+\end_inset
+
+EQM 
+\color red
+(experimental)
+\end_layout
+
+\begin_layout Standard
+Calculate equivalent point mass from particle inertia and mass properties.
+ Two particles can be passed for relative motion mass.
+ This subroutine can be used to calculate linear stiffness and damping propertie
+s for spring based constraints, e.g.
+ 
+\begin_inset Formula $\text{stiffness}=\text{acceleration}\cdot\text{EQM}/\text{leeway}$
+\end_inset
+
+ and 
+\begin_inset Formula $\text{damper}=\text{damping ratio}\cdot2\cdot\sqrt{\text{mass}\cdot\text{stiffness}}$
+\end_inset
+
+ can be used to define spring and dashpot curves as 
+\begin_inset Formula $\left[-1,-\text{spring},1,\text{spring}\right]$
+\end_inset
+
+ and 
+\begin_inset Formula $\left[-1,-\text{damper},1,\text{damper}\right]$
+\end_inset
+
+ respectively, with the critical time step equal to 
+\begin_inset Formula $\left(2/\sqrt{\text{stiffness}\cdot\text{mass}}\right)\cdot\left(\sqrt{1+\text{damper}^{2}}-\text{damper}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+mass = EQM (part1, point1 | part2, point2, direction) 
+\color red
+(experimental)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+mass
+\series default
+ - equivalent point mass
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+part1
+\series default
+ - particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point1
+\series default
+ - point coordinates
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+part2
+\series default
+ - optional second particle number; default: not specified
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point2
+\series default
+ - optional second particle point coordinates; default: not specified
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+direction
+\series default
+ - optional direction of motion; default: not specified
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "subsec:GRANULAR"
 
 \end_inset
 
 GRANULAR
+\color red
+(under development)
 \end_layout
 
 \begin_layout Standard

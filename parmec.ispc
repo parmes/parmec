@@ -138,6 +138,9 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
   }
   delete spp;
 
+  /* TODO: include spring inertia and points and calculate projected
+           point masses and more accurate critical steps per spring */
+
   for (j = 0; j < sprnum; j ++) /* spring constraints */
   {
     uniform REAL kspr = 0.0;
@@ -247,57 +250,6 @@ task void euler_task (uniform int span, uniform int parnum, uniform REAL * unifo
     position[0][i] += step * linear[0][i];
     position[1][i] += step * linear[0][i];
     position[2][i] += step * linear[0][i];
-  }
-}
-
-/* Given a real symmetric 3x3 matrix A, compute the extremum eigenvalue;
- * Adopted from: https://en.wikipedia.org/wiki/Eigenvalue_algorithm */
-inline static REAL extremum_eigenvalue (REAL A[9], uniform int minimum = 0)
-{
-  REAL eig1, eig2, eig3, ret;
-
-  REAL p1 = A[3]*A[3] + A[6]*A[6] + A[7]*A[7];
-
-  if (p1 == 0.0) /* A is diagonal */
-  {
-    eig1 = A[0];
-    eig2 = A[4];
-    eig3 = A[8];
-
-    ret = max(eig1, eig2);
-    ret = max(ret, eig3);
-    return ret;
-  }
-  else
-  {
-    REAL q = (A[0]+A[4]+A[8])/3.0;
-    REAL p2 = (A[0]-q)*(A[0]-q) + (A[4]-q)*(A[4]-q) + (A[8]-q)*(A[8]-q) + 2*p1;
-    REAL p = sqrt(p2 / 6.0);
-    REAL invp = 1.0 / p;
-    REAL B[9] = {invp*(A[0]-q), invp*A[1], invp*A[2],
-                 invp*A[3], invp*(A[4]-q), invp*A[5],
-		 invp*A[6], invp*A[7], invp*(A[8]-q)}; /* (1.0 / p) * (A - q * I), where I is the identity matrix */
-    REAL r = 0.5 * DET(B);
-
-    /* In exact arithmetic for a symmetric matrix  -1 <= r <= 1
-     * but computation error can leave it slightly outside this range */
-    REAL phi;
-    if (r <= -1.0) phi = ALG_PI / 3.0;
-    else if (r >= 1.0) phi = 0.0;
-    else phi = acos(r) / 3.0;
-
-    /* the eigenvalues satisfy eig3 <= eig2 <= eig1 */
-    if (minimum)
-    {
-     eig3 = q + 2.0 * p * cos(phi + (2*ALG_PI/3));
-     return eig3;
-    }
-    else
-    {
-      eig1 = q + 2.0 * p * cos(phi);
-      return eig1;
-    }
-    /* we skip calculation of eig2: eig2 = 3 * q - eig1 - eig3; since trace(A) = eig1 + eig2 + eig3 */
   }
 }
 
