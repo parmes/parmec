@@ -49,15 +49,12 @@ int main (int argc, char *argv[])
       ntasks = atoi (argv[2]);
     }
 
-    parmec::argv = argv;
-    parmec::argc = argc;
-
     for (int i = 1; i < argc; i ++)
     {
       int len = strlen(argv[i]);
       if (len > 3 && strcmp(argv[i]+len-3, ".py") == 0)
       {
-        input (argv[i]);
+        input (argv[i], argv, argc);
 	break;
       }
     }

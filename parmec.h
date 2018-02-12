@@ -262,7 +262,7 @@ void init (); /* init memory */
 
 void reset (); /* reset all simulation data */
 
-int input (const char *path); /* interpret an input file (return 0 on success) */
+int input (const char *path, char **argv, int argc); /* interpret an input file (return 0 on success) */
 
 /* run DEM simulation (return timed duration) */
 REAL dem (REAL duration, /* simulation duration */

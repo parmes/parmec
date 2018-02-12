@@ -3372,10 +3372,13 @@ namespace parmec
 { /* namespace */
 
 /* interpret an input file (return 0 on success) */
-int input (const char *path)
+int input (const char *path, char **argv, int argc)
 {
   int error, len;
   char *line;
+
+  parmec::argv = argv;
+  parmec::argc = argc;
 
   len = strlen (path);
   ERRMEM (output_path = new char [len+1]);
