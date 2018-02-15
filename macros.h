@@ -22,7 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef ISPC
 #include <math.h>
+#endif
 
 #ifndef __macros__
 #define __macros__
