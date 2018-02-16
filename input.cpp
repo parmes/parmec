@@ -1472,6 +1472,20 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     sprdir[3][i] = dir[0];
     sprdir[4][i] = dir[1];
     sprdir[5][i] = dir[2];
+
+    REAL p[3] = {sprpnt[0][0][i], sprpnt[0][1][i], sprpnt[0][2][i]};
+    REAL q[3] = {sprpnt[1][0][i], sprpnt[1][1][i], sprpnt[1][2][i]};
+    REAL w[3], len;
+    SUB (p, q, w);
+    len = DOT (dir, w);
+    SUBMUL (p, len, dir, q); /* q = projection of p onto the spring plane */
+
+    sprpnt[1][0][i] = q[0];
+    sprpnt[1][1][i] = q[1];
+    sprpnt[1][2][i] = q[2];
+    sprpnt[1][3][i] = q[0];
+    sprpnt[1][4][i] = q[1];
+    sprpnt[1][5][i] = q[2];
   }
 
   sprflg[i] = 0;
