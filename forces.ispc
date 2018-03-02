@@ -406,7 +406,7 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 /* look up table based linear spline interpolation */
 static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform slope)
 {
-  while (hi > lo+2)
+  while (hi > lo+1)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[0][mid]) lo = mid;
@@ -421,7 +421,7 @@ static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int l
 /* look up table based linear spline slope based on (x,y)-search (i == 0 -> x; i == 1 -> y) */
 static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform at)
 {
-  while (hi > lo+2)
+  while (hi > lo+1)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[i][mid]) lo = mid;
@@ -897,6 +897,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       sprdir[1][i] = z[1];
       sprdir[2][i] = z[2];
       break;
+
     case SPRDIR_PROJECT:
 
       SUB (p, q, w);
