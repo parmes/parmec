@@ -2083,6 +2083,8 @@ GRANULAR
 
 \begin_layout Standard
 Define surface pairing for the granular contact interaction model.
+ Default parameters, for unspecified pairings, are: spring = 0.0, damper
+ = 1.0, friction = (0.0, 0.0), rolling = 0.0, drilling = 0.0, and kskn = 0.5.
 \end_layout
 
 \begin_layout Subsection*
@@ -2096,7 +2098,7 @@ GRANULAR (color1, color2, spring | damper, friction, rolling, drilling,
 color1
 \series default
  - first color (positive, or color1 = 0 and color2 = 0 to redefine default
- parameters)
+ parameters for unspecified pairings)
 \end_layout
 
 \begin_layout Itemize
@@ -2105,7 +2107,7 @@ color1
 color2
 \series default
  - second color (positive, or color1 = 0 and color2 = 0 to redefine default
- parameters)
+ parameters for unspecified pairings)
 \end_layout
 
 \begin_layout Itemize

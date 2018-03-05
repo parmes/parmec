@@ -344,7 +344,7 @@ void pair_reset ()
   pairs[0] = 0;
   pairs[1] = 0;
   ikind[0] = GRANULAR_FORCE;
-  iparam[SPRING][0] = 1E6;
+  iparam[SPRING][0] = 0.0;
   iparam[DAMPER][0] = 1.0;
   iparam[FRISTAT][0] = 0.0;
   iparam[FRIDYN][0] = 0.0;
