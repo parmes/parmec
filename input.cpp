@@ -609,9 +609,13 @@ static PyObject* ARGV (PyObject *self, PyObject *args, PyObject *kwds)
 /* reset simulation */
 static PyObject* RESET (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  master_free (master, parnum);
+  ispc::master_free (master, parnum);
 
-  slave_free (slave, parnum);
+  ispc::slave_free (slave, parnum);
+
+  master = ispc::master_alloc (NULL, 0, particle_buffer_size);
+
+  slave = ispc::slave_alloc (NULL, 0, particle_buffer_size);
 
   reset ();
 
@@ -2603,13 +2607,10 @@ static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
-/* ISPC calls are used below */
-using namespace ispc;
-
 /* estimate critical time step */
 static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  REAL h = critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
+  REAL h = ispc::critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
 
   return PyFloat_FromDouble (h);
 }
