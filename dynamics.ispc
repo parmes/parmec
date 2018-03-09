@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include "constants.h"
 #include "macros.h"
 #include "condet.h"
 
@@ -32,7 +33,7 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
   uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform REAL step0, uniform REAL step1)
+  uniform int flags[], uniform REAL step0, uniform REAL step1)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
@@ -42,6 +43,8 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
   foreach (i = start ... end) /* time integration */
   {
     REAL O[3], o[3], v[3], L1[9], J[9], I[9], ma, im, f[3], t[3], T[3], DL[9], L2[9], A[3], B[3];
+
+    if (flags[i] & SKIP) continue;
 
     O[0] = angular[0][i];
     O[1] = angular[1][i];
@@ -172,10 +175,10 @@ export void dynamics (uniform int ntasks, uniform master_conpnt master[], unifor
   uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
   uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform REAL step0, uniform REAL step1)
+  uniform int flags[], uniform REAL step0, uniform REAL step1)
 {
-  launch [ntasks] dynamics_task (parnum/ntasks, master, slave, parnum, angular, linear,
-          rotation, position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
+  launch [ntasks] dynamics_task (parnum/ntasks, master, slave, parnum, angular, linear, rotation,
+    position, inertia, inverse, mass, invm, damping, force, torque, flags, step0, step1);
 
   sync;
 }

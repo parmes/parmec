@@ -1944,8 +1944,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
       step1 = step0;
     }
 
-    dynamics (ntasks, master, slave, parnum, angular, linear, rotation,
-              position, inertia, inverse, mass, invm, damping, force, torque, step0, step1);
+    dynamics (ntasks, master, slave, parnum, angular, linear, rotation, position,
+      inertia, inverse, mass, invm, damping, force, torque, flags, step0, step1);
 
     prescribe_velocity (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
                         tmsang, angkind, curtime, rotation, linear, angular);

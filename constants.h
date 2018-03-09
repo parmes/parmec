@@ -36,7 +36,7 @@ enum {GRANULAR_FORCE, USER_FORCE}; /* interaction force kind */
 
 enum {SPRING = 0, DAMPER, FRISTAT, FRIDYN, FRIROL, FRIDRIL, KSKN, NIPARAM}; /* surface material constants */
 
-enum {ANALYTICAL = 1, OUTREST = 2}; /* particle flags */
+enum {ANALYTICAL = 1, OUTREST = 2, SKIP = 4}; /* particle flags */
 
 enum {HIS_LIST = 1, HIS_SPHERE = 2, HIS_BOX = 4, HIS_POINT = 8}; /* history kind flags */
 
