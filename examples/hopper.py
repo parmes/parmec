@@ -18,7 +18,7 @@ da = 1.0
 mu = 0.0
 
 # duration and time step ratio
-stop = 0.1 #1.0
+stop = 1.0
 ratio = 0.2
 
 # define material
