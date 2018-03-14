@@ -1724,15 +1724,15 @@ static void prescribe_body_forces (MAP *prescribed_body_forces, REAL *force[3], 
   {
     struct prescribed_body_force *p = (struct prescribed_body_force*) item->data;
 
-    p->inner_force[0] += force[0][p->particle];
-    p->inner_force[1] += force[1][p->particle];
-    p->inner_force[2] += force[2][p->particle];
+    p->inner_force[0] = force[0][p->particle]; /* export forces --> overwrite with the latest value */
+    p->inner_force[1] = force[1][p->particle];
+    p->inner_force[2] = force[2][p->particle];
 
-    p->inner_torque[0] += torque[0][p->particle];
-    p->inner_torque[1] += torque[1][p->particle];
-    p->inner_torque[2] += torque[2][p->particle];
+    p->inner_torque[0] = torque[0][p->particle];
+    p->inner_torque[1] = torque[1][p->particle];
+    p->inner_torque[2] = torque[2][p->particle];
 
-    force[0][p->particle] += p->outer_force[0];
+    force[0][p->particle] += p->outer_force[0]; /* import forces --> add up as force/torque vectors are zeroed at every time step */
     force[1][p->particle] += p->outer_force[1];
     force[2][p->particle] += p->outer_force[2];
 
