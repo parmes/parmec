@@ -28,7 +28,17 @@
 \index_command default
 \paperfontsize default
 \spacing single
-\use_hyperref false
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\pdf_quoted_options "urlcolor=blue, linkcolor=black"
 \papersize a4paper
 \use_geometry true
 \use_package amsmath 1
@@ -2924,7 +2934,11 @@ and elliptical
 \series bold
 and/or
 \series default
- (*0.h5, *0.xmf) files for obstacles and mesh based particles 
+ (*0.h5, *0.xmf) 
+\series bold
+and/or
+\series default
+ (*0.med) files for obstacles and mesh based particles 
 \series bold
 not
 \series default
@@ -2941,8 +2955,12 @@ a subset
 \series bold
 and/or
 \series default
- (*1.h5, *1.xmf, *2.h5, *2.xmf, ...) files for mesh based particles specified as
- subsets, where numbers 1, 2, ...
+ (*1.h5, *1.xmf, *2.h5, *2.xmf, ...) 
+\series bold
+and/or
+\series default
+ (*1.med, *2.med...) files for mesh based particles specified as subsets, where
+ numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -2951,7 +2969,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0rb.h5, *0rb.xmf) for rigid body data of particles 
+ (*0rb.h5, *0rb.xmf) 
+\series bold
+and/or
+\series default
+ (*0rb.med) for rigid body data of particles 
 \series bold
 not
 \series default
@@ -2968,8 +2990,12 @@ a subset
 \series bold
 and/or
 \series default
- (*1rb.h5, *1rb.xmf, *2rb.h5, *2rb.xmf, ...) files for rigid body data of particles
- specified as subsets, where numbers 1, 2, ...
+ (*1rb.h5, *1rb.xmf, *2rb.h5, *2rb.xmf, ...) 
+\series bold
+and/or
+\series default
+ (*1rb.med, *2rb.med, ...) files for rigid body data of particles specified as
+ subsets, where numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -2978,7 +3004,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0cd.h5, *0cd.xmf) for contact data including particles 
+ (*0cd.h5, *0cd.xmf) 
+\series bold
+and/or
+\series default
+ (*0cd.med) for contact data including particles 
 \series bold
 not
 \series default
@@ -2995,8 +3025,12 @@ a subset
 \series bold
 and/or
 \series default
- (*1cd.h5, *1cd.xmf, *2cd.h5, *2cd.xmf, ...) files for contact data including particles
- specified as subsets, where numbers 1, 2, ...
+ (*1cd.h5, *1cd.xmf, *2cd.h5, *2cd.xmf, ...) 
+\series bold
+and/or
+\series default
+ (*1cd.med, *2cd.med, ...) files for contact data including particles specified
+ as subsets, where numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3005,7 +3039,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0sd.h5, *0sd.xmf) for spring data including particles 
+ (*0sd.h5, *0sd.xmf) 
+\series bold
+and/or
+\series default
+ (*0sd.med) for spring data including particles 
 \series bold
 not
 \series default
@@ -3022,13 +3060,17 @@ a subset
 \series bold
 and/or
 \series default
- (*1sd.h5, *1sd.xmf, *2sd.h5, *2sd.xmf, ...) files for spring data including particles
- specified as subsets, where numbers 1, 2, ...
+ (*1sd.h5, *1sd.xmf, *2sd.h5, *2sd.xmf, ...) 
+\series bold
+and/or
+\series default
+ (*1sd.med, *2sd.med, ...) files for spring data including particles specified
+ as subsets, where numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
 \begin_layout Subsection*
-OUTPUT (entities | subset, mode, format)
+OUTPUT ( | entities, subset, mode, format)
 \end_layout
 
 \begin_layout Itemize
@@ -3180,8 +3222,12 @@ and ellipsoid
 format
 \series default
  - optional output format, e.g.
- 'VTK' or 'XDMF', or list ['VTK', 'XDMF'], where 'VTK' is the text based
- legacy 
+ 'VTK' or 'XDMF' or 'MED' 
+\color red
+(under development)
+\color inherit
+, or a list, e.g.
+ ['VTK', 'XDMF', 'MED'], where 'VTK' is the text based legacy 
 \begin_inset CommandInset href
 LatexCommand href
 name "VTK format"
@@ -3197,6 +3243,18 @@ target "http://www.xdmf.org/index.php/XDMF_Model_and_Format"
 
 \end_inset
 
+, and 'MED' is the binary 
+\begin_inset CommandInset href
+LatexCommand href
+name "MED format"
+target "http://www.salome-platform.org/user-section/about/med"
+
+\end_inset
+
+ 
+\color red
+(under development)
+\color inherit
 ; default: 'XDMF'
 \end_layout
 

@@ -18,6 +18,12 @@ else
   endif
 endif
 
+ifdef MEDINC
+  MEDFLG=-DMED
+else
+  MEDFLG=
+endif
+
 ISPC_OBJS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
 ISPC_OBJS8=$(addprefix objs8/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
 ISPC_HEADERS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.h))
@@ -26,7 +32,7 @@ CPP_OBJS4=$(addprefix objs4/, $(CPP_SRC:.cpp=.o))
 CPP_OBJS8=$(addprefix objs8/, $(CPP_SRC:.cpp=.o))
 C_OBJS4=$(addprefix objs4/, $(C_SRC:.c=.o))
 C_OBJS8=$(addprefix objs8/, $(C_SRC:.c=.o))
-LIBS=-lm $(PYTHONLIB) $(HDF5LIB)
+LIBS=-lm $(PYTHONLIB) $(HDF5LIB) $(MEDLIB)
 
 default: dirs $(ISPC_HEADERS4) $(ISPC_HEADERS8) $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) $(LIB)4.a $(LIB)8.a $(EXE)4 $(EXE)8 headers
 
@@ -80,16 +86,16 @@ $(EXE)8: objs8/main.o $(CPP_OBJS8) $(C_OBJS8) $(ISPC_OBJS8)
 	$(CXX) $(CFLAGS) -fopenmp -o $@ $^ $(LIBS)
 
 objs4/input.o: input.cpp
-	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $< -c -o $@
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $(MEDFLG) $< -c -o $@
 
 objs8/input.o: input.cpp
-	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $< -c -o $@
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(MEDFLG) $< -c -o $@
 
 objs4/output.o: output.cpp
-	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $< -c -o $@
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $(MEDFLG) $(MEDINC) $< -c -o $@
 
 objs8/output.o: output.cpp
-	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $< -c -o $@
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $(MEDFLG) $(MEDINC) $< -c -o $@
 
 objs4/%_ispc.h objs4/%_ispc.o objs4/%_ispc_sse2.o objs4/%_ispc_sse4.o objs4/%_ispc_avx.o: %.ispc
 	$(ISPC) -DREAL=4 -Iobjs4 --target=$(ISPC_TARGETS) $< -o objs4/$*_ispc.o -h objs4/$*_ispc.h

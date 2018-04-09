@@ -2907,8 +2907,9 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
   subset = NULL;
   mode = NULL;
   format = NULL;
+  entities = NULL;
 
-  PARSEKEYS ("O|OOO", &entities, &subset, &mode, &format);
+  PARSEKEYS ("|OOOO", &entities, &subset, &mode, &format);
 
   TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0) &&
             is_string_or_list (mode, kwl[2]) && is_string_or_list (format, kwl[3]));
@@ -3066,113 +3067,121 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     else outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD; 
   }
 
-  if (subset) outent[i] = 0;
-  else outrest[0] = 0;
-
-  for (int j = 0; j < PyList_Size (entities); j ++)
+  if (entities)
   {
-    PyObject *item = PyList_GetItem (entities, j);
+    if (subset) outent[i] = 0;
+    else outrest[0] = 0;
 
-    IFIS (item, "NUMBER")
+    for (int j = 0; j < PyList_Size (entities); j ++)
     {
-      if (subset) outent[i] |= OUT_NUMBER;
-      else outrest[0] |= OUT_NUMBER;
+      PyObject *item = PyList_GetItem (entities, j);
+
+      IFIS (item, "NUMBER")
+      {
+	if (subset) outent[i] |= OUT_NUMBER;
+	else outrest[0] |= OUT_NUMBER;
+      }
+      ELIF (item, "COLOR")
+      {
+	if (subset) outent[i] |= OUT_COLOR;
+	else outrest[0] |= OUT_COLOR;
+      }
+      ELIF (item, "DISPL")
+      {
+	if (subset) outent[i] |= OUT_DISPL;
+	else outrest[0] |= OUT_DISPL;
+      }
+      ELIF (item, "LENGTH")
+      {
+	if (subset) outent[i] |= OUT_LENGTH;
+	else outrest[0] |= OUT_LENGTH;
+      }
+      ELIF (item, "ORIENT")
+      {
+	if (subset) outent[i] |= OUT_ORIENT;
+	else outrest[0] |= OUT_ORIENT;
+      }
+      ELIF (item, "ORIENT1")
+      {
+	if (subset) outent[i] |= OUT_ORIENT1;
+	else outrest[0] |= OUT_ORIENT1;
+      }
+      ELIF (item, "ORIENT2")
+      {
+	if (subset) outent[i] |= OUT_ORIENT2;
+	else outrest[0] |= OUT_ORIENT2;
+      }
+      ELIF (item, "ORIENT3")
+      {
+	if (subset) outent[i] |= OUT_ORIENT3;
+	else outrest[0] |= OUT_ORIENT3;
+      }
+      ELIF (item, "LINVEL")
+      {
+	if (subset) outent[i] |= OUT_LINVEL;
+	else outrest[0] |= OUT_LINVEL;
+      }
+      ELIF (item, "ANGVEL")
+      {
+	if (subset) outent[i] |= OUT_ANGVEL;
+	else outrest[0] |= OUT_ANGVEL;
+      }
+      ELIF (item, "FORCE")
+      {
+	if (subset) outent[i] |= OUT_FORCE;
+	else outrest[0] |= OUT_FORCE;
+      }
+      ELIF (item, "TORQUE")
+      {
+	if (subset) outent[i] |= OUT_TORQUE;
+	else outrest[0] |= OUT_TORQUE;
+      }
+      ELIF (item, "F")
+      {
+	if (subset) outent[i] |= OUT_F;
+	else outrest[0] |= OUT_F;
+      }
+      ELIF (item, "FN")
+      {
+	if (subset) outent[i] |= OUT_FN;
+	else outrest[0] |= OUT_FN;
+      }
+      ELIF (item, "FT")
+      {
+	if (subset) outent[i] |= OUT_FT;
+	else outrest[0] |= OUT_FT;
+      }
+      ELIF (item, "SF")
+      {
+	if (subset) outent[i] |= OUT_SF;
+	else outrest[0] |= OUT_SF;
+      }
+      ELIF (item, "SS")
+      {
+	if (subset) outent[i] |= OUT_SS;
+	else outrest[0] |= OUT_SS;
+      }
+      ELIF (item, "AREA")
+      {
+	if (subset) outent[i] |= OUT_AREA;
+	else outrest[0] |= OUT_AREA;
+      }
+      ELIF (item, "PAIR")
+      {
+	if (subset) outent[i] |= OUT_PAIR;
+	else outrest[0] |= OUT_PAIR;
+      }
+      ELSE
+      {
+	PyErr_SetString (PyExc_ValueError, "Invalid entity");
+	return NULL;
+      }
     }
-    ELIF (item, "COLOR")
-    {
-      if (subset) outent[i] |= OUT_COLOR;
-      else outrest[0] |= OUT_COLOR;
-    }
-    ELIF (item, "DISPL")
-    {
-      if (subset) outent[i] |= OUT_DISPL;
-      else outrest[0] |= OUT_DISPL;
-    }
-    ELIF (item, "LENGTH")
-    {
-      if (subset) outent[i] |= OUT_LENGTH;
-      else outrest[0] |= OUT_LENGTH;
-    }
-    ELIF (item, "ORIENT")
-    {
-      if (subset) outent[i] |= OUT_ORIENT;
-      else outrest[0] |= OUT_ORIENT;
-    }
-    ELIF (item, "ORIENT1")
-    {
-      if (subset) outent[i] |= OUT_ORIENT1;
-      else outrest[0] |= OUT_ORIENT1;
-    }
-    ELIF (item, "ORIENT2")
-    {
-      if (subset) outent[i] |= OUT_ORIENT2;
-      else outrest[0] |= OUT_ORIENT2;
-    }
-    ELIF (item, "ORIENT3")
-    {
-      if (subset) outent[i] |= OUT_ORIENT3;
-      else outrest[0] |= OUT_ORIENT3;
-    }
-    ELIF (item, "LINVEL")
-    {
-      if (subset) outent[i] |= OUT_LINVEL;
-      else outrest[0] |= OUT_LINVEL;
-    }
-    ELIF (item, "ANGVEL")
-    {
-      if (subset) outent[i] |= OUT_ANGVEL;
-      else outrest[0] |= OUT_ANGVEL;
-    }
-    ELIF (item, "FORCE")
-    {
-      if (subset) outent[i] |= OUT_FORCE;
-      else outrest[0] |= OUT_FORCE;
-    }
-    ELIF (item, "TORQUE")
-    {
-      if (subset) outent[i] |= OUT_TORQUE;
-      else outrest[0] |= OUT_TORQUE;
-    }
-    ELIF (item, "F")
-    {
-      if (subset) outent[i] |= OUT_F;
-      else outrest[0] |= OUT_F;
-    }
-    ELIF (item, "FN")
-    {
-      if (subset) outent[i] |= OUT_FN;
-      else outrest[0] |= OUT_FN;
-    }
-    ELIF (item, "FT")
-    {
-      if (subset) outent[i] |= OUT_FT;
-      else outrest[0] |= OUT_FT;
-    }
-    ELIF (item, "SF")
-    {
-      if (subset) outent[i] |= OUT_SF;
-      else outrest[0] |= OUT_SF;
-    }
-    ELIF (item, "SS")
-    {
-      if (subset) outent[i] |= OUT_SS;
-      else outrest[0] |= OUT_SS;
-    }
-    ELIF (item, "AREA")
-    {
-      if (subset) outent[i] |= OUT_AREA;
-      else outrest[0] |= OUT_AREA;
-    }
-    ELIF (item, "PAIR")
-    {
-      if (subset) outent[i] |= OUT_PAIR;
-      else outrest[0] |= OUT_PAIR;
-    }
-    ELSE
-    {
-      PyErr_SetString (PyExc_ValueError, "Invalid entity");
-      return NULL;
-    }
+  }
+  else
+  {
+    if (subset) outent[i] = 0xffffffff;
+    else outrest[0] = 0xffffffff;
   }
 
   if (format)
@@ -3186,6 +3195,10 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
       ELIF (format, "XDMF")
       {
 	parmec::outformat = OUT_FORMAT_XDMF;
+      }
+      ELIF (format, "MED")
+      {
+	parmec::outformat = OUT_FORMAT_MED;
       }
       ELSE
       {
@@ -3208,6 +3221,10 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 	ELIF (item, "XDMF")
 	{
 	  parmec::outformat |= OUT_FORMAT_XDMF;
+	}
+	ELIF (item, "MED")
+	{
+	  parmec::outformat |= OUT_FORMAT_MED;
 	}
 	ELSE
 	{

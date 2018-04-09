@@ -30,10 +30,17 @@ SOFTWARE.
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "macros.h"
 #include "parmec.h"
 #include "mem.h"
 #include "map.h"
+
+#if MED
+extern "C" {
+#include "med.h"
+}
+#endif
 
 using namespace parmec;
 using namespace std;
@@ -318,7 +325,7 @@ static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
 }
 
 /* output vtk dataset of triangles */
-static void output_triangle_dataset (int num, int *set, int ent, ofstream &out)
+static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
 {
   int i, j;
 
@@ -869,6 +876,313 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
   delete [] data;
   delete [] topo;
 }
+
+#if MED
+/* output MED dataset of triangles; based on
+ * https://gitlab.onelab.info/gmsh/gmsh/blob/master/Geo/GModelIO_MED.cpp */
+static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
+{
+  int i, j;
+
+  char meshName[MED_NAME_SIZE + 1] = "PARMEC mesh";
+  char dtUnit[MED_SNAME_SIZE + 1] = "";
+  char axisName[3 * MED_SNAME_SIZE + 1] = "";
+  char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
+  ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
+         MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+  char familyName[MED_NAME_SIZE + 1] = "triangles";
+  med_int familyNum = 1;
+  char groupName[MED_LNAME_SIZE + 1] = "all";
+  ASSERT(MEDfamilyCr(fid, meshName, familyName, familyNum, (med_int)num, groupName) >= 0,
+         "Could not create MED family");
+
+  /* write nodes */
+  {
+    std::vector<med_float> coord;
+    std::vector<med_int> fam;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      coord.push_back(tri[0][0][j]);
+      coord.push_back(tri[0][1][j]);
+      coord.push_back(tri[0][2][j]);
+      fam.push_back(0); /* no node families */
+      coord.push_back(tri[1][0][j]);
+      coord.push_back(tri[1][1][j]);
+      coord.push_back(tri[1][2][j]);
+      fam.push_back(0); /* no node families */
+      coord.push_back(tri[2][0][j]);
+      coord.push_back(tri[2][1][j]);
+      coord.push_back(tri[2][2][j]);
+      fam.push_back(0); /* no node families */
+    }
+
+    ASSERT(MEDmeshNodeWr(fid, meshName, (med_int)output_frame, MED_NO_IT, 0., MED_FULL_INTERLACE,
+           (med_int)fam.size(), &coord[0], MED_FALSE, "", MED_FALSE, 0, MED_TRUE, &fam[0]) >= 0,
+            "Could not write MED nodes");
+  }
+
+  /* write elements */
+  {
+    std::vector<med_int> conn, fam;
+    for (i = 0; i < num; i ++)
+    {
+      conn.push_back(3*i);
+      conn.push_back(3*i+1);
+      conn.push_back(3*i+2);
+      fam.push_back(familyNum);
+    }
+
+    ASSERT(MEDmeshElementWr(fid, meshName, (med_int)output_frame, MED_NO_IT, 0., MED_CELL, MED_TRIA3,
+           MED_NODAL, MED_FULL_INTERLACE, (med_int)fam.size(), &conn[0], MED_FALSE, 0, MED_FALSE, 0,
+	   MED_TRUE, &fam[0]) >= 0, "Could not write MED elements");
+  }
+
+#if 0
+  if (ent & (OUT_DISPL|OUT_LINVEL))
+  {
+    out << "POINT_DATA " << 3*num << "\n";
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    out << "VECTORS displ float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL p1[3] = {tri [0][0][j], tri[0][1][j], tri[0][2][j]};
+      REAL p2[3] = {tri [1][0][j], tri[1][1][j], tri[1][2][j]};
+      REAL p3[3] = {tri [2][0][j], tri[2][1][j], tri[2][2][j]};
+
+      j = triobs[set[i]];
+
+      if (j >= 0) /* particle */
+      {
+	REAL L[9], X[3], x[3], P[3], d[3];
+
+	L[0] = rotation[0][j];
+	L[1] = rotation[1][j];
+	L[2] = rotation[2][j];
+	L[3] = rotation[3][j];
+	L[4] = rotation[4][j];
+	L[5] = rotation[5][j];
+	L[6] = rotation[6][j];
+	L[7] = rotation[7][j];
+	L[8] = rotation[8][j];
+
+	x[0] = position[0][j];
+	x[1] = position[1][j];
+	x[2] = position[2][j];
+
+	X[0] = position[3][j];
+	X[1] = position[4][j];
+	X[2] = position[5][j];
+
+	SUB (p1, x, d);
+	TVADDMUL (X, L, d, P);
+	SUB (p1, P, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+
+	SUB (p2, x, d);
+	TVADDMUL (X, L, d, P);
+	SUB (p2, P, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+
+	SUB (p3, x, d);
+	TVADDMUL (X, L, d, P);
+	SUB (p3, P, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+      }
+      else if (j == -1) /* static obstacle */
+      {
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+      }
+      else /* moving obstacle */
+      {
+	j = -j-2;
+
+	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
+
+	SUB (p1, x, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+	SUB (p2, x, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+	SUB (p3, x, d);
+        out << d[0] << " " << d[1] << " " << d[2] << "\n";
+      }
+    }
+  }
+
+  if (ent & OUT_LINVEL)
+  {
+    out << "VECTORS linvel float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL p1[3] = {tri [0][0][j], tri[0][1][j], tri[0][2][j]};
+      REAL p2[3] = {tri [1][0][j], tri[1][1][j], tri[1][2][j]};
+      REAL p3[3] = {tri [2][0][j], tri[2][1][j], tri[2][2][j]};
+
+      j = triobs[set[i]];
+
+      if (j >= 0) /* particle */
+      {
+	REAL x[3], a[3], o[3], v[3], w[3];
+
+	x[0] = position[0][j];
+	x[1] = position[1][j];
+	x[2] = position[2][j];
+
+	o[0] = angular[3][j];
+	o[1] = angular[4][j];
+	o[2] = angular[5][j];
+
+	v[0] = linear[0][j];
+	v[1] = linear[1][j];
+	v[2] = linear[2][j];
+
+        COPY (v, w);
+	SUB (p1, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p2, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p3, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+      }
+      else if (j == -1) /* static obstacle */
+      {
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+	out << "0.0 0.0 0.0\n";
+      }
+      else /* moving obstacle */
+      {
+	j = -j-2;
+
+	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
+	REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
+	REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
+	REAL a[3], w[3];
+
+        COPY (v, w);
+	SUB (p1, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p2, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+
+        COPY (v, w);
+	SUB (p3, x, a);
+	PRODUCTADD (o, a, w);
+        out << w[0] << " " << w[1] << " " << w[2] << "\n";
+      }
+    }
+  }
+
+  if (ent & (OUT_NUMBER|OUT_COLOR|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE))
+  {
+    out << "CELL_DATA " << num << "\n";
+  }
+
+  if (ent & OUT_NUMBER)
+  {
+    out << "SCALARS number int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      out << triobs[set[i]] << "\n";
+    }
+  }
+
+
+  if (ent & OUT_COLOR)
+  {
+    out << "SCALARS colors int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      out << tricol[set[i]] << "\n";
+    }
+  }
+
+  if (ent & OUT_ANGVEL)
+  {
+    out << "VECTORS angvel float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = triobs[set[i]];
+
+      if (j >= 0) /* particle */
+      {
+        out << angular[3][j] << " " << angular[4][j] << " " << angular[5][j] << "\n";
+      }
+      else if (j == -1) /* static obstacle */
+      {
+	out << "0.0 0.0 0.0\n";
+      }
+      else /* moving obstacle */
+      {
+	j = -j-2;
+
+        out << obsang[3*j] << " " << obsang[3*j+1] << " " << obsang[3*j+2] << "\n";
+      }
+    }
+  }
+
+  if (ent & OUT_FORCE)
+  {
+    out << "VECTORS force float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = triobs[set[i]];
+
+      if (j >= 0)
+      {
+        out << force[0][j] << " " << force[1][j] << " " << force[2][j] << "\n";
+      }
+      else
+      {
+	out << "0.0 0.0 0.0\n";
+      }
+    }
+  }
+
+  if (ent & OUT_TORQUE)
+  {
+    out << "VECTORS torque float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = triobs[set[i]];
+
+      if (j >= 0)
+      {
+        out << torque[0][j] << " " << torque[1][j] << " " << torque[2][j] << "\n";
+      }
+      else
+      {
+	out << "0.0 0.0 0.0\n";
+      }
+    }
+  }
+#endif
+}
+#endif
 
 /* find triangles belonging to a particle set [part0, part1) */
 static int find_triangle_set (int *part0, int *part1, int *triangles)
@@ -1707,7 +2021,7 @@ static void output_vtk_files ()
 	  }
 	}
 
-	output_triangle_dataset (num, set, outrest[0], out);
+	vtk_triangle_dataset (num, set, outrest[0], out);
 
 	out.close();
       }
@@ -1724,7 +2038,7 @@ static void output_vtk_files ()
 
 	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
-	if (num) output_triangle_dataset (num, set, outent[j], out);
+	if (num) vtk_triangle_dataset (num, set, outent[j], out);
 
         out.close();
       }
@@ -1856,6 +2170,77 @@ static void output_vtk_files ()
   }
 }
 
+#if MED
+/* output MED files; based on
+ * https://gitlab.onelab.info/gmsh/gmsh/blob/master/Geo/GModelIO_MED.cpp */
+static void output_med_files ()
+{
+  ostringstream oss;
+  int i, j;
+
+  if (trinum)
+  {
+    int num, *set; /* number of and the set of triangles */
+
+    ERRMEM (set = new int[trinum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << output_path << j+1 << ".med";
+        med_idt fid = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+        ASSERT (fid >= 0, "Unable to open file '%s'", oss.str().c_str());
+
+	oss.str("");
+	oss.clear();
+	oss << "PARMEC triangles output";
+	ASSERT(MEDfileCommentWr(fid, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+
+	for (num = i = 0; i < trinum; i ++)
+	{
+	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
+	  {
+	    set[num ++] = i;
+	  }
+	  else if (triobs[i] < 0) /* triangles of obstacles */
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+	med_triangle_dataset (num, set, outrest[0], fid);
+
+        ASSERT (MEDfileClose (fid) >= 0, "Closing MED triangles file has failed");
+      }
+      else if (outmode[j] & OUT_MODE_MESH) /* output selected triangles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << output_path << j+1 << ".med";
+        med_idt fid = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+        ASSERT (fid >= 0, "Unable to open file '%s'", oss.str().c_str());
+
+	oss.str("");
+	oss.clear();
+	oss << "PARMEC triangles output";
+	ASSERT(MEDfileCommentWr(fid, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+
+	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+
+	if (num) med_triangle_dataset (num, set, outent[j], fid);
+
+        ASSERT (MEDfileClose (fid) >= 0, "Closing MED triangles file has failed");
+      }
+    }
+
+    delete [] set;
+  }
+}
+#endif
+
 /* runtime file output */
 void output_files ()
 {
@@ -1893,6 +2278,10 @@ void output_files ()
   if (outformat & OUT_FORMAT_VTK) output_vtk_files();
 
   if (outformat & OUT_FORMAT_XDMF) output_xdmf_files();
+
+#if MED
+  if (outformat & OUT_FORMAT_MED) output_med_files ();
+#endif
 
   output_frame ++; 
 }
