@@ -878,23 +878,35 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 }
 
 #if MED
+/* rotation matrix to quaternion conversion:
+ * http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/ 
+ * to be used along with the med-3.2.0/tests/usecases/c/UsesCase_MEDmesh_9.c example 
+ * to support the MEDmeshNodeCoordinateTrsfWr function call */
+static void rot2qua (REAL *r, REAL *q)
+{
+  q[0] = 0.5*sqrt(1. + r[0] + r[4] + r[8]);
+  q[1] = (r[5] - r[7])/(4.*q[0]);
+  q[2] = (r[6] - r[2])/(4.*q[0]);
+  q[3] = (r[1] - r[3])/(4.*q[0]);
+}
+
 /* output MED dataset of triangles; based on
- * https://gitlab.onelab.info/gmsh/gmsh/blob/master/Geo/GModelIO_MED.cpp */
+ * https://gitlab.onelab.info/gmsh/gmsh/blob/master/Geo/GModelIO_MED.cpp
+ * and med-3.2.0/tests/usecases/c/UsesCase_MEDmesh_{1,6,9}.c files */
 static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 {
   int i, j;
 
+  /* create 3d unstructured mesh */
   char meshName[MED_NAME_SIZE + 1] = "PARMEC mesh";
   char dtUnit[MED_SNAME_SIZE + 1] = "";
   char axisName[3 * MED_SNAME_SIZE + 1] = "";
   char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
   ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
          MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
-  char familyName[MED_NAME_SIZE + 1] = "triangles";
-  med_int familyNum = 1;
-  char groupName[MED_LNAME_SIZE + 1] = "all";
-  ASSERT(MEDfamilyCr(fid, meshName, familyName, familyNum, (med_int)num, groupName) >= 0,
-         "Could not create MED family");
+
+  /* create family 0 : by default, all mesh entities family number is 0 */
+  ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
 
   /* write nodes */
   {
@@ -906,20 +918,25 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
       coord.push_back(tri[0][0][j]);
       coord.push_back(tri[0][1][j]);
       coord.push_back(tri[0][2][j]);
-      fam.push_back(0); /* no node families */
+      fam.push_back(0);
       coord.push_back(tri[1][0][j]);
       coord.push_back(tri[1][1][j]);
       coord.push_back(tri[1][2][j]);
-      fam.push_back(0); /* no node families */
+      fam.push_back(0);
       coord.push_back(tri[2][0][j]);
       coord.push_back(tri[2][1][j]);
       coord.push_back(tri[2][2][j]);
-      fam.push_back(0); /* no node families */
+      fam.push_back(0);
     }
 
-    ASSERT(MEDmeshNodeWr(fid, meshName, (med_int)output_frame, MED_NO_IT, 0., MED_FULL_INTERLACE,
+#if 0
+    ASSERT(MEDmeshNodeWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_FULL_INTERLACE,
            (med_int)fam.size(), &coord[0], MED_FALSE, "", MED_FALSE, 0, MED_TRUE, &fam[0]) >= 0,
             "Could not write MED nodes");
+#else
+    ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
+	    MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+#endif
   }
 
   /* write elements */
@@ -927,15 +944,20 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     std::vector<med_int> conn, fam;
     for (i = 0; i < num; i ++)
     {
-      conn.push_back(3*i);
       conn.push_back(3*i+1);
       conn.push_back(3*i+2);
-      fam.push_back(familyNum);
+      conn.push_back(3*i+3);
+      fam.push_back(0);
     }
 
-    ASSERT(MEDmeshElementWr(fid, meshName, (med_int)output_frame, MED_NO_IT, 0., MED_CELL, MED_TRIA3,
+#if 0
+    ASSERT(MEDmeshElementWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3,
            MED_NODAL, MED_FULL_INTERLACE, (med_int)fam.size(), &conn[0], MED_FALSE, 0, MED_FALSE, 0,
 	   MED_TRUE, &fam[0]) >= 0, "Could not write MED elements");
+#else
+    ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3,
+	    MED_NODAL, MED_FULL_INTERLACE, conn.size()/3, &conn[0]) >= 0, "Could not write MED elements");
+#endif
   }
 
 #if 0

@@ -1837,6 +1837,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
   if (prefix)
   {
+    static char prefix0[1024] = {'\0'};
+    ASSERT (!(strcmp(prefix0, prefix) != 0 && curtime > 0.0),
+      "ERROR: output file prefix has changed for time > 0.0; "
+      "INFO: the output prefix can only change at time 0.0 or after RESET()\n");
+    strncpy (prefix0, prefix, 1024);
+
     char *out;
     int len, i;
     len = strlen (output_path);
