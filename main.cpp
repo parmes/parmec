@@ -27,6 +27,7 @@ SOFTWARE.
 #include <string.h>
 #include "macros.h"
 #include "parmec.h"
+#include "output.h"
 #include "parmec_ispc.h"
 
 using namespace parmec;
@@ -58,6 +59,8 @@ int main (int argc, char *argv[])
 	break;
       }
     }
+
+    output_reset ();
   }
 
   return 0;

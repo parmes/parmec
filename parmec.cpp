@@ -1819,6 +1819,8 @@ void reset ()
   prescribed_body_forces = NULL;
 
   pair_reset();
+
+  output_reset();
 }
 
 /* run DEM simulation */

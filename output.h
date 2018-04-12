@@ -31,4 +31,6 @@ void output_history (); /* runtime history output */
 
 void output_h5history (); /* output history from existing .h5 files */
 
+void output_reset (); /* close files and reset global output variables */
+
 #endif
