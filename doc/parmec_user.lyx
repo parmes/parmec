@@ -2973,7 +2973,7 @@ and/or
 \series bold
 and/or
 \series default
- (*0rb.med) for rigid body data of particles 
+ (*0rb.med) files for rigid body data of particles 
 \series bold
 not
 \series default
@@ -3008,7 +3008,7 @@ and/or
 \series bold
 and/or
 \series default
- (*0cd.med) for contact data including particles 
+ (*0cd.med) files for contact data including particles 
 \series bold
 not
 \series default
@@ -3043,7 +3043,7 @@ and/or
 \series bold
 and/or
 \series default
- (*0sd.med) for spring data including particles 
+ (*0sd.med) files for spring data including particles 
 \series bold
 not
 \series default
