@@ -3224,7 +3224,7 @@ format
  - optional output format, e.g.
  'VTK' or 'XDMF' or 'MED' 
 \color red
-(under development)
+(experimental)
 \color inherit
 , or a list, e.g.
  ['VTK', 'XDMF', 'MED'], where 'VTK' is the text based legacy 
@@ -3253,7 +3253,7 @@ target "http://www.salome-platform.org/user-section/about/med"
 
  
 \color red
-(under development)
+(experimental)
 \color inherit
 ; default: 'XDMF'
 \end_layout
