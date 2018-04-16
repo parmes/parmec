@@ -2938,7 +2938,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0.med) files for obstacles and mesh based particles 
+ (*0.med) 
+\color red
+(experimental)
+\color inherit
+ files for obstacles and mesh based particles 
 \series bold
 not
 \series default
@@ -2959,8 +2963,12 @@ and/or
 \series bold
 and/or
 \series default
- (*1.med, *2.med...) files for mesh based particles specified as subsets, where
- numbers 1, 2, ...
+ (*1.med, *2.med...) 
+\color red
+(experimental)
+\color inherit
+ files for mesh based particles specified as subsets, where numbers 1, 2,
+ ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -2973,7 +2981,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0rb.med) files for rigid body data of particles 
+ (*0rb.med) 
+\color red
+(under development)
+\color inherit
+ files for rigid body data of particles 
 \series bold
 not
 \series default
@@ -2994,8 +3006,12 @@ and/or
 \series bold
 and/or
 \series default
- (*1rb.med, *2rb.med, ...) files for rigid body data of particles specified as
- subsets, where numbers 1, 2, ...
+ (*1rb.med, *2rb.med, ...) 
+\color red
+(under development)
+\color inherit
+ files for rigid body data of particles specified as subsets, where numbers
+ 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3008,7 +3024,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0cd.med) files for contact data including particles 
+ (*0cd.med) 
+\color red
+(under development)
+\color inherit
+ files for contact data including particles 
 \series bold
 not
 \series default
@@ -3029,8 +3049,12 @@ and/or
 \series bold
 and/or
 \series default
- (*1cd.med, *2cd.med, ...) files for contact data including particles specified
- as subsets, where numbers 1, 2, ...
+ (*1cd.med, *2cd.med, ...) 
+\color red
+(under development)
+\color inherit
+ files for contact data including particles specified as subsets, where
+ numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3043,7 +3067,11 @@ and/or
 \series bold
 and/or
 \series default
- (*0sd.med) files for spring data including particles 
+ (*0sd.med) 
+\color red
+(under development)
+\color inherit
+ files for spring data including particles 
 \series bold
 not
 \series default
@@ -3064,8 +3092,12 @@ and/or
 \series bold
 and/or
 \series default
- (*1sd.med, *2sd.med, ...) files for spring data including particles specified
- as subsets, where numbers 1, 2, ...
+ (*1sd.med, *2sd.med, ...) 
+\color red
+(under development)
+\color inherit
+ files for spring data including particles specified as subsets, where numbers
+ 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3224,7 +3256,7 @@ format
  - optional output format, e.g.
  'VTK' or 'XDMF' or 'MED' 
 \color red
-(experimental)
+(experimental/under development)
 \color inherit
 , or a list, e.g.
  ['VTK', 'XDMF', 'MED'], where 'VTK' is the text based legacy 
@@ -3253,7 +3285,7 @@ target "http://www.salome-platform.org/user-section/about/med"
 
  
 \color red
-(experimental)
+(experimental/under development)
 \color inherit
 ; default: 'XDMF'
 \end_layout
