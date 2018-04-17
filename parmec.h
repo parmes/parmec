@@ -149,6 +149,7 @@ extern int *unidx; /* spring unloading lookup start index */
 extern REAL *yield[2]; /* spring yield limits: 0 compression and 1 tension */
 extern REAL *sprdir[6]; /* spring direction (0:3 current and 3:6 reference) */
 extern int *sprflg; /* spring flags */
+extern int *sproffset; /* spring stroke offest load curve number */
 extern REAL *stroke0; /* initial spring stroke */
 extern REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 extern REAL *sprfrc[2]; /* total and spring force magnitude */

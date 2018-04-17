@@ -1465,7 +1465,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, geom2, spring | dashpot, direction,
- planar, unload, ylim, inactive) 
+ planar, unload, ylim, inactive, offset) 
 \color red
 (experimental)
 \end_layout
@@ -1618,11 +1618,11 @@ is projected onto a plane orthogonal to
 \series bold
 unload
 \series default
- - spring unloading lookup table 
+ - optional spring unloading lookup table 
 \begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
 \end_inset
 
-; must be monotonically increasing
+; must be monotonically increasing; default: unspecified
 \end_layout
 
 \begin_layout Itemize
@@ -1630,7 +1630,7 @@ unload
 \series bold
 ylim
 \series default
- - tuple 
+ - optional tuple 
 \begin_inset Formula $\left(f_{yc},f_{yt}\right)$
 \end_inset
 
@@ -1651,7 +1651,7 @@ ylim
 \series bold
 inactive
 \series default
- - if 
+ - optional boolean flag: if 
 \emph on
 True
 \emph default
@@ -1659,6 +1659,90 @@ True
  default: 
 \emph on
 False
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+offset
+\series default
+ 
+\color red
+(under development)
+\color inherit
+ - optional 
+\begin_inset CommandInset ref
+LatexCommand nameref
+reference "sec:TSERIES"
+
+\end_inset
+
+ number representing a time dependent adjustment applied to all stroke values
+ of the spring curve (dashpot unchanged) as in Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:spring-stroke-offset"
+
+\end_inset
+
+; 
+\series bold
+offset
+\series default
+ is applied only prior to yielding for springs with 
+\series bold
+ylim
+\series default
+ and 
+\series bold
+unload
+\series default
+ specified; default: unspecified
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figures/spring-stroke-offset.png
+	lyxscale 40
+	width 60text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:spring-stroke-offset"
+
+\end_inset
+
+The concept of time dependent spring stroke offset.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard

@@ -601,6 +601,7 @@ struct spring_task_args
   uniform REAL * uniform yield[2];
   uniform REAL * uniform sprdir[6];
   uniform int * uniform sprflg;
+  uniform int * uniform sproffset;
   uniform REAL * uniform stroke0;
   uniform REAL * uniform stroke[3];
   uniform REAL * uniform sprfrc[2];
@@ -620,7 +621,7 @@ struct spring_task_args
 };
 
 /* update spring foces */
-task void springs_task (uniform int span, uniform struct spring_task_args * uniform args, uniform int lock[])
+task void springs_task (uniform int span, uniform struct spring_task_args * uniform args, uniform REAL time, uniform int lock[])
 {
   /* workaround to https://github.com/ispc/ispc/issues/1293 */
   uniform int sprnum = args->sprnum;
@@ -638,6 +639,7 @@ task void springs_task (uniform int span, uniform struct spring_task_args * unif
   uniform REAL * uniform yield[2] = {args->yield[0], args->yield[1]};
   uniform REAL * uniform sprdir[6] = {args->sprdir[0], args->sprdir[1], args->sprdir[2], args->sprdir[3], args->sprdir[4], args->sprdir[5]};
   uniform int * uniform sprflg = args->sprflg;
+  uniform int * uniform sproffset = args->sproffset;
   uniform REAL * uniform stroke0 = args->stroke0;
   uniform REAL * uniform stroke[3] = {args->stroke[0], args->stroke[1], args->stroke[2]};
   uniform REAL * uniform sprfrc[2] = {args->sprfrc[0], args->sprfrc[1]};
@@ -661,12 +663,12 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2],
   uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2],
   uniform int unidx[], uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
-  uniform int sprflg[], uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2],
-  uniform REAL * uniform lcurve[2], uniform int lcidx[],
+  uniform int sprflg[], uniform int sproffset[], uniform REAL stroke0[], uniform REAL * uniform stroke[3],
+  uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2], uniform int lcidx[],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
-  uniform int lock[])
+  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6],
+  uniform int adaptive, uniform REAL time, uniform int lock[])
 {
 #endif
   uniform int start = taskIndex*span;
@@ -905,6 +907,12 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       break;
     }
 
+    uniform REAL offset = 0.0, slope;
+    
+    uniform int ioff = sproffset[i];
+
+    if (ioff >= 0) offset = look_up (lcurve, lcidx[ioff], lcidx[ioff+1], time, &slope);
+
     uniform int unspr = unspring[i];
 
     if (unspr <= -2) /* unused or inactive unspring action */
@@ -913,7 +921,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       {
       case SPRING_NONLINEAR_ELASTIC:
       {
-	stroke[0][i] = len - stroke0[i];
+	stroke[0][i] = len - stroke0[i] + offset;
 
 	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
       }
@@ -922,7 +930,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       {
 	if ((sprflg[i]&SPRING_YIELDED) == 0) /* elastic */
 	{
-	  stroke[0][i] = len - stroke0[i];
+	  stroke[0][i] = len - stroke0[i] + offset;
 
 	  spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
 
@@ -1389,13 +1397,13 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL step, uniform int sprnum, uniform int sprtype[], uniform int unspring[], uniform int sprmap[],
   uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
-  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform REAL stroke0[],
-  uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2], uniform int lcidx[],
-  uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+  uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform int sproffset[],
+  uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2],
+  uniform int lcidx[], uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
   uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[],
   uniform REAL * uniform unlim[2], uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[],
-  uniform int nfreq[], uniform int unaction[], uniform int activate[], uniform int actidx[], uniform int stepnum)
+  uniform int nfreq[], uniform int unaction[], uniform int activate[], uniform int actidx[], uniform int stepnum, uniform REAL time)
 
 {
   launch [ntasks] zero_force_torque_kmax (parnum/ntasks, parnum, force, torque, kmax, emax);
@@ -1421,17 +1429,18 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
 	 {sprpnt[1][0], sprpnt[1][1], sprpnt[1][2], sprpnt[1][3], sprpnt[1][4], sprpnt[1][5]}},
 	{spring[0], spring[1]}, spridx, {dashpot[0], dashpot[1]}, dashidx, {unload[0], unload[1]}, unidx,
 	{yield[0], yield[1]}, {sprdir[0], sprdir[1], sprdir[2], sprdir[3], sprdir[4], sprdir[5]}, sprflg,
-	stroke0, {stroke[0], stroke[1], stroke[2]}, {sprfrc[0], sprfrc[1]}, {lcurve[0], lcurve[1]}, lcidx,
+	sproffset, stroke0, {stroke[0], stroke[1], stroke[2]}, {sprfrc[0], sprfrc[1]}, {lcurve[0], lcurve[1]}, lcidx,
 	{angular[0], angular[1], angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]},
 	{rotation[0], rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
 	rotation[8]}, {position[0], position[1], position[2], position[3], position[4], position[5]}, {force[0],
 	force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax, emax, {krot[0],
 	krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive};
 
-  launch [ntasks] springs_task (sprnum/ntasks, &args, lock);
+  launch [ntasks] springs_task (sprnum/ntasks, &args, time, lock);
 #else
-  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir,
-               sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, lock);
+  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot,
+                   dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, stroke0, stroke, sprfrc, lcurve, lcidx,
+		   angular, linear, rotation, position, force, torque, kact, kmax, emax, krot, adaptive, time, lock);
 #endif
   sync;
 

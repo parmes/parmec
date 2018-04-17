@@ -1376,9 +1376,9 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar", "unload", "ylim", "inactive");
+  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar", "unload", "ylim", "inactive", "offset");
   PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *inactive;
-  int part1, part2;
+  int part1, part2, offset;
 
   direction = NULL;
   dashpot = NULL;
@@ -1386,14 +1386,21 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   unload = NULL;
   ylim = NULL;
   inactive = Py_False;
+  offset = -1; /* unspecified spring stroke offest */
 
-  PARSEKEYS ("iOiOO|OOOOOO", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim, &inactive);
+  PARSEKEYS ("iOiOO|OOOOOOi", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim, &inactive, &offset);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple_or_list_of_tuples (geom2, kwl[3], 3, 2) &&
 	    is_list (spring, kwl[4], 0) && is_list (dashpot, kwl[5], 0) &&
 	    is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
 	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]));
+
+  if (offset < -1 || offset >= tmsnum)
+  {
+    PyErr_SetString (PyExc_ValueError, "offset TSERIES index is out of range");
+    return NULL;
+  }
 
   if (part2 < -1)
   {
@@ -1493,6 +1500,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
 
   sprflg[i] = 0;
+  sproffset[i] = offset < 0 ? offset : lcurve_from_time_series (offset);
 
   int j = 0, k = spridx[i];
 

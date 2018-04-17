@@ -163,6 +163,7 @@ int *unidx; /* spring unloading lookup start index */
 REAL *yield[2]; /* spring yield limits: 0 compression and 1 tension */
 REAL *sprdir[6]; /* spring direction (0:3 current and 3:6 reference) */
 int *sprflg; /* spring flags */
+int *sproffset; /* spring stroke offest load curve number */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
 REAL *sprfrc[2]; /* total and spring force magnitude */
@@ -764,6 +765,7 @@ int spring_buffer_init ()
   sprdir[4] = aligned_real_alloc (spring_buffer_size);
   sprdir[5] = aligned_real_alloc (spring_buffer_size);
   sprflg = aligned_int_alloc (spring_buffer_size);
+  sproffset = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke[0] = aligned_real_alloc (spring_buffer_size);
   stroke[1] = aligned_real_alloc (spring_buffer_size);
@@ -815,6 +817,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
     real_buffer_grow(sprdir[4], sprnum, spring_buffer_size);
     real_buffer_grow(sprdir[5], sprnum, spring_buffer_size);
     integer_buffer_grow(sprflg, sprnum, spring_buffer_size);
+    integer_buffer_grow(sproffset, sprnum, spring_buffer_size);
     real_buffer_grow(stroke0, sprnum, spring_buffer_size);
     real_buffer_grow(stroke[0], sprnum, spring_buffer_size);
     real_buffer_grow(stroke[1], sprnum, spring_buffer_size);
@@ -1498,6 +1501,7 @@ static void sort_springs ()
   REAL *yield[2]; /* spring yield limits */
   REAL *sprdir[6]; /* spring direction */
   int *sprflg; /* spring flags */
+  int *sproffset; /* spring stroke offset time series number */
   REAL *stroke0; /* initial spring stroke */
   REAL *stroke[3]; /* current stroke */
   REAL *sprfrc[2]; /* spring force */
@@ -1537,6 +1541,7 @@ static void sort_springs ()
   sprdir[4] = aligned_real_alloc (spring_buffer_size);
   sprdir[5] = aligned_real_alloc (spring_buffer_size);
   sprflg = aligned_int_alloc (spring_buffer_size);
+  sproffset = aligned_int_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke[0] = aligned_real_alloc (spring_buffer_size);
   stroke[1] = aligned_real_alloc (spring_buffer_size);
@@ -1577,6 +1582,7 @@ static void sort_springs ()
     sprdir[4][i] = parmec::sprdir[4][x->number];
     sprdir[5][i] = parmec::sprdir[5][x->number];
     sprflg[i] = parmec::sprflg[x->number];
+    sproffset[i] = parmec::sproffset[x->number];
     stroke0[i] = parmec::stroke0[x->number];
     stroke[0][i] = parmec::stroke[0][x->number];
     stroke[1][i] = parmec::stroke[1][x->number];
@@ -1641,6 +1647,7 @@ static void sort_springs ()
   aligned_real_free (parmec::sprdir[4]);
   aligned_real_free (parmec::sprdir[5]);
   aligned_int_free (parmec::sprflg);
+  aligned_int_free (parmec::sproffset);
   aligned_real_free (parmec::stroke0);
   aligned_real_free (parmec::stroke[0]);
   aligned_real_free (parmec::stroke[1]);
@@ -1683,6 +1690,7 @@ static void sort_springs ()
   parmec::sprdir[4] = sprdir[4];
   parmec::sprdir[5] = sprdir[5];
   parmec::sprflg = sprflg;
+  parmec::sproffset = sproffset;
   parmec::stroke0 = stroke0;
   parmec::stroke[0] = stroke[0];
   parmec::stroke[1] = stroke[1];
@@ -1929,12 +1937,11 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     read_gravity_and_damping (curtime, tms, gravfunc, gravtms, gravity, lindamp, lindamptms, angdamp, angdamptms, damping);
 
-    forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse,
-            mass, invm, obspnt, obslin, obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0,
-            sprnum, sprtype, unspring, sprmap, sprpart, sprpnt, spring, spridx, dashpot, dashidx, unload,
-	    unidx, yield, sprdir, sprflg, stroke0, stroke, sprfrc, lcurve, lcidx, gravity, force, torque,
-	    kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0), unsprnum, tsprings, tspridx,
-	    msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx, stepnum);
+    forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass, invm, obspnt, obslin,
+            obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0, sprnum, sprtype, unspring, sprmap, sprpart, sprpnt,
+	    spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, stroke0, stroke, sprfrc, lcurve,
+	    lcidx, gravity, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0), unsprnum, tsprings,
+	    tspridx, msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx, stepnum, curtime);
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
