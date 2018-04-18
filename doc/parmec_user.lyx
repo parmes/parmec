@@ -1666,10 +1666,6 @@ False
 \series bold
 offset
 \series default
- 
-\color red
-(under development)
-\color inherit
  - optional 
 \begin_inset CommandInset ref
 LatexCommand nameref

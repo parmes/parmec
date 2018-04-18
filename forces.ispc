@@ -909,9 +909,9 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
     uniform REAL offset = 0.0, slope;
     
-    uniform int ioff = sproffset[i];
+    uniform int ilc = sproffset[i];
 
-    if (ioff >= 0) offset = look_up (lcurve, lcidx[ioff], lcidx[ioff+1], time, &slope);
+    if (ilc >= 0) offset = look_up (lcurve, lcidx[ilc], lcidx[ilc+1], time, &slope);
 
     uniform int unspr = unspring[i];
 
@@ -921,18 +921,18 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       {
       case SPRING_NONLINEAR_ELASTIC:
       {
-	stroke[0][i] = len - stroke0[i] + offset;
+	stroke[0][i] = len - stroke0[i];
 
-	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
+	spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i] - offset, &stiffness);
       }
       break;
       case SPRING_GENERAL_NONLINEAR:
       {
 	if ((sprflg[i]&SPRING_YIELDED) == 0) /* elastic */
 	{
-	  stroke[0][i] = len - stroke0[i] + offset;
+	  stroke[0][i] = len - stroke0[i];
 
-	  spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i], &stiffness);
+	  spring_force = look_up (spring, spridx[i], spridx[i+1], stroke[0][i] - offset, &stiffness);
 
 	  if (spring_force < yield[0][i] || spring_force > yield[1][i])
 	  {

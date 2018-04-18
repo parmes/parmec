@@ -1046,8 +1046,8 @@ int lcurve_from_time_series (int ts)
       lcidx[i] = lcidx[i-1];
       for (int k = 0; k < x->size; k ++)
       {
-	lcurve[0][lcidx[i]] = x->points[0][k];
-	lcurve[1][lcidx[i]] = x->points[1][k];
+	lcurve[0][lcidx[i]] = x->points[k][0];
+	lcurve[1][lcidx[i]] = x->points[k][1];
 	lcidx[i] ++;
       }
     }
