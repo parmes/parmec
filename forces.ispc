@@ -797,35 +797,14 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 	sprdir[0][i] = z[0];
 	sprdir[1][i] = z[1];
 	sprdir[2][i] = z[2];
-
-        Y[0] = sprpnt[1][3][i];
-	Y[1] = sprpnt[1][4][i];
-	Y[2] = sprpnt[1][5][i];
-
-	SUB (Y, Xk, Y);
-	NVADDMUL (xk, Lk, Y, q); /* updated previous q */
-
-	SUB (p, q, w);
-
-	len = DOT (z, w);
-	SUBMUL (p, len, z, q); /* q = projection of p onto the spring plane */
-
-	SUB (q, xk, w);
-	TVADDMUL (Xk, Lk, w, Y); /* Y = reference image of q */
-
-	sprpnt[1][3][i] = Y[0]; /* update reference image */
-	sprpnt[1][4][i] = Y[1];
-	sprpnt[1][5][i] = Y[2];
       }
-      else
-      {
-	Y[0] = sprpnt[1][3][i];
-	Y[1] = sprpnt[1][4][i];
-	Y[2] = sprpnt[1][5][i];
 
-	SUB (Y, Xk, Y);
-	NVADDMUL (xk, Lk, Y, q);
-      }
+      Y[0] = sprpnt[1][3][i];
+      Y[1] = sprpnt[1][4][i];
+      Y[2] = sprpnt[1][5][i];
+
+      SUB (Y, Xk, Y);
+      NVADDMUL (xk, Lk, Y, q);
 
       sprpnt[1][0][i] = q[0];
       sprpnt[1][1][i] = q[1];
