@@ -1,0 +1,2 @@
+#!/bin/bash
+PATH=/usr/bin:$PATH lldb $*
