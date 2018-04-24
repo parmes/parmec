@@ -1560,6 +1560,10 @@ dashpot
 \begin_inset Formula $\left[\text{velocity}_{1},\text{force}_{1},\text{velocity}_{2},\text{force}_{2},...,\text{velocity}_{m},\text{force}_{m}\right]$
 \end_inset
 
+ or a critical damping factor from interval 
+\begin_inset Formula $\left[0,1\right]$
+\end_inset
+
 ; default: 
 \begin_inset Formula $\left[-\infty,0,+\infty,0\right]$
 \end_inset

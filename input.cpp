@@ -1392,7 +1392,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple_or_list_of_tuples (geom2, kwl[3], 3, 2) &&
-	    is_list (spring, kwl[4], 0) && is_list (dashpot, kwl[5], 0) &&
+	    is_list (spring, kwl[4], 0) && is_list_or_number (dashpot, kwl[5], 0) &&
 	    is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
 	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]));
 
@@ -1414,7 +1414,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
-  if (dashpot && (PyList_Size (dashpot) < 4 || PyList_Size (dashpot) % 2))
+  if (dashpot && PyList_Check (dashpot) && (PyList_Size (dashpot) < 4 || PyList_Size (dashpot) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid dashpot lookup table list length");
     return NULL;
@@ -1422,13 +1422,13 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (unload && (PyList_Size (unload) < 4 || PyList_Size (unload) % 2))
   {
-    PyErr_SetString (PyExc_ValueError, "Invalid dashpot unload table list length");
+    PyErr_SetString (PyExc_ValueError, "Invalid unload lookup table list length");
     return NULL;
   }
 
   int spring_lookup = PyList_Size (spring);
 
-  int dashpot_lookup = dashpot ? PyList_Size (dashpot) : 4;
+  int dashpot_lookup = dashpot ? PyList_Check(dashpot) && PyList_Size (dashpot) : 4;
 
   int unload_lookup = unload ? PyList_Size (unload) : 0;
 
@@ -1513,7 +1513,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   spridx[sprnum] = k;
 
-  if (dashpot)
+  if (dashpot && PyList_Check(dashpot))
   {
     for (j = 0, k = dashidx[i]; j < dashpot_lookup/2; j ++, k ++)
     {
@@ -1523,6 +1523,19 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::dashpot[1][k] = force;
     }
     dashidx[sprnum] = k;
+  }
+  else if (PyNumber_Check(dashpot))
+  {
+    REAL factor = PyFloat_AsDouble (dashpot);
+    if (factor < 0.0 || factor > 1.0)
+    {
+      PyErr_SetString (PyExc_ValueError, "Critical damping factor not in [0.0, 1.0] interval");
+      return NULL;
+    }
+    k = dashidx[i];
+    parmec::dashpot[0][k] = factor;
+    parmec::dashpot[1][k] = factor;
+    dashidx[sprnum] = k+1;
   }
   else /* default zero force */
   {
