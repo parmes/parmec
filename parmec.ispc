@@ -102,7 +102,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
   uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[])
 {
-  uniform REAL kmax, emax, mmin, omax, step;
+  uniform REAL kmax, emax, mmin, omax;
   uniform int j, sppmax;
   REAL k, e, m;
 
@@ -180,9 +180,12 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
     uniform REAL omega = sqrt(kspr/mspr);
 
-    uniform REAL ratio = espr / (2*mspr*omega);
+    if (omega > 0.0)
+    {
+      uniform REAL ratio = espr / (2*mspr*omega);
 
-    emax = max(ratio, emax);
+      emax = max(ratio, emax);
+    }
   }
 
   m = 1E99;
@@ -196,10 +199,12 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
   omax = sqrt (kmax/mmin);
 
-  /* http://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration */
-  step  = (2.0/omax)*(sqrt(1.0+emax*emax) - emax);
-
-  return step;
+  if (omax > 0.0)
+  {
+    /* http://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration */
+    return (2.0/omax)*(sqrt(1.0+emax*emax) - emax);
+  }
+  else return 1.0;
 }
 
 /* Euler task */
