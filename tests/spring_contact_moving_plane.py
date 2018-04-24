@@ -56,6 +56,7 @@ try:
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
   plt.ylabel ('z(center) $(m)$')
+  plt.title ('spring_contact_moving_plane')
   plt.savefig ('tests/spring_contact_moving_plane_z.png')
 
 except:

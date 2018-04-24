@@ -1,4 +1,4 @@
-# PARMEC test --> SPRING contact plane test
+# PARMEC test --> SPRING contact plane test (compare with spring_contact_plane.py)
 
 matnum = MATERIAL (1E3, 1E9, 0.25)
 
@@ -17,8 +17,11 @@ colors = [1, 4, 0, 1, 2, 3, 2, 4, 4, 5, 6, 7, 3]
 
 parnum = MESH (nodes, elements, matnum, colors)
 
-spring = [-1, 1E7, 0, 0, 1, 0]
 dashpot = [-1, -8E5, 1, 8E5]
+spring = [-1, 1E7, 0, 0, 1, 0] # spring engages when contact penetration begins
+                               # spring orientation is aligned with plane normal
+                               # hence force for negative penetration is positive
+			       # to push the point of the other particle away
 
 SPRING (parnum, (0, 0, 1), -1, [(0, 0, 0), (0, 0, 1)], spring, dashpot)
 SPRING (parnum, (1, 0, 1), -1, [(1, 0, 0), (0, 0, 1)], spring, dashpot)
@@ -48,6 +51,7 @@ try:
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time $(s)$')
   plt.ylabel ('z(center) $(m)$')
+  plt.title ('spring_contact_plane')
   plt.savefig ('tests/spring_contact_plane_z.png')
 
 except:

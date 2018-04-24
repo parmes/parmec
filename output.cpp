@@ -2879,7 +2879,7 @@ void output_h5history ()
       double *ANGVEL = h5read (h5_step, "ANGVEL", &NUM);
       double *DISPL = h5read (h5_step, "DISPL", &NUM);
       double *FORCE = h5read (h5_step, "FORCE", &NUM);
-      double *GEOM = h5read (h5_step, "FORCE", &NUM);
+      double *GEOM = h5read (h5_step, "GEOM", &NUM);
       double *LINVEL = h5read (h5_step, "LINVEL", &NUM);
       double *ORIENT = h5read (h5_step, "ORIENT", &NUM);
       double *TORQUE = h5read (h5_step, "TORQUE", &NUM);
