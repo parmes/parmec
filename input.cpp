@@ -806,6 +806,7 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   double volume = (4./3.)*M_PI*rad*rad*rad;
 
   mass[i] = volume*mparam[DENSITY][material];
+  invm[i] = 1.0/mass[i];
 
   rotation[0][i] = rotation[4][i] = rotation[8][i] = 1.0;
   rotation[1][i] = rotation[2][i] = rotation[3][i] =
@@ -814,6 +815,20 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   inertia[0][i] = inertia[4][i] = inertia[8][i] = 0.4*mass[i]*radii[0][j]*radii[0][j];
   inertia[1][i] = inertia[2][i] = inertia[3][i] =
   inertia[5][i] = inertia[6][i] = inertia[7][i] = 0.0;
+
+  REAL J[9] = {inertia[0][i], inertia[1][i], inertia[2][i],
+               inertia[3][i], inertia[4][i], inertia[5][i],
+	       inertia[6][i], inertia[7][i], inertia[8][i]}, Jiv[9], det;
+  INVERT (J, Jiv, det);
+  inverse[0][i] = Jiv[0];
+  inverse[1][i] = Jiv[1];
+  inverse[2][i] = Jiv[2];
+  inverse[3][i] = Jiv[3];
+  inverse[4][i] = Jiv[4];
+  inverse[5][i] = Jiv[5];
+  inverse[6][i] = Jiv[6];
+  inverse[7][i] = Jiv[7];
+  inverse[8][i] = Jiv[8];
 
   /* return regular particle */
   flags[i] = OUTREST;
@@ -1098,6 +1113,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   position[5][i] = position[2][i];
 
   mass[i] = mi;
+  invm[i] = 1.0/mi;
 
   rotation[0][i] = rotation[4][i] = rotation[8][i] = 1.0;
   rotation[1][i] = rotation[2][i] = rotation[3][i] =
@@ -1112,6 +1128,20 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   inertia[6][i] = ii[6];
   inertia[7][i] = ii[7];
   inertia[8][i] = ii[8];
+
+  REAL J[9] = {inertia[0][i], inertia[1][i], inertia[2][i],
+               inertia[3][i], inertia[4][i], inertia[5][i],
+	       inertia[6][i], inertia[7][i], inertia[8][i]}, Jiv[9], det;
+  INVERT (J, Jiv, det);
+  inverse[0][i] = Jiv[0];
+  inverse[1][i] = Jiv[1];
+  inverse[2][i] = Jiv[2];
+  inverse[3][i] = Jiv[3];
+  inverse[4][i] = Jiv[4];
+  inverse[5][i] = Jiv[5];
+  inverse[6][i] = Jiv[6];
+  inverse[7][i] = Jiv[7];
+  inverse[8][i] = Jiv[8];
 
   /* clean up */
   MESH_Destroy (msh);
@@ -1238,6 +1268,7 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::rotation[8][i] = vrotation[8];
 
     parmec::mass[i] = (mass == 0.0 ? 1.0 : mass);
+    parmec::invm[i] = 1.0/parmec::mass[i];
 
     parmec::inertia[0][i] = vinertia[0];
     parmec::inertia[4][i] = vinertia[1];
@@ -1245,6 +1276,20 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::inertia[1][i] = parmec::inertia[3][i] = vinertia[3];
     parmec::inertia[2][i] = parmec::inertia[6][i] = vinertia[4];
     parmec::inertia[5][i] = parmec::inertia[7][i] = vinertia[5];
+
+    REAL J[9] = {parmec::inertia[0][i], parmec::inertia[1][i], parmec::inertia[2][i],
+		 parmec::inertia[3][i], parmec::inertia[4][i], parmec::inertia[5][i],
+		 parmec::inertia[6][i], parmec::inertia[7][i], parmec::inertia[8][i]}, Jiv[9], det;
+    INVERT (J, Jiv, det);
+    parmec::inverse[0][i] = Jiv[0];
+    parmec::inverse[1][i] = Jiv[1];
+    parmec::inverse[2][i] = Jiv[2];
+    parmec::inverse[3][i] = Jiv[3];
+    parmec::inverse[4][i] = Jiv[4];
+    parmec::inverse[5][i] = Jiv[5];
+    parmec::inverse[6][i] = Jiv[6];
+    parmec::inverse[7][i] = Jiv[7];
+    parmec::inverse[8][i] = Jiv[8];
   }
   else /* redefine an existing particle as analytical */
   {
@@ -1281,7 +1326,11 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::rotation[8][i] = vrotation[8];
     }
 
-    if (mass > 0.0) parmec::mass[i] = mass;
+    if (mass > 0.0)
+    {
+      parmec::mass[i] = mass;
+      parmec::invm[i] = 1.0/parmec::mass[i];
+    }
 
     if (inertia)
     {
@@ -1291,6 +1340,20 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::inertia[1][i] = parmec::inertia[3][i] = vinertia[3];
       parmec::inertia[2][i] = parmec::inertia[6][i] = vinertia[4];
       parmec::inertia[5][i] = parmec::inertia[7][i] = vinertia[5];
+
+      REAL J[9] = {parmec::inertia[0][i], parmec::inertia[1][i], parmec::inertia[2][i],
+		   parmec::inertia[3][i], parmec::inertia[4][i], parmec::inertia[5][i],
+		   parmec::inertia[6][i], parmec::inertia[7][i], parmec::inertia[8][i]}, Jiv[9], det;
+      INVERT (J, Jiv, det);
+      parmec::inverse[0][i] = Jiv[0];
+      parmec::inverse[1][i] = Jiv[1];
+      parmec::inverse[2][i] = Jiv[2];
+      parmec::inverse[3][i] = Jiv[3];
+      parmec::inverse[4][i] = Jiv[4];
+      parmec::inverse[5][i] = Jiv[5];
+      parmec::inverse[6][i] = Jiv[6];
+      parmec::inverse[7][i] = Jiv[7];
+      parmec::inverse[8][i] = Jiv[8];
     }
   }
 
@@ -1428,7 +1491,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   int spring_lookup = PyList_Size (spring);
 
-  int dashpot_lookup = dashpot ? PyList_Check(dashpot) && PyList_Size (dashpot) : 4;
+  int dashpot_lookup = dashpot &&  PyList_Check(dashpot) ? PyList_Size (dashpot) : 4;
 
   int unload_lookup = unload ? PyList_Size (unload) : 0;
 
@@ -1524,17 +1587,17 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     }
     dashidx[sprnum] = k;
   }
-  else if (PyNumber_Check(dashpot))
+  else if (PyNumber_Check(dashpot)) /* critical damping ratio */
   {
-    REAL factor = PyFloat_AsDouble (dashpot);
-    if (factor < 0.0 || factor > 1.0)
+    REAL ratio = PyFloat_AsDouble (dashpot);
+    if (ratio < 0.0)
     {
-      PyErr_SetString (PyExc_ValueError, "Critical damping factor not in [0.0, 1.0] interval");
+      PyErr_SetString (PyExc_ValueError, "Critical damping ratio not in [0.0, +Inf) interval");
       return NULL;
     }
     k = dashidx[i];
-    parmec::dashpot[0][k] = factor;
-    parmec::dashpot[1][k] = factor;
+    parmec::dashpot[0][k] = ratio;
+    parmec::dashpot[1][k] = ratio;
     dashidx[sprnum] = k+1;
   }
   else /* default zero force */
@@ -1932,67 +1995,34 @@ static PyObject* EQM (PyObject *self, PyObject *args, PyObject *kwds)
   TYPETEST (is_ge_lt (part1, 0, parnum, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple (point2, kwl[3], 3) && is_tuple (direction, kwl[4], 3));
 
-  REAL J[9], invm, A[3], Jiv[9], det, Ask[9], Miv[9], mass;
+  REAL p1[3], p2[3], d[3], *pd = NULL;
 
-  J[0] = parmec::inertia[0][part1];
-  J[1] = parmec::inertia[1][part1];
-  J[2] = parmec::inertia[2][part1];
-  J[3] = parmec::inertia[3][part1];
-  J[4] = parmec::inertia[4][part1];
-  J[5] = parmec::inertia[5][part1];
-  J[6] = parmec::inertia[6][part1];
-  J[7] = parmec::inertia[7][part1];
-  J[8] = parmec::inertia[8][part1];
-  invm = 1.0/parmec::mass[part1];
-  A[0] = parmec::position[3][part1] - PyFloat_AsDouble(PyTuple_GetItem (point1, 0));
-  A[1] = parmec::position[4][part1] - PyFloat_AsDouble(PyTuple_GetItem (point1, 1));
-  A[2] = parmec::position[5][part1] - PyFloat_AsDouble(PyTuple_GetItem (point1, 2));
-  VECSKEW (A, Ask);
-  INVERT (J, Jiv, det);
-  TNMUL(Ask, Jiv, J);
-  NNMUL (J, Ask, Miv);
-  Miv[0] += invm;
-  Miv[4] += invm;
-  Miv[8] += invm;
+  p1[0] = PyFloat_AsDouble(PyTuple_GetItem (point1, 0));
+  p1[1] = PyFloat_AsDouble(PyTuple_GetItem (point1, 1));
+  p1[2] = PyFloat_AsDouble(PyTuple_GetItem (point1, 2));
 
   if (part2 >= 0)
   {
-    TYPETEST (is_ge_lt (part2, 0, parnum, kwl[2]));
+    if (part2 >= parnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Particle number 'part2' is out of range");
+      return NULL;
+    }
 
-    REAL tmp[9];
-
-    J[0] = parmec::inertia[0][part2];
-    J[1] = parmec::inertia[1][part2];
-    J[2] = parmec::inertia[2][part2];
-    J[3] = parmec::inertia[3][part2];
-    J[4] = parmec::inertia[4][part2];
-    J[5] = parmec::inertia[5][part2];
-    J[6] = parmec::inertia[6][part2];
-    J[7] = parmec::inertia[7][part2];
-    J[8] = parmec::inertia[8][part2];
-    invm = 1.0/parmec::mass[part2];
-    A[0] = parmec::position[3][part2] - PyFloat_AsDouble(PyTuple_GetItem (point2, 0));
-    A[1] = parmec::position[4][part2] - PyFloat_AsDouble(PyTuple_GetItem (point2, 1));
-    A[2] = parmec::position[5][part2] - PyFloat_AsDouble(PyTuple_GetItem (point2, 2));
-    VECSKEW (A, Ask);
-    INVERT (J, Jiv, det);
-    TNMUL(Ask, Jiv, J);
-    NNMUL (J, Ask, tmp);
-    tmp[0] += invm;
-    tmp[4] += invm;
-    tmp[8] += invm;
-    NNADD (Miv, tmp, Miv);
+    p2[0] = PyFloat_AsDouble(PyTuple_GetItem (point2, 0));
+    p2[1] = PyFloat_AsDouble(PyTuple_GetItem (point2, 1));
+    p2[2] = PyFloat_AsDouble(PyTuple_GetItem (point2, 2));
   }
 
   if (direction)
   {
-    A[0] = PyFloat_AsDouble(PyTuple_GetItem (direction, 0));
-    A[1] = PyFloat_AsDouble(PyTuple_GetItem (direction, 1));
-    A[2] = PyFloat_AsDouble(PyTuple_GetItem (direction, 2));
-    NVMUL (Miv, A, J);
-    mass = 1.0/DOT(J, A);
+    d[0] = PyFloat_AsDouble(PyTuple_GetItem (direction, 0));
+    d[1] = PyFloat_AsDouble(PyTuple_GetItem (direction, 1));
+    d[2] = PyFloat_AsDouble(PyTuple_GetItem (direction, 2));
+    pd = d;
   }
-  else mass = 1.0/extremum_eigenvalue (Miv, 1);
+
+  REAL mass = ispc::eqm (part1, p1, part2, p2, pd, parmec::inverse, parmec::invm, parmec::position);
 
   return PyFloat_FromDouble (mass);
 }
@@ -2628,12 +2658,78 @@ static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
+/* temporary spring step */
+struct sprstep
+{
+  REAL step;
+  int index;
+  REAL omega;
+  REAL ratio;
+};
+
+/* spring step comparison by step size */
+struct cmp_sprstep
+{
+  bool operator() (const sprstep& a, const sprstep& b)
+  {
+    if (a.step == b.step) return a.index < b.index;
+    else return a.step < b.step;
+  }
+};
+
 /* estimate critical time step */
 static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  REAL h = ispc::critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
+  KEYWORDS ("perspring");
+  int perspring;
 
-  return PyFloat_FromDouble (h);
+  perspring = -1;
+
+  PARSEKEYS ("|i", &perspring);
+
+  if (perspring < -1 || perspring > sprnum)
+  {
+    PyErr_SetString (PyExc_ValueError, "Parameter 'perspring' is out of range");
+    return NULL;
+  }
+
+  if (perspring >= 0)
+  {
+    /* estimate per-spring steps */
+    REAL *hcri = new REAL[sprnum];
+    REAL *ocri = new REAL[sprnum];
+    REAL *rcri = new REAL[sprnum];
+    ispc::critical_perspring (sprnum, sprtype, sprpart, sprpnt, sprdir, spring,
+           spridx, dashpot, dashidx, inverse, invm, position, hcri, ocri, rcri);
+
+    /* sort per-spring steps */
+    std::vector<sprstep> v;
+    v.reserve (sprnum);
+    for (int i = 0; i < sprnum; i ++)
+    {
+      struct sprstep x = {hcri[i], i, ocri[i], rcri[i]};
+      v.push_back(x);
+    }
+    std::sort (v.begin(), v.end(), cmp_sprstep());
+
+    /* create output list */
+    int i = 0;
+    PyObject *out = PyList_New(perspring);
+    for (std::vector<sprstep>::const_iterator p = v.begin(); p != v.end() && i < perspring; ++p, ++i)
+    {
+      PyList_SetItem (out, i, Py_BuildValue ("(d, i, d, d)", p->step, p->index, p->omega, p->ratio));
+    }
+    delete [] hcri;
+    delete [] ocri;
+    delete [] rcri;
+    return out;
+  }
+  else
+  {
+    REAL h = ispc::critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
+
+    return PyFloat_FromDouble (h);
+  }
 }
 
 /* time history output */
@@ -3414,7 +3510,7 @@ static PyMethodDef methods [] =
   {"VELOCITY", (PyCFunction)VELOCITY, METH_VARARGS|METH_KEYWORDS, "Set particle velocity"},
   {"GRAVITY", (PyCFunction)GRAVITY, METH_VARARGS|METH_KEYWORDS, "Set gravity"},
   {"DAMPING", (PyCFunction)DAMPING, METH_VARARGS|METH_KEYWORDS, "Set global damping"},
-  {"CRITICAL", (PyCFunction)CRITICAL, METH_NOARGS, "Estimate critical time step"},
+  {"CRITICAL", (PyCFunction)CRITICAL, METH_VARARGS|METH_KEYWORDS, "Estimate critical time step"},
   {"HISTORY", (PyCFunction)HISTORY, METH_VARARGS|METH_KEYWORDS, "Time history output"},
   {"OUTPUT", (PyCFunction)OUTPUT, METH_VARARGS|METH_KEYWORDS, "Declare output entities"},
   {"DEM", (PyCFunction)DEM, METH_VARARGS|METH_KEYWORDS, "Run DEM simulation"},

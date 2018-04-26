@@ -156,15 +156,6 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
     kmax = max(kspr, kmax);
 
-    uniform REAL espr = 0.0;
-
-    for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
-    {
-      uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
-
-      espr = max(abs(e), espr);
-    }
-
     uniform REAL mspr = 0.0;
     
     if (sprpart[1][j] == -1)
@@ -178,13 +169,31 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
       mspr = 1.0/(im0+im1);
     }
 
-    uniform REAL omega = sqrt(kspr/mspr);
-
-    if (omega > 0.0)
+    if (dashidx[j]+1 == dashidx[j+1]) /* damping ration given directly */
     {
-      uniform REAL ratio = espr / (2*mspr*omega);
+      uniform REAL ratio = dashpot[0][dashidx[j]];
 
       emax = max(ratio, emax);
+    }
+    else /* damping ratio from damping curve */
+    {
+      uniform REAL espr = 0.0;
+
+      for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
+      {
+	uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
+
+	espr = max(abs(e), espr);
+      }
+
+      uniform REAL omega = sqrt(kspr/mspr);
+
+      if (omega > 0.0)
+      {
+	uniform REAL ratio = espr / (2*mspr*omega);
+
+	emax = max(ratio, emax);
+      }
     }
   }
 
@@ -426,3 +435,125 @@ export uniform REAL critical (uniform int ntasks, uniform int parnum, uniform RE
 {
 }
 #endif
+
+/* calculate equivalent relative point mass */
+export uniform REAL eqm (uniform int part1, uniform REAL * uniform point1, uniform int part2, uniform REAL * uniform point2,
+  uniform REAL * uniform direction, uniform REAL * uniform inverse[9], uniform REAL invm[], uniform REAL * uniform position[3])
+{
+  uniform REAL Jiv[9], im, A[3], Ask[9], tmp[9], Miv[9], mass;
+
+  Jiv[0] = inverse[0][part1];
+  Jiv[1] = inverse[1][part1];
+  Jiv[2] = inverse[2][part1];
+  Jiv[3] = inverse[3][part1];
+  Jiv[4] = inverse[4][part1];
+  Jiv[5] = inverse[5][part1];
+  Jiv[6] = inverse[6][part1];
+  Jiv[7] = inverse[7][part1];
+  Jiv[8] = inverse[8][part1];
+  im = invm[part1];
+  A[0] = position[3][part1] - point1[0];
+  A[1] = position[4][part1] - point1[1];
+  A[2] = position[5][part1] - point1[2];
+  VECSKEW (A, Ask);
+  TNMUL(Ask, Jiv, tmp);
+  NNMUL (tmp, Ask, Miv);
+  Miv[0] += im;
+  Miv[4] += im;
+  Miv[8] += im;
+
+  if (part2 >= 0)
+  {
+    Jiv[0] = inverse[0][part2];
+    Jiv[1] = inverse[1][part2];
+    Jiv[2] = inverse[2][part2];
+    Jiv[3] = inverse[3][part2];
+    Jiv[4] = inverse[4][part2];
+    Jiv[5] = inverse[5][part2];
+    Jiv[6] = inverse[6][part2];
+    Jiv[7] = inverse[7][part2];
+    Jiv[8] = inverse[8][part2];
+    im = invm[part2];
+    A[0] = position[3][part2] - point2[0];
+    A[1] = position[4][part2] - point2[1];
+    A[2] = position[5][part2] - point2[2];
+    VECSKEW (A, Ask);
+    TNMUL(Ask, Jiv, tmp);
+    NNMUL (tmp, Ask, Jiv);
+    NNADD (Miv, Jiv, Miv);
+    Miv[0] += im;
+    Miv[4] += im;
+    Miv[8] += im;
+  }
+
+  if (direction && DOT(direction,direction) > 0.0)
+  {
+    NVMUL (Miv, direction, tmp);
+    mass = 1.0/DOT(tmp, direction);
+  }
+  else mass = 1.0/extremum_eigenvalue (Miv, 1);
+
+  return mass;
+}
+
+/* calculate per-spring cirtical time step estimates hcri[], circular frequency ocri[], and damping ratio rcri[]  */
+export void critical_perspring (uniform int sprnum, uniform int sprtype[], uniform int * uniform sprpart[2],
+  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2],
+  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform inverse[9],
+  uniform REAL invm[], uniform REAL * uniform position[3], uniform REAL hcri[], uniform REAL ocri[], uniform REAL rcri[])
+{
+  for (uniform int j = 0; j < sprnum; j ++)
+  {
+    uniform int i = sprpart[0][j], k = sprpart[1][j];
+    uniform REAL pi[3], pk[3], d[3];
+
+    pi[0] = sprpnt[0][3][j];
+    pi[1] = sprpnt[0][4][j];
+    pi[2] = sprpnt[0][5][j];
+
+    pk[0] = sprpnt[1][3][j];
+    pk[1] = sprpnt[1][4][j];
+    pk[2] = sprpnt[1][5][j];
+
+    d[0] = sprdir[0][j];
+    d[1] = sprdir[1][j];
+    d[2] = sprdir[2][j];
+
+    uniform REAL kspr = 0.0;
+
+    for (uniform int i = spridx[j]; i < spridx[j+1]-1; i ++)
+    {
+      uniform REAL k = (spring[1][i+1]-spring[1][i]) / (spring[0][i+1]-spring[0][i]);
+
+      kspr = max(abs(k), kspr);
+    }
+
+    uniform REAL mspr = eqm (i, pi, k, pk, d, inverse, invm, position);
+
+    uniform REAL omega = sqrt(kspr/mspr), ksi = 0.0;
+
+    if (dashidx[j]+1 == dashidx[j+1]) /* damping ration given directly */
+    {
+      ksi = dashpot[0][dashidx[j]];
+    }
+    else /* damping ratio from damping curve */
+    {
+      uniform REAL espr = 0.0;
+
+      for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
+      {
+	uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
+
+	espr = max(abs(e), espr);
+      }
+
+      if (omega > 0.0) ksi = espr / (2*mspr*omega);
+    }
+
+    /* http://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration */
+    if (omega > 0.0) hcri[j] = (2.0/omega)*(sqrt(1.0+ksi*ksi) - ksi);
+    else hcri[j] = 1.0;
+    ocri[j] = omega;
+    rcri[j] = ksi;
+  }
+}

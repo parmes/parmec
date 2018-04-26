@@ -24,16 +24,24 @@ for i in range (0, 10):
 
   prevpar = parnum
 
-SPRING (parnum, (i+1, i+1, i+1), -1, (i+1, i+1, i+1), [-1,-1E7, 1,1E7], 1.0)
+sprnum = SPRING (parnum, (i+1, i+1, i+1), -1, (i+1, i+1, i+1), [-1,-1E7, 1,1E7], 1.0)
 
 GRAVITY (0., 0., -10.)
 
 t = HISTORY ('TIME')
 z = HISTORY ('PZ', parnum)
 
-h = 0.1 * CRITICAL()
+hcri = CRITICAL()
 
-print 'Time step:', h
+print 'Critical time step estimate:', hcri
+
+hlst = CRITICAL(sprnum+1)
+
+print 'Per-spring time step list:', hlst
+
+h = 0.1*hcri
+
+print 'Adopted time step:', h
 
 DEM (10.0, h, (0.05, h))
 

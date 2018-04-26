@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "macros.h"
 #include "condet.h"
+#include "utility.h"
 #include "constants.h"
 
 /* zero force, torque, kmax */
@@ -127,6 +128,8 @@ inline static int granural_force (REAL n[3], REAL vij[3], REAL oij[3], REAL dept
 {
   REAL ma;
 
+  /* TODO: use this mass esitmate only for spherical particles
+           and replace it by eqm for other particle types */
   if (j >= 0) ma = 1.0 / (invm[i] + invm[j]);
   else ma = mass[i];
 
@@ -584,64 +587,6 @@ task void contacts_acc_task (uniform int span, uniform master_conpnt master[], u
   }
 }
 
-/* equivalent relative point mass */
-static uniform REAL eqm (uniform int part1, uniform REAL * uniform point1, uniform int part2, uniform REAL * uniform point2,
-  uniform REAL * uniform direction, uniform REAL * uniform inertia[9], uniform REAL invm[], uniform REAL * uniform position[3])
-{
-  uniform REAL J[9], im, A[3], Jiv[9], det, Ask[9], Miv[9];
-
-  J[0] = inertia[0][part1];
-  J[1] = inertia[1][part1];
-  J[2] = inertia[2][part1];
-  J[3] = inertia[3][part1];
-  J[4] = inertia[4][part1];
-  J[5] = inertia[5][part1];
-  J[6] = inertia[6][part1];
-  J[7] = inertia[7][part1];
-  J[8] = inertia[8][part1];
-  im = invm[part1];
-  A[0] = position[3][part1] - point1[0];
-  A[1] = position[4][part1] - point1[1];
-  A[2] = position[5][part1] - point1[2];
-  VECSKEW (A, Ask);
-  INVERT (J, Jiv, det);
-  TNMUL(Ask, Jiv, J);
-  NNMUL (J, Ask, Miv);
-  Miv[0] += im;
-  Miv[4] += im;
-  Miv[8] += im;
-
-  if (part2 >= 0)
-  {
-    uniform REAL tmp[9];
-
-    J[0] = inertia[0][part2];
-    J[1] = inertia[1][part2];
-    J[2] = inertia[2][part2];
-    J[3] = inertia[3][part2];
-    J[4] = inertia[4][part2];
-    J[5] = inertia[5][part2];
-    J[6] = inertia[6][part2];
-    J[7] = inertia[7][part2];
-    J[8] = inertia[8][part2];
-    im = invm[part2];
-    A[0] = position[3][part2] - point2[0];
-    A[1] = position[4][part2] - point2[1];
-    A[2] = position[5][part2] - point2[2];
-    VECSKEW (A, Ask);
-    INVERT (J, Jiv, det);
-    TNMUL(Ask, Jiv, J);
-    NNMUL (J, Ask, tmp);
-    tmp[0] += im;
-    tmp[4] += im;
-    tmp[8] += im;
-    NNADD (Miv, tmp, Miv);
-  }
-
-  NVMUL (Miv, direction, J);
-  return 1.0/DOT(J, direction);
-}
-
 #if 1
 struct spring_task_args
 {
@@ -669,7 +614,7 @@ struct spring_task_args
   uniform REAL * uniform linear[3];
   uniform REAL * uniform rotation[9];
   uniform REAL * uniform position[6];
-  uniform REAL * uniform inertia[9];
+  uniform REAL * uniform inverse[9];
   uniform REAL * uniform invm;
   uniform REAL * uniform force[3];
   uniform REAL * uniform torque[3];
@@ -710,8 +655,8 @@ task void springs_task (uniform int span, uniform struct spring_task_args * unif
   uniform REAL * uniform rotation[9] = {args->rotation[0], args->rotation[1], args->rotation[2], args->rotation[3],
                                         args->rotation[4], args->rotation[5], args->rotation[6], args->rotation[7], args->rotation[8]};
   uniform REAL * uniform position[6] = {args->position[0], args->position[1], args->position[2], args->position[3], args->position[4], args->position[5]};
-  uniform REAL * uniform inertia[9] = {args->inertia[0], args->inertia[1], args->inertia[2], args->inertia[3], args->inertia[4], args->inertia[5],
-                                       args->inertia[6], args->inertia[7], args->inertia[8]};
+  uniform REAL * uniform inverse[9] = {args->inverse[0], args->inverse[1], args->inverse[2], args->inverse[3], args->inverse[4], args->inverse[5],
+                                       args->inverse[6], args->inverse[7], args->inverse[8]};
   uniform REAL * uniform invm = args->invm;
   uniform REAL * uniform force[3] = {args->force[0], args->force[1], args->force[2]};
   uniform REAL * uniform torque[3] = {args->torque[0], args->torque[1], args->torque[2]};
@@ -729,7 +674,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform int sprflg[], uniform int sproffset[], uniform REAL stroke0[], uniform REAL * uniform stroke[3],
   uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2], uniform int lcidx[],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
-  uniform REAL * uniform position[6], uniform REAL * uniform inertia[9], uniform REAL invm [], 
+  uniform REAL * uniform position[6], uniform REAL * uniform inverse[9], uniform REAL invm [], 
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL * uniform kact[3],
   uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
   uniform REAL time, uniform REAL step, uniform int lock[])
@@ -1089,13 +1034,13 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
       velocity = DOT (z, u);
 
-      if (dashidx[i]+1 == dashidx[i+1]) /* critical damping factor */
+      if (dashidx[i]+1 == dashidx[i+1]) /* critical damping ratio */
       {
-        uniform REAL mass = eqm (j, Yj, k, Yk, z, inertia, invm, position);
+        uniform REAL mass = eqm (j, Yj, k, Yk, z, inverse, invm, position);
 
-	uniform REAL factor = dashpot[0][dashidx[i]];
+	uniform REAL ratio = dashpot[0][dashidx[i]];
 
-        damping = factor * 2.0 * sqrt (step * stiffness * mass); /* critical damping */
+        damping = ratio * 2.0 * sqrt (step * stiffness * mass); /* critical damping */
 
 	dashpot_force = velocity * damping;
       }
@@ -1489,7 +1434,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
 	{angular[0], angular[1], angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]},
 	{rotation[0], rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
 	rotation[8]}, {position[0], position[1], position[2], position[3], position[4], position[5]}, 
-        {inertia[0], inertia[1], inertia[2], inertia[3], inertia[4], inertia[5], inertia[6], inertia[7], inertia[8]},
+        {inverse[0], inverse[1], inverse[2], inverse[3], inverse[4], inverse[5], inverse[6], inverse[7], inverse[8]},
 	invm, {force[0], force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax,
 	emax, {krot[0], krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive};
 
@@ -1497,7 +1442,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
 #else
   launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot,
                    dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, stroke0, stroke, sprfrc, lcurve, lcidx,
-		   angular, linear, rotation, position, inertia, invm, force, torque, kact, kmax, emax, krot, adaptive,
+		   angular, linear, rotation, position, inverse, invm, force, torque, kact, kmax, emax, krot, adaptive,
 		   time, step, lock);
 #endif
   sync;

@@ -1560,8 +1560,8 @@ dashpot
 \begin_inset Formula $\left[\text{velocity}_{1},\text{force}_{1},\text{velocity}_{2},\text{force}_{2},...,\text{velocity}_{m},\text{force}_{m}\right]$
 \end_inset
 
- or a critical damping factor from interval 
-\begin_inset Formula $\left[0,1\right]$
+ or a critical damping ratio from interval 
+\begin_inset Formula $\left[0,+\infty\right)$
 \end_inset
 
 ; default: 
@@ -2788,10 +2788,36 @@ CRITICAL
 
 \begin_layout Standard
 Estimate critical time step.
+ By default this routine returns an estimate in the area of a practical
+ stable step.
+ When run with the optional parameter 
+\begin_inset Formula $\text{perspring}=n$
+\end_inset
+
+ it will return a list of lowest estimates for 
+\begin_inset Formula $n$
+\end_inset
+
+ individual springs.
+ The actual stable time step may be a factor of 
+\begin_inset Formula $\left[0.1,10\right]$
+\end_inset
+
+ away of the returned step, depending on the degree of nonlinearity of the
+ system.
+ 
+\begin_inset CommandInset href
+LatexCommand href
+name "See also"
+target "https://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection*
-h = CRITICAL ()
+h = CRITICAL ( | perspring)
 \end_layout
 
 \begin_layout Itemize
@@ -2799,7 +2825,63 @@ h = CRITICAL ()
 \series bold
 h
 \series default
- - critical time step
+ - critical time step (when run without parameters), or a list 
+\begin_inset Formula $\left[\left(h_{1},i_{1},\omega_{1},\xi_{1}\right),...,\left(h_{n},i_{n},\omega_{n},\xi_{n}\right)\right]$
+\end_inset
+
+ when 
+\series bold
+perspring
+\series default
+ 
+\begin_inset Formula $=n$
+\end_inset
+
+ is used, where 
+\begin_inset Formula $h_{k}$
+\end_inset
+
+ is the per-spring critical time step estimate, 
+\begin_inset Formula $i_{k}$
+\end_inset
+
+ is the spring index, 
+\begin_inset Formula $\omega_{k}$
+\end_inset
+
+ is the maximum spring circular frequency, and 
+\begin_inset Formula $\xi_{k}$
+\end_inset
+
+ is the maximum spring damping ratio
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+perspring
+\series default
+ - optional integer 
+\begin_inset Formula $n$
+\end_inset
+
+ indicating the number of lowest per-spring critical time step estimates;
+ default: undefined
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: include an analogous per-particle option using the calculation of
+ rotational stiffness contribution from DYNA's manual (as currently implemented
+ for the adaptive step control)
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
