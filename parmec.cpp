@@ -1952,7 +1952,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     if (adaptive > 0.0 && adaptive <= 1.0)
     {
-      step1 = determine_time_step (ntasks, parnum, mass, inertia, kact, kmax, emax, krot, step0, adaptive);
+      step1 = adaptive_timestep (ntasks, parnum, mass, inertia, kact, kmax, emax, krot, step0, adaptive);
     }
     else
     {

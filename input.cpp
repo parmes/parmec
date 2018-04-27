@@ -2699,8 +2699,8 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
     REAL *hcri = new REAL[sprnum];
     REAL *ocri = new REAL[sprnum];
     REAL *rcri = new REAL[sprnum];
-    ispc::critical_perspring (sprnum, sprtype, sprpart, sprpnt, sprdir, spring,
-           spridx, dashpot, dashidx, inverse, invm, position, hcri, ocri, rcri);
+    ispc::critical_perspring (sprnum, sprpart, sprpnt, sprdir, spring, spridx,
+                 dashpot, dashidx, inverse, invm, position, hcri, ocri, rcri);
 
     /* sort per-spring steps */
     std::vector<sprstep> v;
