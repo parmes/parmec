@@ -626,7 +626,7 @@ struct spring_task_args
 };
 
 /* update spring foces */
-task void springs_task (uniform int span, uniform struct spring_task_args * uniform args, uniform REAL time, uniform REAL step, uniform int lock[])
+task void springs_task (uniform int span, uniform struct spring_task_args * uniform args, uniform REAL time, uniform int lock[])
 {
   /* workaround to https://github.com/ispc/ispc/issues/1293 */
   uniform int sprnum = args->sprnum;
@@ -677,7 +677,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   uniform REAL * uniform position[6], uniform REAL * uniform inverse[9], uniform REAL invm [], 
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL * uniform kact[3],
   uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
-  uniform REAL time, uniform REAL step, uniform int lock[])
+  uniform REAL time, uniform int lock[])
 {
 #endif
   uniform int start = taskIndex*span;
@@ -1040,7 +1040,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	uniform REAL ratio = dashpot[0][dashidx[i]];
 
-        damping = ratio * 2.0 * sqrt (step * stiffness * mass); /* critical damping */
+        damping = ratio * 2.0 * sqrt (stiffness * mass); /* critical damping */
 
 	dashpot_force = velocity * damping;
       }
@@ -1438,12 +1438,12 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
 	invm, {force[0], force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax,
 	emax, {krot[0], krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive};
 
-  launch [ntasks] springs_task (sprnum/ntasks, &args, time, step, lock);
+  launch [ntasks] springs_task (sprnum/ntasks, &args, time, lock);
 #else
   launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot,
                    dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, stroke0, stroke, sprfrc, lcurve, lcidx,
 		   angular, linear, rotation, position, inverse, invm, force, torque, kact, kmax, emax, krot, adaptive,
-		   time, step, lock);
+		   time, lock);
 #endif
   sync;
 

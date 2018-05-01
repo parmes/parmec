@@ -2799,12 +2799,21 @@ Estimate critical time step.
 \end_inset
 
  individual springs.
+ Similarly, when run with the optional parameter 
+\begin_inset Formula $\text{perparticle}=n$
+\end_inset
+
+ it will return a list of lowest estimates for 
+\begin_inset Formula $n$
+\end_inset
+
+ individual particles.
  The actual stable time step may be a factor of 
 \begin_inset Formula $\left[0.1,10\right]$
 \end_inset
 
- away of the returned step, depending on the degree of nonlinearity of the
- system.
+ away of the returned step (estimated), depending on the degree of nonlinearity
+ of the system.
  
 \begin_inset CommandInset href
 LatexCommand href
@@ -2817,7 +2826,7 @@ target "https://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integratio
 \end_layout
 
 \begin_layout Subsection*
-h = CRITICAL ( | perspring)
+h = CRITICAL ( | perspring, perparticle)
 \end_layout
 
 \begin_layout Itemize
@@ -2837,23 +2846,55 @@ perspring
 \begin_inset Formula $=n$
 \end_inset
 
+ or 
+\series bold
+perparticle
+\series default
+ 
+\begin_inset Formula $=n$
+\end_inset
+
  is used, where 
 \begin_inset Formula $h_{k}$
 \end_inset
 
- is the per-spring critical time step estimate, 
+ is the per-spring/particle critical time step estimate, 
 \begin_inset Formula $i_{k}$
 \end_inset
 
- is the spring index, 
+ is the spring/particle index, 
 \begin_inset Formula $\omega_{k}$
 \end_inset
 
- is the maximum spring circular frequency, and 
+ is the maximum spring/particle circular frequency, and 
 \begin_inset Formula $\xi_{k}$
 \end_inset
 
- is the maximum spring damping ratio
+ is the maximum spring/particle damping ratio; when both parameters 
+\series bold
+perspring
+\series default
+ 
+\begin_inset Formula $=n$
+\end_inset
+
+ and 
+\series bold
+perparticle 
+\begin_inset Formula $=m$
+\end_inset
+
+
+\series default
+ are used, a tuple of two corresponding lists is returned (
+\begin_inset Formula $\left[\left(h_{1},i_{1},\omega_{1},\xi_{1}\right),...,\left(h_{n},i_{n},\omega_{n},\xi_{n}\right)\right]$
+\end_inset
+
+, 
+\begin_inset Formula $\left[\left(h_{1},i_{1},\omega_{1},\xi_{1}\right),...,\left(h_{m},i_{m},\omega_{m},\xi_{m}\right)\right]$
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Itemize
@@ -2869,19 +2910,17 @@ perspring
  default: undefined
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status open
+\begin_layout Itemize
 
-\begin_layout Plain Layout
-TODO: include an analogous per-particle option using the calculation of
- rotational stiffness contribution from DYNA's manual (as currently implemented
- for the adaptive step control)
-\end_layout
-
+\series bold
+perparticle
+\series default
+ - optional integer 
+\begin_inset Formula $n$
 \end_inset
 
-
+ indicating the number of lowest per-particle critical time step estimates;
+ default: undefined
 \end_layout
 
 \begin_layout Section

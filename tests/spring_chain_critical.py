@@ -4,6 +4,9 @@ matnum = MATERIAL (1E3, 1E9, 0.25)
 
 prevpar = -1
 
+dratio0 = 1./2.**0.5 # these values are hand picked so that per-particle
+dratio1 = 0.5 # damping ratios are equal to 1.0
+
 for i in range (0, 10):
   nodes = [i, i, i,
 	   i+1, i, i,
@@ -20,11 +23,11 @@ for i in range (0, 10):
 
   parnum = MESH (nodes, elements, matnum, colors)
 
-  if i: SPRING (parnum, (i, i, i), prevpar, (i, i, i), [-1,-1E7, 1,1E7], 1.0)
+  if i: SPRING (parnum, (i, i, i), prevpar, (i, i, i), [-1,-1E7, 1,1E7], dratio0)
 
   prevpar = parnum
 
-sprnum = SPRING (parnum, (i+1, i+1, i+1), -1, (i+1, i+1, i+1), [-1,-1E7, 1,1E7], 1.0)
+sprnum = SPRING (parnum, (i+1, i+1, i+1), -1, (i+1, i+1, i+1), [-1,-1E7, 1,1E7], dratio1)
 
 GRAVITY (0., 0., -10.)
 
@@ -35,11 +38,12 @@ hcri = CRITICAL()
 
 print 'Critical time step estimate:', hcri
 
-hlst = CRITICAL(sprnum+1)
+(hslst, hplst) = CRITICAL(sprnum+1, parnum)
 
-print 'Per-spring time step list:', hlst
+print 'Per-spring time step list:', hslst
+print 'Per-particle time step list:', hplst
 
-h = 0.1*hcri
+h = hplst[0][0]
 
 print 'Adopted time step:', h
 

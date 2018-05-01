@@ -2658,8 +2658,8 @@ static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
   Py_RETURN_NONE;
 }
 
-/* temporary spring step */
-struct sprstep
+/* temporary critical step */
+struct cristep
 {
   REAL step;
   int index;
@@ -2668,9 +2668,9 @@ struct sprstep
 };
 
 /* spring step comparison by step size */
-struct cmp_sprstep
+struct cmp_cristep
 {
-  bool operator() (const sprstep& a, const sprstep& b)
+  bool operator() (const cristep& a, const cristep& b)
   {
     if (a.step == b.step) return a.index < b.index;
     else return a.step < b.step;
@@ -2680,18 +2680,27 @@ struct cmp_sprstep
 /* estimate critical time step */
 static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("perspring");
-  int perspring;
+  KEYWORDS ("perspring", "perparticle");
+  int perspring, perparticle;
 
   perspring = -1;
+  perparticle = -1;
 
-  PARSEKEYS ("|i", &perspring);
+  PARSEKEYS ("|ii", &perspring, &perparticle);
 
   if (perspring < -1 || perspring > sprnum)
   {
     PyErr_SetString (PyExc_ValueError, "Parameter 'perspring' is out of range");
     return NULL;
   }
+
+  if (perparticle < -1 || perparticle > parnum)
+  {
+    PyErr_SetString (PyExc_ValueError, "Parameter 'perparticle' is out of range");
+    return NULL;
+  }
+
+  PyObject *perspringout = NULL;
 
   if (perspring >= 0)
   {
@@ -2703,27 +2712,65 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
                  dashpot, dashidx, inverse, invm, position, hcri, ocri, rcri);
 
     /* sort per-spring steps */
-    std::vector<sprstep> v;
+    std::vector<cristep> v;
     v.reserve (sprnum);
     for (int i = 0; i < sprnum; i ++)
     {
-      struct sprstep x = {hcri[i], i, ocri[i], rcri[i]};
+      struct cristep x = {hcri[i], i, ocri[i], rcri[i]};
       v.push_back(x);
     }
-    std::sort (v.begin(), v.end(), cmp_sprstep());
+    std::sort (v.begin(), v.end(), cmp_cristep());
 
     /* create output list */
     int i = 0;
-    PyObject *out = PyList_New(perspring);
-    for (std::vector<sprstep>::const_iterator p = v.begin(); p != v.end() && i < perspring; ++p, ++i)
+    perspringout = PyList_New(perspring);
+    for (std::vector<cristep>::const_iterator p = v.begin(); p != v.end() && i < perspring; ++p, ++i)
     {
-      PyList_SetItem (out, i, Py_BuildValue ("(d, i, d, d)", p->step, p->index, p->omega, p->ratio));
+      PyList_SetItem (perspringout, i, Py_BuildValue ("(d, i, d, d)", p->step, p->index, p->omega, p->ratio));
     }
     delete [] hcri;
     delete [] ocri;
     delete [] rcri;
-    return out;
   }
+
+  PyObject *perparticleout = NULL;
+
+  if (perparticle >= 0)
+  {
+    /* estimate per-particle steps */
+    REAL *hcri = new REAL[parnum];
+    REAL *ocri = new REAL[parnum];
+    REAL *rcri = new REAL[parnum];
+    ispc::critical_perparticle (ntasks, master, slave, parnum, mass, inertia, invm, inverse,
+                                rotation, position, sprnum, sprflg, sprpart, sprpnt, sprdir,
+				spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, hcri,
+				ocri, rcri);
+
+    /* sort per-particle steps */
+    std::vector<cristep> v;
+    v.reserve (parnum);
+    for (int i = 0; i < parnum; i ++)
+    {
+      struct cristep x = {hcri[i], i, ocri[i], rcri[i]};
+      v.push_back(x);
+    }
+    std::sort (v.begin(), v.end(), cmp_cristep());
+
+    /* create output list */
+    int i = 0;
+    perparticleout = PyList_New(perparticle);
+    for (std::vector<cristep>::const_iterator p = v.begin(); p != v.end() && i < perparticle; ++p, ++i)
+    {
+      PyList_SetItem (perparticleout, i, Py_BuildValue ("(d, i, d, d)", p->step, p->index, p->omega, p->ratio));
+    }
+    delete [] hcri;
+    delete [] ocri;
+    delete [] rcri;
+  }
+
+  if (perspringout && perparticleout) return Py_BuildValue ("(O, O)", perspringout, perparticleout);
+  else if (perspringout) return perspringout;
+  else if (perparticleout) return perparticleout;
   else
   {
     REAL h = ispc::critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);

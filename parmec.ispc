@@ -170,7 +170,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
       mspr = 1.0/(im0+im1);
     }
 
-    if (dashidx[j]+1 == dashidx[j+1]) /* damping ration given directly */
+    if (dashidx[j]+1 == dashidx[j+1]) /* damping ratio given directly */
     {
       uniform REAL ratio = dashpot[0][dashidx[j]];
 
@@ -512,7 +512,7 @@ export void critical_perspring (uniform int sprnum, uniform int * uniform sprpar
 
     uniform REAL omega = sqrt(kspr/mspr), ksi = 0.0;
 
-    if (dashidx[j]+1 == dashidx[j+1]) /* damping ration given directly */
+    if (dashidx[j]+1 == dashidx[j+1]) /* damping ratio given directly */
     {
       ksi = dashpot[0][dashidx[j]];
     }
@@ -652,10 +652,10 @@ task void critical_perparticle_contacts (uniform int span, uniform master_conpnt
 
 /* ciritical per-particle step springs task */
 task void critical_perparticle_springs (uniform int span, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
-  uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6],
-  uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2], uniform int spridx[], uniform REAL * uniform dashpot[2],
-  uniform int dashidx[], uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6],
-  uniform int lock[])
+  uniform REAL * uniform inverse[9], uniform REAL invm[], uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
+  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2], uniform int spridx[],
+  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[],
+  uniform REAL * uniform krot[6], uniform int lock[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
@@ -697,13 +697,13 @@ task void critical_perparticle_springs (uniform int span, uniform REAL * uniform
       xk[2] = position[2][k];
     }
 
-    pi[0] = sprpnt[0][3][j];
-    pi[1] = sprpnt[0][4][j];
-    pi[2] = sprpnt[0][5][j];
+    pi[0] = sprpnt[0][0][j];
+    pi[1] = sprpnt[0][1][j];
+    pi[2] = sprpnt[0][2][j];
 
-    pk[0] = sprpnt[1][3][j];
-    pk[1] = sprpnt[1][4][j];
-    pk[2] = sprpnt[1][5][j];
+    pk[0] = sprpnt[1][0][j];
+    pk[1] = sprpnt[1][1][j];
+    pk[2] = sprpnt[1][2][j];
 
     d[0] = sprdir[0][j];
     d[1] = sprdir[1][j];
@@ -720,7 +720,25 @@ task void critical_perparticle_springs (uniform int span, uniform REAL * uniform
 
     uniform REAL espr = 0.0;
 
-    for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
+    if (dashidx[i]+1 == dashidx[i+1]) /* critical damping ratio */
+    {
+      uniform REAL Pi[3], Pk[3];
+
+      Pi[0] = sprpnt[0][3][j];
+      Pi[1] = sprpnt[0][4][j];
+      Pi[2] = sprpnt[0][5][j];
+
+      Pk[0] = sprpnt[1][3][j];
+      Pk[1] = sprpnt[1][4][j];
+      Pk[2] = sprpnt[1][5][j];
+
+      uniform REAL mass = eqm (i, Pi, k, Pk, d, inverse, invm, position);
+
+      uniform REAL ratio = dashpot[0][dashidx[i]];
+
+      espr = ratio * 2.0 * sqrt (kspr * mass);
+    }
+    else for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++) /* lookup table */
     {
       uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
 
@@ -837,12 +855,12 @@ task void critical_perparticle_springs (uniform int span, uniform REAL * uniform
 export uniform REAL critical_perparticle (uniform int ntasks,
   uniform master_conpnt master[], uniform slave_conpnt slave[],
   uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
-  uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
-  uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
+  uniform REAL invm[], uniform REAL * uniform inverse[9], uniform REAL * uniform rotation[9],
+  uniform REAL * uniform position[6], uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
   uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2],
-  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], 
-  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6],
-  uniform REAL hcri[], uniform REAL ocri[], uniform REAL rcri[])
+  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform kact[3],
+  uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL hcri[],
+  uniform REAL ocri[], uniform REAL rcri[])
 {
   /* process contacts and initialise krot, kact, kmax, emax */
   launch [ntasks] critical_perparticle_contacts (parnum/ntasks, master, slave, parnum,
@@ -852,8 +870,9 @@ export uniform REAL critical_perparticle (uniform int ntasks,
   /* process springs and update krot, kact, kmax, emax */
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
-  launch [ntasks] critical_perparticle_springs (sprnum/ntasks, rotation, position, sprnum, sprflg,
-           sprpart, sprpnt, sprdir, spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, lock);
+  launch [ntasks] critical_perparticle_springs (sprnum/ntasks, rotation, position, inverse,
+                             invm, sprnum, sprflg, sprpart, sprpnt, sprdir, spring, spridx,
+			     dashpot, dashidx, kact, kmax, emax, krot, lock);
   sync;
   delete lock;
 

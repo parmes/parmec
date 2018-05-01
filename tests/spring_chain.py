@@ -35,9 +35,13 @@ hcri = CRITICAL()
 
 print 'Critical time step estimate:', hcri
 
-hlst = CRITICAL(sprnum+1)
+hslst = CRITICAL(perspring=sprnum+1)
 
-print 'Per-spring time step list:', hlst
+print 'Per-spring time step list:', hslst
+
+hplst = CRITICAL(perparticle=parnum)
+
+print 'Per-particle time step list:', hplst
 
 h = 0.1*hcri
 
