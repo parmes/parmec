@@ -2916,6 +2916,10 @@ void output_h5history ()
 	    case HIS_DY:
 	    case HIS_DZ:
 	    case HIS_DL:
+	    case HIS_VX:
+	    case HIS_VY:
+	    case HIS_VZ:
+	    case HIS_VL:
 	    {
 	      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
 	      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
