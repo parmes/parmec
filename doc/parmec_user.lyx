@@ -3611,10 +3611,209 @@ Output files
 \end_layout
 
 \begin_layout Standard
-
-\color red
-(Under development)
+Currently Parmec supports for the following output file formats:
 \end_layout
+
+\begin_layout Itemize
+For spherical 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and ellipsoidal
+\end_layout
+
+\end_inset
+
+ particles:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "LAMMPS"
+target "http://lammps.sandia.gov/doc/dump.html"
+
+\end_inset
+
+ *.dump files 
+\color red
+(under development)
+\color inherit
+; can be viewed with 
+\begin_inset CommandInset href
+LatexCommand href
+name "OVITO"
+target "https://ovito.org/"
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+For mesh based particles, for rigid bodies, for contact points, and for
+ springs:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "*.vtk"
+target "http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf"
+
+\end_inset
+
+ text files; can viewed with 
+\begin_inset CommandInset href
+LatexCommand href
+name "ParaView"
+target "https://www.paraview.org/"
+
+\end_inset
+
+, 
+\begin_inset CommandInset href
+LatexCommand href
+name "OVITO"
+target "https://ovito.org/"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "*.xmf"
+target "http://www.xdmf.org/index.php/XDMF_Model_and_Format"
+
+\end_inset
+
+ binary files; can viewed with 
+\begin_inset CommandInset href
+LatexCommand href
+name "ParaView"
+target "https://www.paraview.org/"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "*.med"
+target "http://www.salome-platform.org/user-section/about/med"
+
+\end_inset
+
+ binary files 
+\color red
+(under development)
+\color inherit
+; can viewed with 
+\begin_inset CommandInset href
+LatexCommand href
+name "Gmsh"
+target "http://gmsh.info/"
+
+\end_inset
+
+, 
+\begin_inset CommandInset href
+LatexCommand href
+name "SALOME"
+target "http://www.salome-platform.org/"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+See also the 
+\begin_inset CommandInset ref
+LatexCommand nameref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+ command for details on outputted entities and file kinds.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Status (as of commit 
+\begin_inset CommandInset href
+LatexCommand href
+name "5ab402d"
+target "https://github.com/tkoziara/parmec/tree/5ab402de99d7970abdb53c27b07d8c0bb4bd56d1"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+The *.dump file format is not fully supported at this point: it can be used
+ to view animated results for spheres, without any output entities.
+ The *.vtk and *.xmf file formats are fairly complete and can be used to view
+ motion of particles as well as time histories of all output fields and
+ entities.
+ The *.med file format currently supports only mesh data (it does not include
+ output for rigid bodies, contact points, and springs).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Note Note
+status open
 
 \begin_layout Chapter
 \begin_inset CommandInset label
@@ -3626,10 +3825,9 @@ name "cha:Output viewers"
 Output viewers
 \end_layout
 
-\begin_layout Standard
+\end_inset
 
-\color red
-(Under development)
+
 \end_layout
 
 \end_body
