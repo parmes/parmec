@@ -45,7 +45,7 @@ ra = float(av[av.index('-ra')+1]) if '-ra' in av else  2.
 # materials
 matnum = MATERIAL (1E3, 1E9, 0.25)
 spring = [-1,-1E6, 1,1E6]
-dashpot = [-1, -1E2, 1, 1E2]
+dratio = 10.
 
 # (nx,ny,nz) array of unit cubes
 iend = nx*ny*nz-1
@@ -78,7 +78,7 @@ for i in datarange:
    for j in [k for k in adj if k < i]:
      q = data[j]
      x = mul(add(p,q),.5)
-     sprnum = SPRING (i, x, j, x, spring, dashpot)
+     sprnum = SPRING (i, x, j, x, spring, dratio)
    progress_bar(i, iend, 'Adding springs:')
 
 # fixed at x-far-end
@@ -89,12 +89,13 @@ for i in datarange[-ny*nz:]:
 GRAVITY (0., 0., -9.8)
 
 # time step
-hc = CRITICAL()
-if st < 0: st = 0.1 * hc
+hc = CRITICAL(perparticle=10)
+if st < 0: st = 0.5 * hc[0][0]
 
 # print out statistics
 print '%dx%dx%d=%d particles and %d springs' % (nx,ny,nz,parnum,sprnum)
-print 'Critical step estimated as %g' % hc
+print '10 lowest-step per-particle tuples (critical step, particle index, circular frequency, damping ratio):'
+print hc
 print 'Running %d steps of size %g:' % (int(du/st),st)
 
 # run simulation

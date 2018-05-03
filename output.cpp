@@ -2794,16 +2794,16 @@ static double* h5read (hid_t h5_step, const char *name, int *size)
    * it passes for names being substrings of dataset names;
    * hence the below workaround */
 
-  hsize_t num;
+  hsize_t cur, num;
   char buf[128];
   H5Gget_num_objs (h5_step, &num);
-  for (num--; num>0; num--)
+  for (cur = 0; cur < num; cur ++)
   {
-    H5Gget_objname_by_idx (h5_step, num, buf, 128);
+    H5Gget_objname_by_idx (h5_step, cur, buf, 128);
     if (strcmp (buf, name) == 0) break;
   }
 
-  if (num)
+  if (cur < num)
   {
     int rank;
     H5LTget_dataset_ndims (h5_step, name, &rank);
@@ -2916,28 +2916,19 @@ void output_h5history ()
 	    case HIS_DY:
 	    case HIS_DZ:
 	    case HIS_DL:
-	    case HIS_VX:
-	    case HIS_VY:
-	    case HIS_VZ:
-	    case HIS_VL:
 	    {
 	      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
 	      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
-	      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
-	      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
 	      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
 	      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
-	      REAL v[3] = {LINVEL[k*3], LINVEL[k*3+1], LINVEL[k*3+2]};
-	      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
 	      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
 			   ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
 			   ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
 	      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
-	      REAL Q[3], p[3], a[3];
+	      REAL Q[3], p[3];
 
 	      SUB (P, X, Q);
 	      NVADDMUL (x, L, Q, p);
-	      SUB (p, x, a);
 
 	      switch (hisent[i])
 	      {
@@ -2968,6 +2959,34 @@ void output_h5history ()
 		value = LEN(q);
 	      }
 	      break;
+	      }
+	    }
+	    break;
+	    case HIS_VX:
+	    case HIS_VY:
+	    case HIS_VZ:
+	    case HIS_VL:
+	    {
+	      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+	      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
+	      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+	      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+	      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
+	      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
+	      REAL v[3] = {LINVEL[k*3], LINVEL[k*3+1], LINVEL[k*3+2]};
+	      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
+	      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
+			   ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
+			   ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
+	      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
+	      REAL Q[3], p[3], a[3];
+
+	      SUB (P, X, Q);
+	      NVADDMUL (x, L, Q, p);
+	      SUB (p, x, a);
+
+	      switch (hisent[i])
+	      {
 	      case HIS_VX:
 		value = v[0] + a[1]*o[2] - a[2]*o[1];
 	      break;
