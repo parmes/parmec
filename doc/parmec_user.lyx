@@ -3666,7 +3666,7 @@ target "http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf"
 
 \end_inset
 
- text files; can viewed with 
+ text files; can be viewed with 
 \begin_inset CommandInset href
 LatexCommand href
 name "ParaView"
@@ -3693,7 +3693,7 @@ target "http://www.xdmf.org/index.php/XDMF_Model_and_Format"
 
 \end_inset
 
- binary files; can viewed with 
+ binary files; can be viewed with 
 \begin_inset CommandInset href
 LatexCommand href
 name "ParaView"
@@ -3716,7 +3716,7 @@ target "http://www.salome-platform.org/user-section/about/med"
 \color red
 (under development)
 \color inherit
-; can viewed with 
+; can be viewed with 
 \begin_inset CommandInset href
 LatexCommand href
 name "Gmsh"
