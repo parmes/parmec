@@ -3107,7 +3107,11 @@ Before running a simulation, define scalar and/or vector entities included
 \end_layout
 
 \begin_layout Itemize
-*.dump files for spherical 
+*0.dump 
+\color red
+(under development)
+\color inherit
+ files for spherical 
 \begin_inset Note Note
 status open
 
@@ -3117,7 +3121,35 @@ and elliptical
 
 \end_inset
 
- particles
+ particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1.dump, *2.dump, ...
+ 
+\color red
+(under development)
+\color inherit
+ files for spherical 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and elliptical
+\end_layout
+
+\end_inset
+
+ particles specified as subsets, where numbers 1, 2, ...
+ match consecutive OUTPUT calls
 \end_layout
 
 \begin_layout Itemize
@@ -3445,12 +3477,28 @@ and ellipsoid
 format
 \series default
  - optional output format, e.g.
- 'VTK' or 'XDMF' or 'MED' 
+ 'DUMP' 
+\color red
+(experimental/under development)
+\color inherit
+ or 'VTK' or 'XDMF' or 'MED' 
 \color red
 (experimental/under development)
 \color inherit
 , or a list, e.g.
- ['VTK', 'XDMF', 'MED'], where 'VTK' is the text based legacy 
+ ['DUMP', 'VTK', 'XDMF', 'MED'], where 'DUMP' is the text based 
+\begin_inset CommandInset href
+LatexCommand href
+name "LAMMPS format"
+target "http://lammps.sandia.gov/doc/dump.html"
+
+\end_inset
+
+ 
+\color red
+(experimental/under development)
+\color inherit
+, 'VTK' is the text based legacy 
 \begin_inset CommandInset href
 LatexCommand href
 name "VTK format"
@@ -3639,7 +3687,7 @@ target "http://lammps.sandia.gov/doc/dump.html"
 
  *.dump files 
 \color red
-(under development)
+(experimental/under development)
 \color inherit
 ; can be viewed with 
 \begin_inset CommandInset href
@@ -3796,8 +3844,8 @@ target "https://github.com/tkoziara/parmec/tree/5ab402de99d7970abdb53c27b07d8c0b
 \end_layout
 
 \begin_layout Plain Layout
-The *.dump file format is not fully supported at this point: it can be used
- to view animated results for spheres, without any output entities.
+The *.dump file format is partially supported at this point: it can be used
+ to view animated results for spheres, including some of the output entities.
  The *.vtk and *.xmf file formats are fairly complete and can be used to view
  motion of particles as well as time histories of all output fields and
  entities.

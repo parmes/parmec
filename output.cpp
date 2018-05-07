@@ -46,6 +46,98 @@ static med_idt med_fid = (med_idt)-1;
 using namespace parmec;
 using namespace std;
 
+/* output dump dataset of spheres and ellipsoids */
+static void output_dump_dataset (int num, int *set, int ent, ofstream &out)
+{
+  int i, j, k;
+
+  out << "ITEM: TIMESTEP\n";
+  out << curtime << "\n";
+  out << "ITEM: NUMBER OF ATOMS\n";
+  out << num << "\n";
+  out << "ITEM: BOX BOUNDS\n";
+  out << "0 1\n";
+  out << "0 1\n";
+  out << "0 1\n";
+  out << "ITEM: ATOMS id x y z radius";
+  if (ent & OUT_LINVEL) out << " vx vy vz";
+  if (ent & OUT_ANGVEL) out << " omegax omegay omegaz";
+  if (ent & OUT_FORCE) out << " fx fy fz";
+  if (ent & OUT_TORQUE) out << " tqx tqy tqz";
+  out << "\n";
+
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+
+    k = part[j];
+
+    out << j+1 << " " << center[0][j] << " " << center[1][j] << " " << center[2][j] << " " <<  radii[0][j];
+
+    if (ent & OUT_LINVEL) out << " " << linear[0][k] << " " << linear[1][k] << " " << linear[2][k];
+
+    if (ent & OUT_ANGVEL) out << " " << angular[0][k] << " " << angular[1][k] << " " << angular[2][k];
+
+    if (ent & OUT_FORCE) out << " " << force[0][k] << " " << force[1][k] << " " << force[2][k];
+
+    if (ent & OUT_TORQUE) out << " " << torque[0][k] << " " << torque[1][k] << " " << torque[2][k];
+
+    out << "\n";
+  }
+
+  /* NUMBER is already handled by the 'id' */
+
+  /* TODO: handle the below by means of d_name fields */
+
+#if 0
+  if (ent & OUT_DISPL)
+  {
+    out << "VECTORS DISPL float\n";
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL d[3] = {position[0][j]-position[3][j],
+                   position[1][j]-position[4][j],
+		   position[2][j]-position[5][j]};
+
+      out << d[0] << " " << d[1] << " " << d[2] << "\n";
+    }
+  }
+
+  if (ent & OUT_ORIENT1)
+  {
+    out << "VECTORS ORIENT1 float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << rotation[0][j] << " " << rotation[1][j] << " " << rotation[2][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_ORIENT2)
+  {
+    out << "VECTORS ORIENT2 float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << rotation[3][j] << " " << rotation[4][j] << " " << rotation[5][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_ORIENT3)
+  {
+    out << "VECTORS ORIENT3 float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << rotation[6][j] << " " << rotation[7][j] << " " << rotation[8][j] << "\n";
+    }
+  }
+#endif
+}
+
 /* output vtk dataset of rigid body data */
 static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
 {
@@ -1399,6 +1491,42 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 }
 #endif
 
+/* find ellipsoids belonging to a particle set [part0, part1) */
+static int find_ellipsoid_set (int *part0, int *part1, int *ellipsoids)
+{
+  int num = 0;
+
+  for (int *p = part0; p < part1; p ++)
+  {
+    int s = 0, e = ellnum, i, j;
+
+    while (s < e)
+    {
+      i = (s+e)/2;
+
+      j = part[i];
+
+      if (j == *p) break;
+      else if (j < *p) s = i;
+      else e = i;
+    }
+
+    if (j == *p)
+    {
+      while (i > 0 && part[i-1] == j) i --; /* find start of range */
+
+      while (i < ellnum && part[i] == j)
+      {
+	ellipsoids[num] = i;
+	num ++;
+	i ++;
+      }
+    }
+  }
+
+  return num;
+}
+
 /* find triangles belonging to a particle set [part0, part1) */
 static int find_triangle_set (int *part0, int *part1, int *triangles)
 {
@@ -2034,7 +2162,7 @@ static void output_xdmf_files ()
 
   if (parnum)
   {
-    int i, j, num, ent, *set, *pset; /* number of and the of unselected particles */
+    int i, j, num, ent, *set, *pset; /* number of and the set of unselected particles */
 
     ERRMEM (set = new int[parnum]);
 
@@ -2264,7 +2392,7 @@ static void output_vtk_files ()
 
   if (parnum)
   {
-    int num, *set; /* number of and the of unselected particles */
+    int num, *set; /* number of and the set of unselected particles */
 
     ERRMEM (set = new int[parnum]);
 
@@ -2458,39 +2586,66 @@ static void output_med_files ()
 }
 #endif
 
+/* output *?.dump files */
+static void output_dump_files ()
+{
+  ostringstream oss;
+  ofstream out;
+  int i, j;
+
+  if (ellnum)
+  {
+    int num, *set; /* number of and the set of unselected ellipsoids */
+
+    ERRMEM (set = new int[ellnum]);
+
+    for (j = -1; j < outnum; j ++)
+    {
+      if (j < 0 && (outrest[1] & OUT_MODE_SPH)) /* output unselected particles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << output_path << j+1 << ".dump";
+	if (output_frame) out.open (oss.str().c_str(), ios::app);
+	else out.open (oss.str().c_str());
+
+	for (num = i = 0; i < ellnum; i ++)
+	{
+	  if (flags[part[i]] & OUTREST)
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+	output_dump_dataset (num, set, outrest[0], out);
+
+        out.close();
+      }
+      else if (outmode[j] & OUT_MODE_SPH) /* output selected particles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << output_path << j+1 << ".dump";
+	if (output_frame) out.open (oss.str().c_str(), ios::app);
+	else out.open (oss.str().c_str());
+
+	num = find_ellipsoid_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+
+	output_dump_dataset (num, set, outent[j], out);
+
+
+        out.close();
+      }
+    }
+
+    delete [] set;
+  }
+}
+
 /* runtime file output */
 void output_files ()
 {
-  if (ellnum)
-  {
-    ostringstream oss;
-    ofstream out;
-    int i;
-
-    oss.str("");
-    oss.clear();
-    oss << output_path << ".dump";
-    if (output_frame) out.open (oss.str().c_str(), ios::app);
-    else out.open (oss.str().c_str());
-
-    out << "ITEM: TIMESTEP\n";
-    out << curtime << "\n";
-    out << "ITEM: NUMBER OF ATOMS\n";
-    out << ellnum << "\n";
-    out << "ITEM: BOX BOUNDS\n";
-    out << "0 1\n";
-    out << "0 1\n";
-    out << "0 1\n";
-    out << "ITEM: ATOMS id x y z radius\n";
-    for (i = 0; i < ellnum; i ++)
-    {
-      out << i+1 << " " << center[0][i] << " " << center[1][i] << " " << center[2][i] << " " <<  radii[0][i] << "\n";
-    }
-
-    out.close();
-
-    /* TODO --> include output entities and subsets */
-  }
+  if (outformat & OUT_FORMAT_DUMP) output_dump_files();
 
   if (outformat & OUT_FORMAT_VTK) output_vtk_files();
 

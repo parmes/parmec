@@ -3352,7 +3352,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
   {
     if (PyString_Check (format))
     {
-      IFIS (format, "VTK")
+      IFIS (format, "DUMP")
+      {
+	parmec::outformat = OUT_FORMAT_DUMP;
+      }
+      ELIF (format, "VTK")
       {
 	parmec::outformat = OUT_FORMAT_VTK;
       }
@@ -3378,7 +3382,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	PyObject *item = PyList_GetItem (format, j);
 
-	IFIS (item, "VTK")
+	IFIS (item, "DUMP")
+	{
+	  parmec::outformat |= OUT_FORMAT_DUMP;
+	}
+	ELIF (item, "VTK")
 	{
 	  parmec::outformat |= OUT_FORMAT_VTK;
 	}

@@ -59,6 +59,9 @@ hcrit = CRITICAL()
 step = ratio * hcrit
 print 'Critical time step: %.2e' % hcrit
 
+# output format
+OUTPUT (format = ['DUMP', 'VTK'])
+
 # run simulation
 print 'Running', int(stop/step), 'DEM steps of size %.2e' % step, '...'
 t = DEM (stop, step, 0.02)

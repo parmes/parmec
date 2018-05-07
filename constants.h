@@ -45,7 +45,7 @@ enum {HIS_PX, HIS_PY, HIS_PZ, HIS_PL, HIS_DX, HIS_DY, HIS_DZ, HIS_DL,
       HIS_FX, HIS_FY, HIS_FZ, HIS_FL, HIS_TX, HIS_TY, HIS_TZ, HIS_TL, 
       HIS_LENGTH, HIS_STROKE, HIS_STF, HIS_SF, HIS_SS, HIS_TIME}; /* history entities */
 
-enum {OUT_FORMAT_VTK = 1, OUT_FORMAT_XDMF = 2, OUT_FORMAT_MED = 4}; /* output format */
+enum {OUT_FORMAT_DUMP = 1, OUT_FORMAT_VTK = 2, OUT_FORMAT_XDMF = 4, OUT_FORMAT_MED = 8}; /* output format */
 
 enum {OUT_MODE_SPH = 1, OUT_MODE_MESH = 2, OUT_MODE_RB = 4, OUT_MODE_CD = 8, OUT_MODE_SD = 16}; /* output modes */
 
