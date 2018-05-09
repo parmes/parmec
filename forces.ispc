@@ -409,12 +409,16 @@ task void contacts_task (uniform int span, uniform master_conpnt master[], unifo
 /* look up table based linear spline interpolation */
 static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform slope)
 {
+  uniform int h0 = hi;
+
   while (hi > lo+1)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[0][mid]) lo = mid;
     else hi = mid;
   }
+
+  if (lo+1 == h0) lo --; /* right limit reached: extrapolate last interval */
 
   *slope = (tab[1][lo+1]-tab[1][lo])/(tab[0][lo+1]-tab[0][lo]);
 
@@ -424,12 +428,16 @@ static inline uniform REAL look_up (uniform REAL * uniform tab[2], uniform int l
 /* look up table based linear spline slope based on (x,y)-search (i == 0 -> x; i == 1 -> y) */
 static inline uniform REAL look_up_slope (uniform int i, uniform REAL * uniform tab[2], uniform int lo, uniform int hi, uniform REAL arg, uniform REAL * uniform at)
 {
+  uniform int h0 = hi;
+
   while (hi > lo+1)
   {
     uniform int mid = lo + (hi-lo)/2;
     if (arg > tab[i][mid]) lo = mid;
     else hi = mid;
   }
+
+  if (lo+1 == h0) lo --; /* right limit reached: extrapolate last interval */
 
   if (at)
   {

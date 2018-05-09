@@ -1571,6 +1571,11 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   {
     REAL stroke = PyFloat_AsDouble(PyList_GetItem(spring,2*j));
     REAL force = PyFloat_AsDouble(PyList_GetItem(spring,2*j+1));
+    if (j && stroke <= parmec::spring[0][k-1])
+    {
+      PyErr_SetString (PyExc_ValueError, "Spring stroke values must increase");
+      return NULL;
+    }
     parmec::spring[0][k] = stroke;
     parmec::spring[1][k] = force;
   }
@@ -1582,6 +1587,11 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       REAL velocity = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j));
       REAL force = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j+1));
+      if (j && velocity <= parmec::dashpot[0][k-1])
+      {
+	PyErr_SetString (PyExc_ValueError, "Dashpot velocity values must increase");
+	return NULL;
+      }
       parmec::dashpot[0][k] = velocity;
       parmec::dashpot[1][k] = force;
     }

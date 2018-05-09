@@ -17,7 +17,7 @@ colors = [1, 4, 0, 1, 2, 3, 2, 4, 4, 5, 6, 7, 3]
 
 parnum = MESH (nodes, elements, matnum, colors)
 
-spring = [0, 0, -1, 0, -2, -1E7]
+spring = [0, 0, 1, 0, 2, 1E7]
 dashpot = [-1, -8E5, 1, 8E5]
 
 SPRING (parnum, (0, 0, 1), -1, (0, 0, 0), spring, dashpot, direction=(0, 0, 1))
