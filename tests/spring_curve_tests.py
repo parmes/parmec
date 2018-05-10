@@ -53,7 +53,7 @@ for irow in range(0,nrow):
     g1 = interp1d(x,f)
     dgok = True
     eps = 0.1
-    for w in np.arange(-1.,x[-1],h):
+    for w in np.arange(-1.,x[-1]-h,h):
      dg = abs(g0(w)-g1(w))
      if dg > eps*h:
        print '|input(%g)-output(%g)|=|(%g)-(%g)|=%g > 0.1*h (=%g*%g=%g)' % (w, w, g0(w), g1(w), dg, eps, h, eps*h)

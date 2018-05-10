@@ -43,7 +43,7 @@ hplst = CRITICAL(perparticle=parnum)
 
 print 'Per-particle time step list:', hplst
 
-h = 0.1*hcri
+h = 0.25*hplst[0][0]
 
 print 'Adopted time step:', h
 
