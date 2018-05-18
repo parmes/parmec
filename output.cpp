@@ -465,20 +465,18 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 
-#if 0
   /* write elements */
   if (output_frame == 0)
   {
     std::vector<med_int> conn;
     for (i = 0; i < num; i ++)
     {
-      conn.push_back(i);
+      conn.push_back(i+1);
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
 	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
   }
-#endif
 
   if (ent & OUT_NUMBER)
   {
@@ -903,20 +901,18 @@ static void med_sd_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 
-#if 0
   /* write elements */
   if (output_frame == 0)
   {
     std::vector<med_int> conn;
     for (i = 0; i < num; i ++)
     {
-      conn.push_back(i);
+      conn.push_back(i+1);
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
 	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
   }
-#endif
 
   if (ent & OUT_NUMBER)
   {
