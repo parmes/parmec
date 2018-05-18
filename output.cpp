@@ -515,12 +515,12 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #endif
   }
@@ -859,6 +859,304 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
   }
 }
 
+/* output MED dataset of springs data */
+static void med_sd_dataset (int num, int *set, int ent, med_idt fid)
+{
+  int i, j;
+
+  /* mesh name */
+  char meshName[MED_NAME_SIZE + 1] = "PARMEC mesh";
+
+  if (output_frame == 0)
+  {
+    /* create 3d unstructured mesh */
+    char dtUnit[MED_SNAME_SIZE + 1] = "";
+    char axisName[3 * MED_SNAME_SIZE + 1] = "";
+    char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
+    ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
+	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+
+    /* create family 0 : by default, all mesh entities family number is 0 */
+    ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
+  }
+
+  /* write nodes */
+  {
+    std::vector<med_float> coord;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      coord.push_back(0.5*(sprpnt[0][0][j]+sprpnt[1][0][j]));
+      coord.push_back(0.5*(sprpnt[0][1][j]+sprpnt[1][1][j]));
+      coord.push_back(0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]));
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
+	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+    }
+    else
+    {
+      ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
+	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+    }
+  }
+
+#if 0
+  /* write elements */
+  if (output_frame == 0)
+  {
+    std::vector<med_int> conn;
+    for (i = 0; i < num; i ++)
+    {
+      conn.push_back(i);
+    }
+
+    ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
+	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
+  }
+#endif
+
+  if (ent & OUT_NUMBER)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "number";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "number";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      values.push_back(sprid[j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_DISPL)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "displ";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "displ";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      values.push_back (stroke[0][j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_LENGTH)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "length";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "length";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      REAL q[3] = {sprpnt[1][0][j]-sprpnt[0][0][j],
+		   sprpnt[1][1][j]-sprpnt[0][1][j],
+		   sprpnt[1][2][j]-sprpnt[0][2][j]};
+
+      values.push_back (LEN(q));
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_ORIENT)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "orient";
+    const med_int ncomponent = 3;
+    const char componentName[3*MED_SNAME_SIZE+1] = "orx             ory             orz";
+    const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      values.push_back (sprdir[0][j]);
+      values.push_back (sprdir[1][j]);
+      values.push_back (sprdir[2][j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_F)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "F";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "F";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      values.push_back (sprfrc[0][j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_SF)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "SF";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "SF";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      values.push_back (sprfrc[1][j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_SS)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "SS";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "SS";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      values.push_back (unspring[j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+}
 #endif
 
 /* output vtk dataset of triangles */
@@ -2690,6 +2988,12 @@ static void output_xdmf_files ()
     ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
     ERRMEM (set = new int[sprnum]);
 
+    for (i = 0; i < sprnum; i ++)
+    {
+      MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+      if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
+    }
+
     for (j = -1; j < outnum; j ++)
     {
       num = 0;
@@ -2703,9 +3007,6 @@ static void output_xdmf_files ()
 	  {
 	    set[num ++] = i;
 	  }
-
-	  MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
-	  if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
 	}
 
         ent = outrest[0];
@@ -2897,6 +3198,12 @@ static void output_vtk_files ()
     ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
     ERRMEM (set = new int[sprnum]);
 
+    for (num = i = 0; i < sprnum; i ++)
+    {
+      MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+      if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
+    }
+
     for (j = -1; j < outnum; j ++)
     {
       if (j < 0 && (outrest[1] & OUT_MODE_SD)) /* output springs attached to unselected particles */
@@ -2917,9 +3224,6 @@ static void output_vtk_files ()
 	  {
 	    set[num ++] = i;
 	  }
-
-	  MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
-	  if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
 	}
 
 	output_spring_dataset (num, set, outrest[0], out);
@@ -3069,6 +3373,79 @@ static void output_med_files ()
     }
 
     delete [] set;
+  }
+
+  /* TODO --> *cd.med contact data output */
+
+  if (sprnum)
+  {
+    int i, j, ent, num, *set; /* number of and the set of springs */
+    MAP **map, *item; /* map of springs attached to particles, and iterator */
+    MEM mem;
+
+    MEM_Init (&mem, sizeof (MAP), 1024);
+    ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
+    ERRMEM (set = new int[sprnum]);
+
+    for (i = 0; i < sprnum; i ++)
+    {
+      MAP_Insert (&mem, &map[sprpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+      if (sprpart[1][i] >= 0) MAP_Insert (&mem, &map[sprpart[1][i]], (void*)(long)i, NULL, NULL);
+    }
+
+    for (j = -1; j < outnum; j ++)
+    {
+      num = 0;
+
+      if (j < 0 && (outrest[1] & OUT_MODE_SD)) /* output springs attached to unselected particles */
+      {
+	for (i = 0; i < sprnum; i ++)
+	{
+	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+	  (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+        ent = outrest[0];
+      }
+      else if (outmode[j] & OUT_MODE_SD) /* output springs attached to selected particles */
+      {
+	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+	{
+	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+	  {
+	    set[num ++] = (int)(long)item->key;
+	  }
+	}
+
+	ent = outent[j];
+      }
+
+      if (num) 
+      {
+	if (med_fid_sd < 0)
+	{
+	  oss.str("");
+	  oss.clear();
+	  oss << output_path << j+1 << "sd.med";
+	  med_fid_sd = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+	  ASSERT (med_fid_sd >= 0, "Unable to open file '%s'", oss.str().c_str());
+
+	  oss.str("");
+	  oss.clear();
+	  oss << "PARMEC springs output";
+	  ASSERT(MEDfileCommentWr(med_fid_sd, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+	}
+ 
+	med_sd_dataset (num, set, ent, med_fid_sd);
+      }
+    }
+
+    delete [] set;
+    free (map);
+    MEM_Release (&mem);
   }
 }
 #endif
