@@ -1,0 +1,554 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass book
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\pdf_quoted_options "urlcolor=blue, linkcolor=black"
+\papersize a4paper
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 4cm
+\rightmargin 2cm
+\bottommargin 4cm
+\headheight 2cm
+\headsep 1cm
+\footskip 2cm
+\secnumdepth 2
+\tocdepth 2
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+PARMEC THEORY MANUAL
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Chapter
+Geometry
+\end_layout
+
+\begin_layout Standard
+Symbols:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathcal{B}$
+\end_inset
+
+ particle volume
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\partial\mathcal{B}$
+\end_inset
+
+ particle boundary
+\end_layout
+
+\begin_layout Standard
+Particles:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+
+\series bold
+spheres
+\series default
+ analytical spherical
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+
+\series bold
+meshes
+\series default
+ first order meshes made of tetrahedrons, wedges, pyramids and hexahedrons
+\end_layout
+
+\begin_layout Standard
+Obstacles:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+
+\series bold
+triangles
+\series default
+ sets of triangles moving with a prescribed rigid motion
+\end_layout
+
+\begin_layout Chapter
+Kinematics
+\end_layout
+
+\begin_layout Standard
+Symbols:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\bar{\mathbf{X}}_{i}$
+\end_inset
+
+ particle 
+\begin_inset Formula $i$
+\end_inset
+
+ reference position of mass centre
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\bar{\mathbf{x}}_{i}$
+\end_inset
+
+ particle 
+\begin_inset Formula $i$
+\end_inset
+
+ current position of mass centre
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{\Lambda}_{i}$
+\end_inset
+
+ particle 
+\begin_inset Formula $i$
+\end_inset
+
+ rotation from reference to current frame
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{v}_{i}$
+\end_inset
+
+ particle 
+\begin_inset Formula $i$
+\end_inset
+
+ linear velocity
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{\omega}_{i}$
+\end_inset
+
+ particle 
+\begin_inset Formula $i$
+\end_inset
+
+ angular velocity
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{\Omega}_{i}$
+\end_inset
+
+ particle 
+\begin_inset Formula $i$
+\end_inset
+
+ angular velocity in reference frame
+\end_layout
+
+\begin_layout Standard
+Formulas:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{\omega}=\mathbf{\Lambda}\mathbf{\Omega}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Dynamics
+\end_layout
+
+\begin_layout Standard
+Symbols:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $m$
+\end_inset
+
+ scalar mass
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{J}$
+\end_inset
+
+ inertia tensor in reference frame
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{E}_{0}$
+\end_inset
+
+ Euler tensor
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\rho$
+\end_inset
+
+ mass density
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{t}$
+\end_inset
+
+ surface traction
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{b}$
+\end_inset
+
+ body force
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{m}$
+\end_inset
+
+ resultant torque
+\end_layout
+
+\begin_layout Standard
+Balance of linear momentum:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+m\dot{\mathbf{v}}=\int_{\partial\mathcal{B}}\mathbf{t}da+\int_{\mathcal{B}}\rho\mathbf{b}dv
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+Balance of angular momentum in reference frame:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{J}\dot{\mathbf{\Omega}}+\mathbf{\Omega}\times\mathbf{J}\mathbf{\Omega}=\mathbf{\Lambda}^{T}\mathbf{m}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+Remaining formulas:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{m}=\int_{\partial\mathcal{B}}\left(\mathbf{x}-\bar{\mathbf{x}}\right)\times\mathbf{t}da+\int_{\mathcal{B}}\left(\mathbf{x}-\bar{\mathbf{x}}\right)\times\rho\mathbf{b}dv
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{J}=\mbox{tr}\left(\mathbf{E}_{0}\right)\mathbf{I}-\mathbf{E}_{0}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{E}_{0}=\int_{\mathcal{B}_{0}}\left(\mathbf{X}-\bar{\mathbf{X}}\right)\otimes\left(\mathbf{X}-\bar{\mathbf{X}}\right)\rho_{0}dV
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Springs
+\end_layout
+
+\begin_layout Section
+Angle
+\end_layout
+
+\begin_layout Section
+Follower
+\end_layout
+
+\begin_layout Section
+Fixed direction
+\end_layout
+
+\begin_layout Section
+Planar
+\end_layout
+
+\begin_layout Section
+Plane to point
+\end_layout
+
+\begin_layout Section
+With yield limits
+\end_layout
+
+\begin_layout Section
+With offset history
+\end_layout
+
+\begin_layout Section
+With tangential friction
+\end_layout
+
+\begin_layout Chapter
+Joints
+\end_layout
+
+\begin_layout Section
+Spherical
+\end_layout
+
+\begin_layout Standard
+Defined by:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{p}$
+\end_inset
+
+ coincident point between particles 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $j$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\mathbf{d}_{i}$
+\end_inset
+
+ direction attached to particle 
+\begin_inset Formula $i$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\phi_{\text{lo}}^{k}$
+\end_inset
+
+ lower Euler angle limits 
+\begin_inset Formula $k\in\left\{ 1,2,3\right\} $
+\end_inset
+
+ between particles 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $j$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Formula $\phi_{\text{hi}}^{k}$
+\end_inset
+
+ upper Euler angle limits 
+\begin_inset Formula $k\in\left\{ 1,2,3\right\} $
+\end_inset
+
+ between particles 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $j$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Constraints:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{p}_{i}\left(t\right)=\mathbf{p}_{j}\left(t\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi_{\text{lo}}^{k}\le\text{angle}_{k}\left(\mathbf{\Lambda}_{i}\mathbf{d}_{i},\mathbf{\Lambda}_{j}\mathbf{d}_{i}\right)\le\phi_{\text{hi}}^{k}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Hinge
+\end_layout
+
+\begin_layout Section
+Slider
+\end_layout
+
+\begin_layout Chapter
+Contact
+\end_layout
+
+\begin_layout Chapter
+Time stepping
+\end_layout
+
+\end_body
+\end_document
