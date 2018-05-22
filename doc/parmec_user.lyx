@@ -1451,7 +1451,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, geom2, spring | dashpot, direction,
- planar, unload, ylim, inactive, offset) 
+ planar, unload, ylim, inactive, offset, friction, kskn) 
 \color red
 (experimental)
 \end_layout
@@ -1684,6 +1684,27 @@ ylim
 unload
 \series default
  specified; default: unspecified
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+friction
+\series default
+ - optional tangential friction coefficient; default: 0.0
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+kskn
+\series default
+ - optional ratio of normal to tangential spring and dashpot parameters
+ used when 
+\series bold
+friction
+\series default
+ > 0; default: 0.5
 \end_layout
 
 \begin_layout Standard

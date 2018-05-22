@@ -613,9 +613,12 @@ struct spring_task_args
   uniform REAL * uniform sprdir[6];
   uniform int * uniform sprflg;
   uniform int * uniform sproffset;
+  uniform REAL * uniform sprfric;
+  uniform REAL * uniform sprkskn;
+  uniform REAL * uniform sprsdsp[3];
   uniform REAL * uniform stroke0;
   uniform REAL * uniform stroke[3];
-  uniform REAL * uniform sprfrc[2];
+  uniform REAL * uniform sprfrc[3];
   uniform REAL * uniform lcurve[2];
   uniform int * uniform lcidx;
   uniform REAL * uniform angular[6];
@@ -631,6 +634,7 @@ struct spring_task_args
   uniform REAL * uniform emax;
   uniform REAL * uniform krot[6];
   uniform int adaptive;
+  uniform REAL step;
 };
 
 /* update spring foces */
@@ -653,9 +657,12 @@ task void springs_task (uniform int span, uniform struct spring_task_args * unif
   uniform REAL * uniform sprdir[6] = {args->sprdir[0], args->sprdir[1], args->sprdir[2], args->sprdir[3], args->sprdir[4], args->sprdir[5]};
   uniform int * uniform sprflg = args->sprflg;
   uniform int * uniform sproffset = args->sproffset;
+  uniform REAL * uniform sprfric = args->sprfric;
+  uniform REAL * uniform sprkskn = args->sprkskn;
+  uniform REAL * uniform sprsdsp[3] = {args->sprsdsp[0], args->sprsdsp[1], args->sprsdsp[2]};
   uniform REAL * uniform stroke0 = args->stroke0;
   uniform REAL * uniform stroke[3] = {args->stroke[0], args->stroke[1], args->stroke[2]};
-  uniform REAL * uniform sprfrc[2] = {args->sprfrc[0], args->sprfrc[1]};
+  uniform REAL * uniform sprfrc[3] = {args->sprfrc[0], args->sprfrc[1], args->sprfrc[2]};
   uniform REAL * uniform lcurve[2] = {args->lcurve[0], args->lcurve[1]};
   uniform int * uniform lcidx = args->lcidx;
   uniform REAL * uniform angular[6] = {args->angular[0], args->angular[1], args->angular[2], args->angular[3], args->angular[4], args->angular[5]};
@@ -673,19 +680,21 @@ task void springs_task (uniform int span, uniform struct spring_task_args * unif
   uniform REAL * uniform emax = args->emax;
   uniform REAL * uniform krot[6] = {args->krot[0], args->krot[1], args->krot[2], args->krot[3], args->krot[4], args->krot[5]};
   uniform int adaptive = args->adaptive;
+  uniform REAL step = args->step;
 #else
 /* update spring foces */
 task void springs_task (uniform int span, uniform int sprnum, uniform int sprtype[], uniform int unspring[],
   uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2],
   uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2],
   uniform int unidx[], uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6],
-  uniform int sprflg[], uniform int sproffset[], uniform REAL stroke0[], uniform REAL * uniform stroke[3],
-  uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2], uniform int lcidx[],
+  uniform int sprflg[], uniform int sproffset[], uniform REAL sprfric[], uniform REAL sprkskn[],
+  uniform REAL * uniform sprsdsp[3], uniform REAL stroke0[], uniform REAL * uniform stroke[3],
+  uniform REAL * uniform sprfrc[3], uniform REAL * uniform lcurve[2], uniform int lcidx[],
   uniform REAL * uniform angular[6], uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9],
   uniform REAL * uniform position[6], uniform REAL * uniform inverse[9], uniform REAL invm [], 
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL * uniform kact[3],
   uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
-  uniform REAL time, uniform int lock[])
+  uniform REAL step, uniform REAL time, uniform int lock[])
 {
 #endif
   uniform int start = taskIndex*span;
@@ -723,7 +732,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   /* update spring points and spring forces; update global force and torque */
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
-    uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force;
+    uniform REAL len, inv, velocity, spring_force, dashpot_force, total_force, friction_force;
     uniform REAL Yj[3], Yk[3], p[3], q[3], z[3], w[3], frc[3], trq[3], u[3], a[3], b[3], stiffness, damping;
     uniform int j = sprpart[0][i], k = sprpart[1][i];
 
@@ -1113,6 +1122,61 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
     sprfrc[0][i] = total_force;
     sprfrc[1][i] = spring_force;
 
+    uniform REAL fric = sprfric[i];
+
+    if (fric > 0.0) /* include friction */
+    {
+      uniform REAL us[3] = {u[0] - velocity*z[0],
+                            u[1] - velocity*z[1],
+			    u[2] - velocity*z[2]}; /* tangential velocity */
+
+      if (spring_force == 0.0)
+      {
+	sprsdsp[0][i] = 0.0; /* cancel displacement history */
+	sprsdsp[1][i] = 0.0;
+	sprsdsp[2][i] = 0.0;
+      }
+
+      uniform REAL ds[3] = {sprsdsp[0][i] + us[0]*step,
+                            sprsdsp[1][i] + us[1]*step,
+			    sprsdsp[2][i] + us[2]*step}; /* total tangential displacement */
+
+      uniform REAL kskn = sprkskn[i];
+
+      uniform REAL c0 = kskn * abs(stiffness);
+
+      uniform REAL c1 = spring_force == 0.0 ? 0.0 : kskn * abs(damping);
+      
+      uniform REAL fs[3] = {c0 * ds[0] + c1 * us[0],
+                            c0 * ds[1] + c1 * us[1],
+                            c0 * ds[2] + c1 * us[2]};
+
+      uniform REAL flen = LEN (fs);
+
+      uniform REAL flim = fric*abs(total_force);
+
+      if (flen > flim) /* friction cone cutoff */
+      {
+	uniform REAL coef = flim/flen;
+
+	SCALE (fs, coef);
+
+	sprsdsp[0][i] = 0.0; /* cancel displacement history */
+	sprsdsp[1][i] = 0.0;
+	sprsdsp[2][i] = 0.0;
+      }
+      else
+      {
+	sprsdsp[0][i] = ds[0]; /* store displacement */
+	sprsdsp[1][i] = ds[1];
+	sprsdsp[2][i] = ds[2];
+      }
+
+      sprfrc[2][i] = LEN(fs); /* store friction force magnitude */
+
+      ACC (fs, frc); /* accumulate friction force */
+    }
+
     PRODUCT (a, frc, trq);
 
     if (j0 != j && j0 >= 0) /* global acc previous and local reset current */
@@ -1326,7 +1390,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 }
 
 /* unspring tests task */
-task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform int unspring[], uniform int sprmap[],
+task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[3], uniform int unspring[], uniform int sprmap[],
   uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2],
   uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[], uniform int nfreq[], uniform int unaction[], uniform int activate[],
   uniform int actidx[], uniform int stepnum)
@@ -1407,7 +1471,8 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform spring[2], uniform int spridx[],
   uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform unload[2], uniform int unidx[], 
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform int sproffset[],
-  uniform REAL stroke0[], uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[2], uniform REAL * uniform lcurve[2],
+  uniform REAL sprfric[], uniform REAL sprkskn[], uniform REAL * uniform sprsdsp[3], uniform REAL stroke0[],
+  uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[3], uniform REAL * uniform lcurve[2],
   uniform int lcidx[], uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
   uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
   uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[],
@@ -1438,20 +1503,21 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
 	 {sprpnt[1][0], sprpnt[1][1], sprpnt[1][2], sprpnt[1][3], sprpnt[1][4], sprpnt[1][5]}},
 	{spring[0], spring[1]}, spridx, {dashpot[0], dashpot[1]}, dashidx, {unload[0], unload[1]}, unidx,
 	{yield[0], yield[1]}, {sprdir[0], sprdir[1], sprdir[2], sprdir[3], sprdir[4], sprdir[5]}, sprflg,
-	sproffset, stroke0, {stroke[0], stroke[1], stroke[2]}, {sprfrc[0], sprfrc[1]}, {lcurve[0], lcurve[1]}, lcidx,
-	{angular[0], angular[1], angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]},
-	{rotation[0], rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
+	sproffset, sprfric, sprkskn, {sprsdsp[0], sprsdsp[1], sprsdsp[2]}, stroke0, {stroke[0], stroke[1],
+	stroke[2]}, {sprfrc[0], sprfrc[1], sprfrc[2]}, {lcurve[0], lcurve[1]}, lcidx, {angular[0], angular[1],
+	angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]}, {rotation[0],
+	rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
 	rotation[8]}, {position[0], position[1], position[2], position[3], position[4], position[5]}, 
         {inverse[0], inverse[1], inverse[2], inverse[3], inverse[4], inverse[5], inverse[6], inverse[7], inverse[8]},
 	invm, {force[0], force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax,
-	emax, {krot[0], krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive};
+	emax, {krot[0], krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive, step};
 
   launch [ntasks] springs_task (sprnum/ntasks, &args, time, lock);
 #else
   launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot,
-                   dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, stroke0, stroke, sprfrc, lcurve, lcidx,
-		   angular, linear, rotation, position, inverse, invm, force, torque, kact, kmax, emax, krot, adaptive,
-		   time, lock);
+                   dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfirc, sprkskn, sprsdsp, stroke0,
+		   stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, inverse, invm, force, torque,
+		   kact, kmax, emax, krot, adaptive, step, time, lock);
 #endif
   sync;
 

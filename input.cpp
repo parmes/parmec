@@ -1439,8 +1439,10 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 /* create translational spring constraint */
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar", "unload", "ylim", "inactive", "offset");
+  KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar",
+             "unload", "ylim", "inactive", "offset", "friction", "kskn");
   PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *inactive;
+  double friction = 0.0, kskn = 0.5;
   int part1, part2, offset;
 
   direction = NULL;
@@ -1451,13 +1453,15 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   inactive = Py_False;
   offset = -1; /* unspecified spring stroke offest */
 
-  PARSEKEYS ("iOiOO|OOOOOOi", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar, &unload, &ylim, &inactive, &offset);
+  PARSEKEYS ("iOiOO|OOOOOOidd", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar,
+             &unload, &ylim, &inactive, &offset, &friction, &kskn);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
             is_tuple_or_list_of_tuples (geom2, kwl[3], 3, 2) &&
 	    is_list (spring, kwl[4], 0) && is_list_or_number (dashpot, kwl[5], 0) &&
 	    is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
-	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]));
+	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]) &&
+	    is_non_negative (friction, kwl[12]) && is_positive (kskn, kwl[13]));
 
   if (offset < -1 || offset >= tmsnum)
   {
@@ -1564,6 +1568,11 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   sprflg[i] = 0;
   sproffset[i] = offset < 0 ? offset : lcurve_from_time_series (offset);
+  sprfric[i] = friction;
+  sprkskn[i] = kskn;
+  sprsdsp[0][i] = 0.0;
+  sprsdsp[1][i] = 0.0;
+  sprsdsp[2][i] = 0.0;
 
   int j = 0, k = spridx[i];
 

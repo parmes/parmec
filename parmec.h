@@ -150,9 +150,12 @@ extern REAL *yield[2]; /* spring yield limits: 0 compression and 1 tension */
 extern REAL *sprdir[6]; /* spring direction (0:3 current and 3:6 reference) */
 extern int *sprflg; /* spring flags */
 extern int *sproffset; /* spring stroke offest load curve number */
+extern REAL *sprfric; /* spring tangential friction coefficient */
+extern REAL *sprkskn; /* ratio of normal to tangential spring and dashpot parameters */
+extern REAL *sprsdsp[3]; /* tangential frictional displacement vector */
 extern REAL *stroke0; /* initial spring stroke */
 extern REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
-extern REAL *sprfrc[2]; /* total and spring force magnitude */
+extern REAL *sprfrc[3]; /* total, spring, friction force magnitudes */
 extern int springs_changed; /* spring input data changed flag */
 extern int spring_buffer_size; /* size of the spring constraint buffer */
 extern int spring_lookup_size; /* size of the spring force lookup tables */

@@ -164,9 +164,12 @@ REAL *yield[2]; /* spring yield limits: 0 compression and 1 tension */
 REAL *sprdir[6]; /* spring direction (0:3 current and 3:6 reference) */
 int *sprflg; /* spring flags */
 int *sproffset; /* spring stroke offest load curve number */
+REAL *sprfric; /* spring tangential friction coefficient */
+REAL *sprkskn; /* ratio of normal to tangential spring and dashpot parameters */
+REAL *sprsdsp[3]; /* tangential frictional displacement vector */
 REAL *stroke0; /* initial spring stroke */
 REAL *stroke[3]; /* current stroke: 0 current, 1 total compression, 2 total tension */
-REAL *sprfrc[2]; /* total and spring force magnitude */
+REAL *sprfrc[3]; /* total, spring, friction force magnitudes */
 int springs_changed; /* spring input data changed flag */
 int spring_buffer_size; /* size of the spring constraint buffer */
 int spring_lookup_size; /* size of the spring force lookup tables */
@@ -766,12 +769,18 @@ int spring_buffer_init ()
   sprdir[5] = aligned_real_alloc (spring_buffer_size);
   sprflg = aligned_int_alloc (spring_buffer_size);
   sproffset = aligned_int_alloc (spring_buffer_size);
+  sprfric = aligned_real_alloc (spring_buffer_size);
+  sprkskn = aligned_real_alloc (spring_buffer_size);
+  sprsdsp[0] = aligned_real_alloc (spring_buffer_size);
+  sprsdsp[1] = aligned_real_alloc (spring_buffer_size);
+  sprsdsp[2] = aligned_real_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke[0] = aligned_real_alloc (spring_buffer_size);
   stroke[1] = aligned_real_alloc (spring_buffer_size);
   stroke[2] = aligned_real_alloc (spring_buffer_size);
   sprfrc[0] = aligned_real_alloc (spring_buffer_size);
   sprfrc[1] = aligned_real_alloc (spring_buffer_size);
+  sprfrc[2] = aligned_real_alloc (spring_buffer_size);
 
   sprnum = 0;
   spridx[sprnum] = 0;
@@ -818,12 +827,18 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
     real_buffer_grow(sprdir[5], sprnum, spring_buffer_size);
     integer_buffer_grow(sprflg, sprnum, spring_buffer_size);
     integer_buffer_grow(sproffset, sprnum, spring_buffer_size);
+    real_buffer_grow(sprfric, sprnum, spring_buffer_size);
+    real_buffer_grow(sprkskn, sprnum, spring_buffer_size);
+    real_buffer_grow(sprsdsp[0], sprnum, spring_buffer_size);
+    real_buffer_grow(sprsdsp[1], sprnum, spring_buffer_size);
+    real_buffer_grow(sprsdsp[2], sprnum, spring_buffer_size);
     real_buffer_grow(stroke0, sprnum, spring_buffer_size);
     real_buffer_grow(stroke[0], sprnum, spring_buffer_size);
     real_buffer_grow(stroke[1], sprnum, spring_buffer_size);
     real_buffer_grow(stroke[2], sprnum, spring_buffer_size);
     real_buffer_grow(sprfrc[0], sprnum, spring_buffer_size);
     real_buffer_grow(sprfrc[1], sprnum, spring_buffer_size);
+    real_buffer_grow(sprfrc[2], sprnum, spring_buffer_size);
   }
 
   if (spring_lookup_size < spridx[sprnum] + spring_lookup)
@@ -1502,9 +1517,12 @@ static void sort_springs ()
   REAL *sprdir[6]; /* spring direction */
   int *sprflg; /* spring flags */
   int *sproffset; /* spring stroke offset time series number */
+  REAL *sprfric; /* spring tangential friction coefficient */
+  REAL *sprkskn; /* ratio of normal to tangential spring and dashpot parameters */
+  REAL *sprsdsp[3]; /* tangential frictional displacement vector */
   REAL *stroke0; /* initial spring stroke */
   REAL *stroke[3]; /* current stroke */
-  REAL *sprfrc[2]; /* spring force */
+  REAL *sprfrc[3]; /* spring force */
 
   sprid = aligned_int_alloc (spring_buffer_size);
   sprtype = aligned_int_alloc (spring_buffer_size);
@@ -1542,12 +1560,18 @@ static void sort_springs ()
   sprdir[5] = aligned_real_alloc (spring_buffer_size);
   sprflg = aligned_int_alloc (spring_buffer_size);
   sproffset = aligned_int_alloc (spring_buffer_size);
+  sprfric = aligned_real_alloc (spring_buffer_size);
+  sprkskn = aligned_real_alloc (spring_buffer_size);
+  sprsdsp[0] = aligned_real_alloc (spring_buffer_size);
+  sprsdsp[1] = aligned_real_alloc (spring_buffer_size);
+  sprsdsp[2] = aligned_real_alloc (spring_buffer_size);
   stroke0 = aligned_real_alloc (spring_buffer_size);
   stroke[0] = aligned_real_alloc (spring_buffer_size);
   stroke[1] = aligned_real_alloc (spring_buffer_size);
   stroke[2] = aligned_real_alloc (spring_buffer_size);
   sprfrc[0] = aligned_real_alloc (spring_buffer_size);
   sprfrc[1] = aligned_real_alloc (spring_buffer_size);
+  sprfrc[2] = aligned_real_alloc (spring_buffer_size);
  
   int i = 0;
 
@@ -1583,12 +1607,18 @@ static void sort_springs ()
     sprdir[5][i] = parmec::sprdir[5][x->number];
     sprflg[i] = parmec::sprflg[x->number];
     sproffset[i] = parmec::sproffset[x->number];
+    sprfric[i] = parmec::sprfric[x->number];
+    sprkskn[i] = parmec::sprkskn[x->number];
+    sprsdsp[0][i] = parmec::sprsdsp[0][x->number];
+    sprsdsp[1][i] = parmec::sprsdsp[1][x->number];
+    sprsdsp[2][i] = parmec::sprsdsp[2][x->number];
     stroke0[i] = parmec::stroke0[x->number];
     stroke[0][i] = parmec::stroke[0][x->number];
     stroke[1][i] = parmec::stroke[1][x->number];
     stroke[2][i] = parmec::stroke[2][x->number];
     sprfrc[0][i] = parmec::sprfrc[0][x->number];
     sprfrc[1][i] = parmec::sprfrc[1][x->number];
+    sprfrc[2][i] = parmec::sprfrc[2][x->number];
 
     spridx[i+1] = spridx[i] + parmec::spridx[x->number+1]-parmec::spridx[x->number];
     for (int j = spridx[i], k = parmec::spridx[x->number]; j < spridx[i+1]; j ++, k ++)
@@ -1648,12 +1678,18 @@ static void sort_springs ()
   aligned_real_free (parmec::sprdir[5]);
   aligned_int_free (parmec::sprflg);
   aligned_int_free (parmec::sproffset);
+  aligned_real_free (parmec::sprfric);
+  aligned_real_free (parmec::sprkskn);
+  aligned_real_free (parmec::sprsdsp[0]);
+  aligned_real_free (parmec::sprsdsp[1]);
+  aligned_real_free (parmec::sprsdsp[2]);
   aligned_real_free (parmec::stroke0);
   aligned_real_free (parmec::stroke[0]);
   aligned_real_free (parmec::stroke[1]);
   aligned_real_free (parmec::stroke[2]);
   aligned_real_free (parmec::sprfrc[0]);
   aligned_real_free (parmec::sprfrc[1]);
+  aligned_real_free (parmec::sprfrc[2]);
 
   parmec::sprid = sprid;
   parmec::sprtype = sprtype;
@@ -1691,12 +1727,18 @@ static void sort_springs ()
   parmec::sprdir[5] = sprdir[5];
   parmec::sprflg = sprflg;
   parmec::sproffset = sproffset;
+  parmec::sprfric = sprfric;
+  parmec::sprkskn = sprkskn;
+  parmec::sprsdsp[0] = sprsdsp[0];
+  parmec::sprsdsp[1] = sprsdsp[1];
+  parmec::sprsdsp[2] = sprsdsp[2];
   parmec::stroke0 = stroke0;
   parmec::stroke[0] = stroke[0];
   parmec::stroke[1] = stroke[1];
   parmec::stroke[2] = stroke[2];
   parmec::sprfrc[0] = sprfrc[0];
   parmec::sprfrc[1] = sprfrc[1];
+  parmec::sprfrc[2] = sprfrc[2];
 
 #if 0 /* print spring statistics */
   int j_avg = 0, n_j = 1;
@@ -1939,9 +1981,10 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass, invm, obspnt, obslin,
             obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0, sprnum, sprtype, unspring, sprmap, sprpart, sprpnt,
-	    spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, stroke0, stroke, sprfrc, lcurve,
-	    lcidx, gravity, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0), unsprnum, tsprings,
-	    tspridx, msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx, stepnum, curtime);
+	    spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfric, sprkskn, sprsdsp, stroke0,
+	    stroke, sprfrc, lcurve, lcidx, gravity, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0),
+	    unsprnum, tsprings, tspridx, msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx,
+	    stepnum, curtime);
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 

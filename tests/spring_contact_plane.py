@@ -23,12 +23,12 @@ spring = [-1, 1E7, 0, 0, 1, 0] # spring engages when contact penetration begins
                                # hence force for negative penetration is positive
 			       # to push the point of the other particle away
 
-SPRING (parnum, (0, 0, 1), -1, [(0, 0, 0), (0, 0, 1)], spring, dashpot)
-SPRING (parnum, (1, 0, 1), -1, [(1, 0, 0), (0, 0, 1)], spring, dashpot)
-SPRING (parnum, (1, 1, 1), -1, [(1, 1, 0), (0, 0, 1)], spring, dashpot)
-SPRING (parnum, (0, 1, 1), -1, [(0, 1, 0), (0, 0, 1)], spring, dashpot)
+SPRING (parnum, (0, 0, 1), -1, [(0, 0, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
+SPRING (parnum, (1, 0, 1), -1, [(1, 0, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
+SPRING (parnum, (1, 1, 1), -1, [(1, 1, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
+SPRING (parnum, (0, 1, 1), -1, [(0, 1, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
 
-VELOCITY (parnum, angular=(0.25, 0.5, 0))
+VELOCITY (parnum, linear=(1.0, 1.0, 0.0), angular=(0.25, 0.5, 0))
 
 GRAVITY (0., 0., -10.)
 
