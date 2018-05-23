@@ -1,5 +1,6 @@
-# PARMEC test --> SPRING contact plane test (compare with spring_contact_plane.py)
+# PARMEC test --> SPRING contact plane test (compare with spring_contact_points.py)
 
+# bulk material properties
 matnum = MATERIAL (1E3, 1E9, 0.25)
 
 nodes = [0, 0, 1,
@@ -15,23 +16,27 @@ elements = [8, 0, 1, 2, 3, 4, 5, 6, 7, matnum]
 
 colors = [1, 4, 0, 1, 2, 3, 2, 4, 4, 5, 6, 7, 3]
 
+# single element meshed particle (a cube)
 parnum = MESH (nodes, elements, matnum, colors)
 
 dashpot = [-1, -8E5, 1, 8E5]
 spring = [-1, 1E7, 0, 0, 1, 0] # spring engages when contact penetration begins
-                               # spring orientation is aligned with plane normal
-                               # hence force for negative penetration is positive
-			       # to push the point of the other particle away
+                               # and spring force on paritcle one is aligned with
+                               # the plane normal; hence the negative stroke has
+                               # a positive push force
 
+# four contact springs at cube's base nodes
 SPRING (parnum, (0, 0, 1), -1, [(0, 0, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
 SPRING (parnum, (1, 0, 1), -1, [(1, 0, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
 SPRING (parnum, (1, 1, 1), -1, [(1, 1, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
 sprnum = SPRING (parnum, (0, 1, 1), -1, [(0, 1, 0), (0, 0, 1)], spring, dashpot, friction = 0.1)
 
+# initial translational and rotational velocity
 VELOCITY (parnum, linear=(1.0, 1.0, 0.0), angular=(0.25, 0.5, 1.0))
 
 GRAVITY (0., 0., -10.)
 
+# record time histories while running
 t = HISTORY ('TIME')
 z = HISTORY ('PZ', parnum)
 f = HISTORY ('F', sprnum)
@@ -70,3 +75,5 @@ try:
 except:
   print 't = ', t
   print 'z = ', z
+  print 'f = ', f
+  print 'ff = ', ff
