@@ -1866,7 +1866,8 @@ None
 entity
 \series default
  - scalar spring entity string: (spring stroke) 'STROKE', (spring total
- force) 'STF', (spring force without damping) 'SF', cf.
+ force) 'F', (spring force without damping) 'SF', (spring total friction
+ force) 'FF', cf.
  
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -2982,8 +2983,8 @@ entity
  (linear velocity) 'VX', 'VY', 'VZ', '|V|', (angular velocity) 'OX', 'OY',
  'OZ', '|O|', (body force) 'FX', 'FY', 'FZ', '|F|', (body torque) 'TX',
  'TY', 'TZ', '|T|'; spring entities: (spring length) 'LENGTH', (spring stroke)
- 'STROKE', (spring total force) 'STF', (spring force without damping) 'SF',
- (spring state) 'SS', cf.
+ 'STROKE', (spring total force) 'F', (spring force without damping) 'SF',
+ (spring total friction force) 'FF', (spring state) 'SS', cf.
  Sec 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -3356,7 +3357,7 @@ entities
 \series default
  - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL','LENGTH',
  'ORIENT', 'ORIENT1', 'ORIENT2', 'ORIENT3', 'LINVEL', 'ANGVEL', 'FORCE',
- 'TORQUE', 'F', 'FN', 'FT', 'SF', 'AREA', 'PAIR'] where:
+ 'TORQUE', 'F', 'FN', 'FT', 'SF', 'FF', 'SS', 'AREA', 'PAIR'] where:
 \end_layout
 
 \begin_deeper
@@ -3426,6 +3427,10 @@ entities
 \begin_layout Itemize
 'SF' - scalar field of spring force magnitude, without dashpot contribution
  (modes: 'CD', 'SD')
+\end_layout
+
+\begin_layout Itemize
+'FF' - scalar field of total friction force magnitude (modes: 'CD', 'SD')
 \end_layout
 
 \begin_layout Itemize

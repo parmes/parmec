@@ -1931,13 +1931,17 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       unent[i] = HIS_STROKE;
     }
-    ELIF (entity, "STF") /* total force */
+    ELIF (entity, "F") /* total force */
     {
-      unent[i] = HIS_STF;
+      unent[i] = HIS_F;
     }
     ELIF (entity, "SF") /* elastic force */
     {
       unent[i] = HIS_SF;
+    }
+    ELIF (entity, "FF") /* elastic force */
+    {
+      unent[i] = HIS_FF;
     }
     ELSE
     {
@@ -1972,7 +1976,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else /* default */
   {
-    unent[i] = HIS_SF;
+    unop[i] = OP_SUM;
   }
 
   unabs[i] = abs == Py_True ? 1 : 0;
@@ -2927,14 +2931,19 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     hisent = HIS_STROKE;
     srckind = 1;
   }
-  ELIF (entity, "STF")
+  ELIF (entity, "F")
   {
-    hisent = HIS_STF;
+    hisent = HIS_F;
     srckind = 1;
   }
   ELIF (entity, "SF")
   {
     hisent = HIS_SF;
+    srckind = 1;
+  }
+  ELIF (entity, "FF")
+  {
+    hisent = HIS_FF;
     srckind = 1;
   }
   ELIF (entity, "SS")

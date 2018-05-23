@@ -1120,6 +1120,39 @@ static void med_sd_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 
+  if (ent & OUT_FF)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "FF";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "FF";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      values.push_back (sprfrc[2][j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
   if (ent & OUT_SS)
   {
     const char fieldName[MED_NAME_SIZE+1] = "SS";
@@ -2317,7 +2350,7 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
 	<< 0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]) << "\n";
   }
 
-  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR|OUT_SS))
+  if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR|OUT_SS|OUT_FF))
   {
     out << "POINT_DATA " << num << "\n";
   }
@@ -2389,6 +2422,17 @@ static void output_spring_dataset (int num, int *set, int ent, ofstream &out)
     {
       j = set[i];
       out << sprfrc[1][j] << "\n";
+    }
+  }
+
+  if (ent & OUT_FF)
+  {
+    out << "SCALARS FF float\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << sprfrc[2][j] << "\n";
     }
   }
 
@@ -2499,6 +2543,18 @@ static void h5_spring_dataset (int num, int *set, int ent, hid_t h5_step)
 
     hsize_t length = num;
     ASSERT (H5LTmake_dataset_double (h5_step, "SF", 1, &length, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_FF)
+  {
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      data[i] = sprfrc[2][j];
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_double (h5_step, "FF", 1, &length, data) >= 0, "HDF5 file write error");
   }
 
   if (ent & OUT_SS)
@@ -2790,6 +2846,15 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "<Attribute Name=\"SF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
       fprintf (xmf_file, "%s:/%d/SF\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_FF)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"FF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/FF\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }
@@ -3758,7 +3823,7 @@ void output_history ()
 	    value += stroke[0][l];
 	  }
 	  break;
-	  case HIS_STF:
+	  case HIS_F:
 	  {
 	    int l = sprmap[k];
 	    value += sprfrc[0][l];
@@ -3768,6 +3833,12 @@ void output_history ()
 	  {
 	    int l = sprmap[k];
 	    value += sprfrc[1][l];
+	  }
+	  break;
+	  case HIS_FF:
+	  {
+	    int l = sprmap[k];
+	    value += sprfrc[2][l];
 	  }
 	  break;
 	  case HIS_SS:
@@ -4247,7 +4318,7 @@ void output_h5history ()
 		value += DISPL[l];
 	      }
 	      break;
-	      case HIS_STF:
+	      case HIS_F:
 	      {
 		int l = sprmap[k];
 	        ASSERT (F, "HDF5 file read error: F dataset missing");

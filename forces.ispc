@@ -1161,9 +1161,13 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	SCALE (fs, coef);
 
-	sprsdsp[0][i] = 0.0; /* cancel displacement history */
-	sprsdsp[1][i] = 0.0;
-	sprsdsp[2][i] = 0.0;
+	uniform REAL dl0 = LEN(ds);
+
+	coef = flim/(c0*dl0); /* flim = c0 * dl1 */
+
+	sprsdsp[0][i] = coef*ds[0]; /* scale displacement history */
+	sprsdsp[1][i] = coef*ds[1];
+	sprsdsp[2][i] = coef*ds[2];
       }
       else
       {
@@ -1426,8 +1430,9 @@ task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uni
       switch (en)
       {
       case HIS_STROKE: value = stroke[0][sprmap[tsprings[j]]]; break;
-      case HIS_STF: value = sprfrc[0][sprmap[tsprings[j]]]; break;
+      case HIS_F: value = sprfrc[0][sprmap[tsprings[j]]]; break;
       case HIS_SF: value = sprfrc[1][sprmap[tsprings[j]]]; break;
+      case HIS_FF: value = sprfrc[2][sprmap[tsprings[j]]]; break;
       }
        
       if (ab) value = abs(value);
