@@ -163,6 +163,22 @@ extern int dashpot_lookup_size; /* size of the dashpot force lookup tables */
 extern int unload_lookup_size; /* size of the unload force lookup tables */
 extern void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_lookup); /* grow buffer */
 
+extern int trqsprnum; /* number of torsion springs */
+extern int *trqsprid; /* torsion spring id --> number returned to user */
+extern int *trqsprmap; /* map of torsion spring ids to spring indices */
+extern int *trqsprpart[2]; /* torsion spring particle indices */
+extern REAL *trqzdir[3]; /* torsion spring z reference direction */
+extern REAL *trqxdir[3]; /* torsion spring x reference direction */
+extern REAL *kabg[3][2]; /* kalpha, kbeta, kgamma spring angle-torque lookup tables */
+extern int *kabgidx[3]; /* spring angle-torque lookup start indexes */
+extern REAL *dabg[3][2]; /* dalpha, dbeta, dgamma dashpot ang. velocity-torque lookup tables */
+extern int *dabgidx[3]; /* dalpha, dbeta, dgamma lookup start indexes */
+extern int trqspr_changed; /* torqion spring input changed flag */
+extern int trqspr_buffer_size; /* size of torsion spring constraint buffer */
+extern int kabg_lookup_size[3]; /* size of spring angle-torque lookup tables */
+extern int dabg_lookup_size[3]; /* size of spring ang. velocity-torque lookup tables */
+extern void trqspr_buffer_grow (int kabg_lookup[3], int dabg_lookup[3]); /* grow buffer */
+
 extern int unsprnum; /* number of unspring definitions */
 extern int *tsprings; /* test springs */
 extern int *tspridx; /* test springs index range */

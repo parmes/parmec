@@ -176,6 +176,21 @@ int spring_lookup_size; /* size of the spring force lookup tables */
 int dashpot_lookup_size; /* size of the dashpot force lookup tables */
 int unload_lookup_size; /* size of the unload force lookup tables */
 
+int trqsprnum; /* number of torsion springs */
+int *trqsprid; /* torsion spring id --> number returned to user */
+int *trqsprmap; /* map of torsion spring ids to spring indices */
+int *trqsprpart[2]; /* torsion spring particle indices */
+REAL *trqzdir[3]; /* torsion spring z reference direction */
+REAL *trqxdir[3]; /* torsion spring x reference direction */
+REAL *kabg[3][2]; /* kalpha, kbeta, kgamma spring angle-torque lookup tables */
+int *kabgidx[3]; /* spring angle-torque lookup start indexes */
+REAL *dabg[3][2]; /* dalpha, dbeta, dgamma dashpot ang. velocity-torque lookup tables */
+int *dabgidx[3]; /* dalpha, dbeta, dgamma lookup start indexes */
+int trqspr_changed; /* torqion spring input changed flag */
+int trqspr_buffer_size; /* size of torsion spring constraint buffer */
+int kabg_lookup_size[3]; /* size of spring angle-torque lookup tables */
+int dabg_lookup_size[3]; /* size of spring ang. velocity-torque lookup tables */
+
 int unsprnum; /* number of unspring definitions */
 int *tsprings; /* test springs */
 int *tspridx; /* test springs index range */
@@ -787,6 +802,99 @@ int spring_buffer_init ()
   dashidx[sprnum] = 0;
   unidx[sprnum] = 0;
   springs_changed = 0;
+}
+
+/* init torsion spring buffer */
+int trqspr_buffer_init ()
+{
+  trqspr_buffer_size = 256;
+  kabg_lookup_size[0] = 1024;
+  kabg_lookup_size[1] = 1024;
+  kabg_lookup_size[2] = 1024;
+  dabg_lookup_size[0] = 1024;
+  dabg_lookup_size[1] = 1024;
+  dabg_lookup_size[2] = 1024;
+
+  trqsprid = aligned_int_alloc (trqspr_buffer_size);
+  trqsprmap = aligned_int_alloc (trqspr_buffer_size);
+  trqsprpart[0] = aligned_int_alloc (trqspr_buffer_size);
+  trqsprpart[1] = aligned_int_alloc (trqspr_buffer_size);
+  trqzdir[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqzdir[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqzdir[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqxdir[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqxdir[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqxdir[2] = aligned_real_alloc (trqspr_buffer_size);
+  kabg[0][0] = aligned_real_alloc (kabg_lookup_size[0]);
+  kabg[0][1] = aligned_real_alloc (kabg_lookup_size[0]);
+  kabg[1][0] = aligned_real_alloc (kabg_lookup_size[1]);
+  kabg[1][1] = aligned_real_alloc (kabg_lookup_size[1]);
+  kabg[2][0] = aligned_real_alloc (kabg_lookup_size[2]);
+  kabg[2][1] = aligned_real_alloc (kabg_lookup_size[2]);
+  kabgidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
+  kabgidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
+  kabgidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  dabg[0][0] = aligned_real_alloc (dabg_lookup_size[0]);
+  dabg[0][1] = aligned_real_alloc (dabg_lookup_size[0]);
+  dabg[1][0] = aligned_real_alloc (dabg_lookup_size[1]);
+  dabg[1][1] = aligned_real_alloc (dabg_lookup_size[1]);
+  dabg[2][0] = aligned_real_alloc (dabg_lookup_size[2]);
+  dabg[2][1] = aligned_real_alloc (dabg_lookup_size[2]);
+  dabgidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
+  dabgidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
+  dabgidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+
+  trqsprnum = 0;
+  kabgidx[0][trqsprnum] = 0;
+  kabgidx[1][trqsprnum] = 0;
+  kabgidx[2][trqsprnum] = 0;
+  dabgidx[0][trqsprnum] = 0;
+  dabgidx[1][trqsprnum] = 0;
+  dabgidx[2][trqsprnum] = 0;
+  trqspr_changed = 0;
+}
+
+/* grow torsion spring buffer */
+void trqspr_buffer_grow (int kabg_lookup[3], int dabg_lookup[3])
+{
+  if (trqsprnum+1 >= trqspr_buffer_size)
+  {
+    trqspr_buffer_size *= 2;
+
+    integer_buffer_grow(trqsprid, trqsprnum, trqspr_buffer_size);
+    integer_buffer_grow(trqsprmap, trqsprnum, trqspr_buffer_size);
+    integer_buffer_grow(trqsprpart[0], trqsprnum, trqspr_buffer_size);
+    integer_buffer_grow(trqsprpart[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqzdir[0], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqzdir[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqzdir[2], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqxdir[0], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqxdir[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqxdir[2], trqsprnum, trqspr_buffer_size);
+    integer_buffer_grow(kabgidx[0], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(kabgidx[1], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(kabgidx[2], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(dabgidx[0], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(dabgidx[1], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(dabgidx[2], trqsprnum+1, trqspr_buffer_size+1);
+  }
+
+  for (int i = 0; i < 3; i ++)
+  {
+    if (kabg_lookup_size[i] < kabgidx[i][trqsprnum] + kabg_lookup[i])
+    {
+      kabg_lookup_size[i] = 2 * (kabgidx[i][trqsprnum] + kabg_lookup[i]);
+      real_buffer_grow (kabg[i][0], kabgidx[i][trqsprnum], kabg_lookup_size[i]);
+      real_buffer_grow (kabg[i][1], kabgidx[i][trqsprnum], kabg_lookup_size[i]);
+    }
+
+    if (dabg_lookup_size[i] < dabgidx[i][trqsprnum] + dabg_lookup[i])
+    {
+      dabg_lookup_size[i] = 2 * (dabgidx[i][trqsprnum] + dabg_lookup[i]);
+      real_buffer_grow (dabg[i][0], dabgidx[i][trqsprnum], dabg_lookup_size[i]);
+      real_buffer_grow (dabg[i][1], dabgidx[i][trqsprnum], dabg_lookup_size[i]);
+    }
+  }
 }
 
 /* grow spring buffer */
