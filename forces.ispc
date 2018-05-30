@@ -1393,6 +1393,352 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   }
 }
 
+#if 0
+/* torsion springs task */
+task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * uniform trqsprpart[2],
+  uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform kabg[3][2],
+  uniform int kabgidx[3][], uniform REAL * uniform dabg[3][2], uniform int dabgidx[3][],
+  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3],
+  uniform REAL * uniform trqabg[3], uniform REAL * uniform trqabgtot[3], uniform REAL * uniform trqabgspr[3],
+  uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9], uniform REAL * uniform torque[3],
+  uniform REAL * uniform krot[6], uniform int adaptive, uniform REAL step, uniform REAL time, uniform int lock[])
+{
+  uniform int start = taskIndex*span;
+  uniform int end = taskIndex == taskCount-1 ? trqsprnum: start+span;
+
+  uniform REAL oj[3], Lj[9], ok[3], Lk[9];
+  uniform int j0 = -1, k0 = -1;
+
+  if (start > 0) /* start at trqsprpart[0][] change --> avoid atomic accumulation of torque[][j] below */
+  {
+    for (; start < end && trqsprpart[0][start] == trqsprpart[0][start-1]; start ++);
+  }
+
+  if (end > 0 && end < trqsprnum) /* end at trqsprpart[0][] change --> avoid atomic accumulation of torque[][j] below */
+  {
+    for (; end < trqsprnum && trqsprpart[0][end-1] == trqsprpart[0][end]; end ++);
+  }
+
+  /* TODO --> test --> instead of the above lock also for the j particle (now that local accumulation is used) */
+
+  uniform REAL tj[3], tk[3]; /* local torque accumulation buffers */
+
+  ZERO (tj);
+  ZERO (tk);
+
+  uniform REAL krot_j[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+               krot_k[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  /* update torsion spring points and torques; update global torque */
+  for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
+  {
+    uniform REAL zdir0[3], xdir0[3], ydir0[3], rot1j[9], rot1k[9], rotjk[9];
+    uniform int j = trqsprpart[0][i], k = trqsprpart[1][i];
+
+    if (j0 != j) /* springs are sorted (j,k)-wise --> avoid repeated reads */
+    {
+      oj[0] = angular[3][j];
+      oj[1] = angular[4][j];
+      oj[2] = angular[5][j];
+
+      Lj[0] = rotation[0][j];
+      Lj[1] = rotation[1][j];
+      Lj[2] = rotation[2][j];
+      Lj[3] = rotation[3][j];
+      Lj[4] = rotation[4][j];
+      Lj[5] = rotation[5][j];
+      Lj[6] = rotation[6][j];
+      Lj[7] = rotation[7][j];
+      Lj[8] = rotation[8][j];
+    }
+
+    zdir0[0] = trqzdir0[0][i];
+    zdir0[1] = trqzdir0[1][i];
+    zdir0[2] = trqzdir0[2][i];
+    xdir0[0] = trqxdir0[0][i];
+    xdir0[1] = trqxdir0[1][i];
+    xdir0[2] = trqxdir0[2][i];
+    PRODUCT (zdir0, xdir0, ydir0);
+
+    NVMUL (Lj, xdir0, rot1j);
+    NVMUL (Lj, ydir0, rot1j+3);
+    NVMUL (Lj, zdir0, rot1j+6);
+
+    trqzdir1[0][i] = rot1j[6];
+    trqzdir1[1][i] = rot1j[7];
+    trqzdir1[2][i] = rot1j[8];
+    trqxdir1[0][i] = rot1j[3];
+    trqxdir1[1][i] = rot1j[4];
+    trqxdir1[2][i] = rot1j[5];
+
+    if (k >= 0)
+    {
+      if (k0 != k)
+      {
+	ok[0] = angular[3][k];
+	ok[1] = angular[4][k];
+	ok[2] = angular[5][k];
+
+	Lk[0] = rotation[0][k];
+	Lk[1] = rotation[1][k];
+	Lk[2] = rotation[2][k];
+	Lk[3] = rotation[3][k];
+	Lk[4] = rotation[4][k];
+	Lk[5] = rotation[5][k];
+	Lk[6] = rotation[6][k];
+	Lk[7] = rotation[7][k];
+	Lk[8] = rotation[8][k];
+      }
+    }
+    else
+    {
+      ZERO (ok);
+      IDENTITY (Lk);
+    }
+
+    NVMUL (Lk, xdir0, rot1k);
+    NVMUL (Lk, ydir0, rot1k+3);
+    NVMUL (Lk, zdir0, rot1k+6);
+
+    NTMUL (rot1k, rot1j, rotjk); /* relative rotation from j-corateted system to k-corotated system */
+
+    uniform REAL heading, attitude, bank;
+    uniform REAL alhpa, beta, gamma;
+    uniform REAL kalpha, kbeta, kgamma;
+    uniform REAL trqalpha, trqbeta, trqgamma;
+    uniform REAL oj[3], oabg[3];
+    uniform REAL dalpha, dbeta, dgamma;
+    uniform REAL trqalphadot, trqbetadot, trqgammadot;
+
+    /** this conversion uses conventions as described on page:
+     *   https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
+     *   Coordinate System: right hand
+     *   Positive angle: right hand
+     *   Order of Euler angles: heading first, then attitude, then bank
+     *   matrix row column ordering:
+     *   [m00 m01 m02]
+     *   [m10 m11 m12]
+     *   [m20 m21 m22]
+     *   Assuming the angles are in radians */
+
+    if (rotjk[1] > 1.0-REAL_EPS) /* m10 > 1-epsion --> singularity at north pole */
+    {
+      heading = atan2 (rotjk[6],rotjk[8]); /* atan2(m02,m22) */
+      attitude = ALG_PI/2;
+      bank = 0;
+    }
+    else if (rotjk[1] < -1.0+REAL_EPS) /* m10 < -1+epsilon --> singularity at south pole */
+    {
+      heading = atan2 (rotjk[6],rotjk[8]); /* atan2(m02,m22) */
+      attitude = -ALG_PI/2;
+      bank = 0;
+    }
+    else
+    {
+      heading = atan2(-rotjk[2],rotjk[0]); /* atan2(-m20,m00) */
+      bank = atan2(-rotjk[7],rotjk[4]); /* atan2(-m12,m11) */
+      attitude = asin(rotjk[1]);  /* asin(m10) */
+    }
+
+    alpha = attitude;
+    beta = heading;
+    gamma = bank;
+
+    trqabg[0][i] = alpha;
+    trqabg[1][i] = beta;
+    trqabg[2][i] = gamma;
+
+    if (kabgidx[0][i+1]>kabgidx[0][i])
+      trqalpha = look_up (kabg[0], kabgidx[0][i], kabgidx[0][i+1], alpha, &kalpha);
+    else trqalpha = 0.0;
+
+    if (kabgidx[1][i+1]>kabgidx[1][i])
+      trqbeta = look_up (kabg[1], kabgidx[1][i], kabgidx[1][i+1], beta, &kbeta);
+    else trqbeta = 0.0;
+
+    if (kabgidx[2][i+1]>kabgidx[2][i])
+      trqgamma = look_up (kabg[2], kabgidx[2][i], kabgidx[2][i+1], gamma, &kgamma);
+    else trqgamma = 0.0;
+
+
+    if (dabgidx[0][i+1]>dabgidx[0][i])
+      trqalphadot = look_up (dabg[0], dabgidx[0][i], dabgidx[0][i+1], oabg[0], &dalpha);
+    else trqalphadot = 0.0;
+
+    if (dabgidx[1][i+1]>dabgidx[1][i])
+      trqbetadot = look_up (dabg[1], dabgidx[1][i], dabgidx[1][i+1], oabg[1], &dbeta);
+    else trqbetadot = 0.0;
+
+    if (dabgidx[2][i+1]>dabgidx[2][i])
+      trqgammadot = look_up (dabg[2], dabgidx[2][i], dabgidx[2][i+1], oabg[2], &dgamma);
+    else trqgammadot = 0.0;
+
+    trqabg[0] = trqalpha + (trqalpha == 0.0 ? 0.0 : trqalphadot);
+    trqabg[1] = trqbeta + (trqbeta == 0.0 ? 0.0 : trqbetadot);
+    trqabg[2] = trqgamma + (trqgamma == 0.0 ? 0.0 : trqgammadot);
+
+    uniform REAL trq[3]; /* total torque in the global frame */
+
+    TVMUL (rot1j, trqabg, trq); /* rotate back from j-frame */
+
+    trqabgtot[0][i] = trqabg[0];
+    trqabgtot[1][i] = trqabg[1];
+    trqabgtot[2][i] = trqabg[2];
+    trqabgspr[0][i] = trqalpha;
+    trqabgspr[1][i] = trqbeta;
+    trqabgspr[2][i] = trqgamma;
+
+    uniform REAL angle[3] = {alpha, beta, gamma};
+
+    if (j0 != j && j0 >= 0) /* global acc previous and local reset current */
+    {
+      torque[0][j0] += tj[0];
+      torque[1][j0] += tj[1];
+      torque[2][j0] += tj[2];
+
+      COPY (trq, tj);
+
+      if (adaptive)
+      {
+	krot[0][j0] += krot_j[0];
+	krot[1][j0] += krot_j[1];
+	krot[2][j0] += krot_j[2];
+	krot[3][j0] += krot_j[3];
+	krot[4][j0] += krot_j[4];
+	krot[5][j0] += krot_j[5];
+
+	krot_j[0] = 0.0;
+	krot_j[1] = 0.0;
+	krot_j[2] = 0.0;
+	krot_j[3] = 0.0;
+	krot_j[4] = 0.0;
+	krot_j[5] = 0.0;
+      }
+    }
+    else /* local acc current */
+    {
+      ACC (trq, tj);
+    }
+
+    for (uniform int l = 0; l < 3; l ++)
+    {
+      if (adaptive && trqabg[l] != 0.0)
+      {
+	/* TODO: translate angle into global K-matrix; uncomment below */
+#if 0
+	krot_j[0] += 0.0; /* K(1,1) */
+	krot_j[1] += 0.0; /* K(2,2) */
+	krot_j[2] += 0.0; /* K(3,3) */
+	krot_j[3] += 0.0; /* K(2,1) */
+	krot_j[4] += 0.0; /* K(3,1) */
+	krot_j[5] += 0.0; /* K(3,3) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
+#endif
+      }
+    }
+
+    if (k >= 0)
+    {
+      if (k0 != k && k0 >= 0) /* global acc previous and local reset current */
+      {
+	while (lock[k0] != taskIndex)
+	  atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 force */
+
+	torque[0][k0] -= tk[0];
+	torque[1][k0] -= tk[1];
+	torque[2][k0] -= tk[2];
+
+	if (adaptive)
+	{
+	  krot[0][k0] += krot_k[0];
+	  krot[1][k0] += krot_k[1];
+	  krot[2][k0] += krot_k[2];
+	  krot[3][k0] += krot_k[3];
+	  krot[4][k0] += krot_k[4];
+	  krot[5][k0] += krot_k[5];
+	}
+
+	lock[k0] = -1; /* unlock */
+
+	COPY (trq, tk);
+
+	if (adaptive)
+	{
+	  krot_k[0] = 0.0;
+	  krot_k[1] = 0.0;
+	  krot_k[2] = 0.0;
+	  krot_k[3] = 0.0;
+	  krot_k[4] = 0.0;
+	  krot_k[5] = 0.0;
+	}
+      }
+      else /* local acc current */
+      {
+	ACC (trq, tk);
+      }
+
+      for (uniform int l = 0; l < 3; l ++)
+      {
+	if (adaptive && trqabg [l] != 0.0)
+	{
+	  /* TODO: translate angle into global K-matrix; uncomment below */
+#if 0
+	  krot_k[0] += 0.0; /* K(1,1) */
+	  krot_k[1] += 0.0; /* K(2,2) */
+	  krot_k[2] += 0.0; /* K(3,3) */
+	  krot_k[3] += 0.0; /* K(2,1) */
+	  krot_k[4] += 0.0; /* K(3,1) */
+	  krot_k[5] += 0.0; /* K(3,3) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
+#endif
+	}
+      }
+
+      k0 = k;
+    }
+
+    j0 = j;
+  }
+
+  if (j0 >= 0) /* final global acc */
+  {
+    torque[0][j0] += tj[0];
+    torque[1][j0] += tj[1];
+    torque[2][j0] += tj[2];
+
+    if (adaptive)
+    {
+      krot[0][j0] += krot_j[0];
+      krot[1][j0] += krot_j[1];
+      krot[2][j0] += krot_j[2];
+      krot[3][j0] += krot_j[3];
+      krot[4][j0] += krot_j[4];
+      krot[5][j0] += krot_j[5];
+    }
+  }
+
+  if (k0 >= 0) /* final global acc */
+  {
+    while (lock[k0] != taskIndex)
+      atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 force */
+
+    torque[0][k0] -= tk[0];
+    torque[1][k0] -= tk[1];
+    torque[2][k0] -= tk[2];
+
+    if (adaptive)
+    {
+      krot[0][k0] += krot_k[0];
+      krot[1][k0] += krot_k[1];
+      krot[2][k0] += krot_k[2];
+      krot[3][k0] += krot_k[3];
+      krot[4][k0] += krot_k[4];
+      krot[5][k0] += krot_k[5];
+    }
+
+    lock[k0] = -1; /* unlock */
+  }
+}
+#endif
+
 /* unspring tests task */
 task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[3], uniform int unspring[], uniform int sprmap[],
   uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2],

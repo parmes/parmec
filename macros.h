@@ -40,12 +40,14 @@ SOFTWARE.
 #define REAL_SIZE 4
 #define MPI_REAL MPI_FLOAT
 #define REAL_MAX 3.40282347E+38F
+#define REAL_EPS 1E-4
 #else
 #undef REAL
 #define REAL double
 #define REAL_SIZE 8
 #define MPI_REAL MPI_DOUBLE
 #define REAL_MAX 1.7976931348623157E+308
+#define REAL_EPS 1E-8
 #endif
 
 /* textual assertion */
