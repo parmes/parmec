@@ -1769,6 +1769,294 @@ TODO: include figures like in LS-DYNA manuals and change formulas in order
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "subsec:TORSION_SPRING"
+
+\end_inset
+
+TORSION_SPRING 
+\color red
+(under development)
+\end_layout
+
+\begin_layout Standard
+Create a torsional spring constraint.
+ The applied torque formula reads
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\mathbf{t} & =\left(\text{kalpha}\left(\alpha\right)+\text{dalpha}\left(\dot{\alpha}\right)\right)\mathbf{x}\\
+ & +\left(\text{kbeta}\left(\beta\right)+\text{dbeta}\left(\dot{\beta}\right)\right)\mathbf{z}\\
+ & +\left(\text{kgamma}\left(\gamma\right)+\text{dgamma}\left(\dot{\gamma}\right)\right)\mathbf{y}
+\end{align*}
+
+\end_inset
+
+where the Euler angles 
+\begin_inset Formula $\alpha$
+\end_inset
+
+, 
+\begin_inset Formula $\beta$
+\end_inset
+
+, 
+\begin_inset Formula $\gamma$
+\end_inset
+
+ are calculated from the co-rotated reference directions 
+\begin_inset Formula $\mathbf{z}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathbf{x}$
+\end_inset
+
+ as follows
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{y}=\mathbf{z}\times\mathbf{x}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{A}_{i}=\mathbf{\Lambda}_{i}\left[\begin{array}{ccc}
+x_{1} & y_{1} & z_{1}\\
+x_{2} & y_{2} & z_{2}\\
+x_{3} & y_{3} & z_{3}
+\end{array}\right],\,\,\,i=1,2
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{B}=\mathbf{A}_{2}\mathbf{A}_{1}^{T}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\alpha=\text{atan2}(-B_{23},B_{22})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\beta=\text{asin}(B_{21})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\gamma=\text{atan2}\left(-B_{31},B_{11}\right)
+\]
+
+\end_inset
+
+and where 
+\begin_inset Formula $\mathbf{\Lambda}_{i}$
+\end_inset
+
+ are rigid rotation matrices of particles 1 and 2, and 
+\begin_inset Formula $\mathbf{B}$
+\end_inset
+
+ is the matrix of relative rotation from the 
+\begin_inset Formula $\left(\mathbf{x},\mathbf{y},\mathbf{z}\right)$
+\end_inset
+
+ frame co-rotated with particle 1 into the same frame co-rotated with particle
+ 2.
+ 
+\begin_inset Formula $\mathbf{B}$
+\end_inset
+
+ is then expressed as a product of Euler rotations
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{B}=\mathbf{A}_{\alpha}\mathbf{A}_{\beta}\mathbf{A}_{\gamma}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\gamma$
+\end_inset
+
+ rotates about 
+\begin_inset Formula $\mathbf{y}$
+\end_inset
+
+, 
+\begin_inset Formula $\beta$
+\end_inset
+
+ rotates about 
+\begin_inset Formula $\mathbf{z}$
+\end_inset
+
+, and 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ rotates about 
+\begin_inset Formula $\mathbf{x}$
+\end_inset
+
+ (
+\begin_inset Formula $\mathbf{A}_{\alpha}$
+\end_inset
+
+ , 
+\begin_inset Formula $\mathbf{A}_{\beta}$
+\end_inset
+
+, 
+\begin_inset Formula $\mathbf{A}_{\gamma}$
+\end_inset
+
+ are the corresponding rotation matrices).
+\end_layout
+
+\begin_layout Subsection*
+trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kalpha, kbeta, kgamma,
+ dalpha, dbeta, dgamma)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+trsnum
+\series default
+ - torsion spring number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+part1
+\series default
+ - first particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+part2
+\series default
+ - second particle number; -1 can be used to indicate a single-particle
+ constraint
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+zdir
+\series default
+, 
+\series bold
+xdir
+\series default
+ - reference direction tuples, 
+\begin_inset Formula $\mathbf{z}=\left(x_{1},y_{1},z_{1}\right)$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathbf{x}=\left(x_{2},y_{2},z_{2}\right)$
+\end_inset
+
+, co-rotated with the two particles, and used to determine the Euler angles
+ alpha, beta, gamma as described above; these directions must be orthogonal
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+kalpha
+\series default
+, 
+\series bold
+kbeta
+\series default
+, 
+\series bold
+kgamma
+\series default
+ - spring torque lookup tables 
+\begin_inset Formula $\left[\text{angle}_{1},\text{torque}_{1},\text{angle}_{2},\text{torque}_{2},...\right]$
+\end_inset
+
+, about the three Euler angles; default: 
+\begin_inset Formula $\left[-\infty,0,+\infty,0\right]$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+dalpha
+\series default
+, 
+\series bold
+dbeta
+\series default
+, 
+\series bold
+dgamma
+\series default
+ - dashpot torque lookup tables 
+\begin_inset Formula $\left[\text{angvel}_{1},\text{torque}_{1},\text{angvel}_{2},\text{torque}_{2},...\right]$
+\end_inset
+
+ or a critical damping ratio from interval 
+\begin_inset Formula $\left[0,+\infty\right)$
+\end_inset
+
+; default: 
+\begin_inset Formula $\left[-\infty,0,+\infty,0\right]$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:UNSPRING"
 
 \end_inset

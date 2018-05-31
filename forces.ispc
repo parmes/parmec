@@ -1248,7 +1248,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       krot_j[2] += dot-A[2]*A[2]; /* K(3,3) */
       krot_j[3] += -A[0]*A[1]; /* K(2,1) */
       krot_j[4] += -A[0]*A[2]; /* K(3,1) */
-      krot_j[5] += -A[1]*A[2]; /* K(3,3) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
+      krot_j[5] += -A[1]*A[2]; /* K(3,2) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
     }
 
     if (k >= 0)
@@ -1393,11 +1393,10 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
   }
 }
 
-#if 0
 /* torsion springs task */
 task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * uniform trqsprpart[2],
   uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform kabg[3][2],
-  uniform int kabgidx[3][], uniform REAL * uniform dabg[3][2], uniform int dabgidx[3][],
+  uniform int * uniform kabgidx[3], uniform REAL * uniform dabg[3][2], uniform int * uniform dabgidx[3],
   uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3],
   uniform REAL * uniform trqabg[3], uniform REAL * uniform trqabgtot[3], uniform REAL * uniform trqabgspr[3],
   uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9], uniform REAL * uniform torque[3],
@@ -1503,23 +1502,24 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     NTMUL (rot1k, rot1j, rotjk); /* relative rotation from j-corateted system to k-corotated system */
 
     uniform REAL heading, attitude, bank;
-    uniform REAL alhpa, beta, gamma;
+    uniform REAL alpha, beta, gamma;
+    uniform REAL ojk[3], alphadot, betadot, gammadot;
     uniform REAL kalpha, kbeta, kgamma;
-    uniform REAL trqalpha, trqbeta, trqgamma;
-    uniform REAL oj[3], oabg[3];
     uniform REAL dalpha, dbeta, dgamma;
     uniform REAL trqalphadot, trqbetadot, trqgammadot;
+    uniform REAL trqalpha, trqbeta, trqgamma;
+    uniform REAL trqalphatot, trqbetatot, trqgammatot;
 
     /** this conversion uses conventions as described on page:
-     *   https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
-     *   Coordinate System: right hand
-     *   Positive angle: right hand
-     *   Order of Euler angles: heading first, then attitude, then bank
-     *   matrix row column ordering:
-     *   [m00 m01 m02]
-     *   [m10 m11 m12]
-     *   [m20 m21 m22]
-     *   Assuming the angles are in radians */
+     *  https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
+     *  Coordinate System: right hand
+     *  Positive angle: right hand
+     *  Order of Euler angles: heading first, then attitude, then bank
+     *  matrix row column ordering:
+     *  [m00 m01 m02]
+     *  [m10 m11 m12]
+     *  [m20 m21 m22]
+     *  Assuming the angles are in radians */
 
     if (rotjk[1] > 1.0-REAL_EPS) /* m10 > 1-epsion --> singularity at north pole */
     {
@@ -1540,9 +1540,9 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       attitude = asin(rotjk[1]);  /* asin(m10) */
     }
 
-    alpha = attitude;
-    beta = heading;
-    gamma = bank;
+    alpha = bank; /* about xdir1j */
+    beta = attitude; /* about zdir1j */
+    gamma = heading; /* about ydir1j */
 
     trqabg[0][i] = alpha;
     trqabg[1][i] = beta;
@@ -1550,40 +1550,48 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 
     if (kabgidx[0][i+1]>kabgidx[0][i])
       trqalpha = look_up (kabg[0], kabgidx[0][i], kabgidx[0][i+1], alpha, &kalpha);
-    else trqalpha = 0.0;
+    else {trqalpha = 0.0; kalpha = 0.0;}
 
     if (kabgidx[1][i+1]>kabgidx[1][i])
       trqbeta = look_up (kabg[1], kabgidx[1][i], kabgidx[1][i+1], beta, &kbeta);
-    else trqbeta = 0.0;
+    else {trqbeta = 0.0; kbeta = 0.0;}
 
     if (kabgidx[2][i+1]>kabgidx[2][i])
       trqgamma = look_up (kabg[2], kabgidx[2][i], kabgidx[2][i+1], gamma, &kgamma);
-    else trqgamma = 0.0;
+    else {trqgamma = 0.0; kgamma = 0.0;}
 
+
+    SUB (oj, ok, ojk);
+    alphadot = DOT(rot1j, ojk);
+    betadot = DOT(&rot1j[6], ojk);
+    gammadot = DOT(&rot1j[3], ojk);
 
     if (dabgidx[0][i+1]>dabgidx[0][i])
-      trqalphadot = look_up (dabg[0], dabgidx[0][i], dabgidx[0][i+1], oabg[0], &dalpha);
+      trqalphadot = look_up (dabg[0], dabgidx[0][i], dabgidx[0][i+1], alphadot, &dalpha);
     else trqalphadot = 0.0;
 
     if (dabgidx[1][i+1]>dabgidx[1][i])
-      trqbetadot = look_up (dabg[1], dabgidx[1][i], dabgidx[1][i+1], oabg[1], &dbeta);
+      trqbetadot = look_up (dabg[1], dabgidx[1][i], dabgidx[1][i+1], betadot, &dbeta);
     else trqbetadot = 0.0;
 
     if (dabgidx[2][i+1]>dabgidx[2][i])
-      trqgammadot = look_up (dabg[2], dabgidx[2][i], dabgidx[2][i+1], oabg[2], &dgamma);
+      trqgammadot = look_up (dabg[2], dabgidx[2][i], dabgidx[2][i+1], gammadot, &dgamma);
     else trqgammadot = 0.0;
 
-    trqabg[0] = trqalpha + (trqalpha == 0.0 ? 0.0 : trqalphadot);
-    trqabg[1] = trqbeta + (trqbeta == 0.0 ? 0.0 : trqbetadot);
-    trqabg[2] = trqgamma + (trqgamma == 0.0 ? 0.0 : trqgammadot);
+    trqalphatot = trqalpha + (trqalpha == 0.0 ? 0.0 : trqalphadot);
+    trqbetatot = trqbeta + (trqbeta == 0.0 ? 0.0 : trqbetadot);
+    trqgammatot = trqgamma + (trqgamma == 0.0 ? 0.0 : trqgammadot);
 
     uniform REAL trq[3]; /* total torque in the global frame */
 
-    TVMUL (rot1j, trqabg, trq); /* rotate back from j-frame */
+    /*                   xdir1                  zdir1                 ydir1 */
+    trq[0] = trqalphatot*rot1j[0] + trqbetatot*rot1j[6] + trqgammatot*rot1j[3];
+    trq[1] = trqalphatot*rot1j[1] + trqbetatot*rot1j[7] + trqgammatot*rot1j[4];
+    trq[2] = trqalphatot*rot1j[2] + trqbetatot*rot1j[8] + trqgammatot*rot1j[5];
 
-    trqabgtot[0][i] = trqabg[0];
-    trqabgtot[1][i] = trqabg[1];
-    trqabgtot[2][i] = trqabg[2];
+    trqabgtot[0][i] = trqalphatot;
+    trqabgtot[1][i] = trqbetatot;
+    trqabgtot[2][i] = trqgammatot;
     trqabgspr[0][i] = trqalpha;
     trqabgspr[1][i] = trqbeta;
     trqabgspr[2][i] = trqgamma;
@@ -1620,20 +1628,16 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       ACC (trq, tj);
     }
 
-    for (uniform int l = 0; l < 3; l ++)
+    if (adaptive)
     {
-      if (adaptive && trqabg[l] != 0.0)
-      {
-	/* TODO: translate angle into global K-matrix; uncomment below */
+      krot_j[0] += kalpha*rot1j[0]; /* K(1,1) */
+      krot_j[1] += kgamma*rot1j[4]; /* K(2,2) */
+      krot_j[2] += kbeta*rot1j[8]; /* K(3,3) */
 #if 0
-	krot_j[0] += 0.0; /* K(1,1) */
-	krot_j[1] += 0.0; /* K(2,2) */
-	krot_j[2] += 0.0; /* K(3,3) */
-	krot_j[3] += 0.0; /* K(2,1) */
-	krot_j[4] += 0.0; /* K(3,1) */
-	krot_j[5] += 0.0; /* K(3,3) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
+      krot_j[3] += 0.0; /* K(2,1) */
+      krot_j[4] += 0.0; /* K(3,1) */
+      krot_j[5] += 0.0; /* K(3,2) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
 #endif
-      }
     }
 
     if (k >= 0)
@@ -1676,20 +1680,16 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 	ACC (trq, tk);
       }
 
-      for (uniform int l = 0; l < 3; l ++)
+      if (adaptive)
       {
-	if (adaptive && trqabg [l] != 0.0)
-	{
-	  /* TODO: translate angle into global K-matrix; uncomment below */
+	krot_k[0] += kalpha*rot1j[0]; /* K(1,1) */
+	krot_k[1] += kgamma*rot1j[4]; /* K(2,2) */
+	krot_k[2] += kbeta*rot1j[8]; /* K(3,3) */
 #if 0
-	  krot_k[0] += 0.0; /* K(1,1) */
-	  krot_k[1] += 0.0; /* K(2,2) */
-	  krot_k[2] += 0.0; /* K(3,3) */
-	  krot_k[3] += 0.0; /* K(2,1) */
-	  krot_k[4] += 0.0; /* K(3,1) */
-	  krot_k[5] += 0.0; /* K(3,3) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
+	krot_k[3] += 0.0; /* K(2,1) */
+	krot_k[4] += 0.0; /* K(3,1) */
+	krot_k[5] += 0.0; /* K(3,2) --> see LS-DYNA's Theory Manual Sec 28.1 (rev. >= 7709) */
 #endif
-	}
       }
 
       k0 = k;
@@ -1737,7 +1737,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     lock[k0] = -1; /* unlock */
   }
 }
-#endif
 
 /* unspring tests task */
 task void unspring_task (uniform int span, uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[3], uniform int unspring[], uniform int sprmap[],
@@ -1824,11 +1823,16 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL * uniform yield[2], uniform REAL * uniform sprdir[6], uniform int sprflg[], uniform int sproffset[],
   uniform REAL sprfric[], uniform REAL sprkskn[], uniform REAL * uniform sprsdsp[3], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[3], uniform REAL * uniform lcurve[2],
-  uniform int lcidx[], uniform REAL gravity[3], uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive,
-  uniform int unsprnum, uniform int tsprings[], uniform int tspridx[], uniform int msprings[], uniform int mspridx[],
-  uniform REAL * uniform unlim[2], uniform int unent[], uniform int unop[], uniform int unabs[], uniform int nsteps[],
-  uniform int nfreq[], uniform int unaction[], uniform int activate[], uniform int actidx[], uniform int stepnum, uniform REAL time)
+  uniform int lcidx[], uniform REAL gravity[3], uniform int trqsprnum, uniform int * uniform trqsprpart[2],
+  uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform kabg[3][2],
+  uniform int * uniform kabgidx[3], uniform REAL * uniform dabg[3][2], uniform int * uniform dabgidx[3],
+  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqabg[3],
+  uniform REAL * uniform trqabgtot[3], uniform REAL * uniform trqabgspr[3],
+  uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL * uniform kact[3], uniform REAL kmax[],
+  uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive, uniform int unsprnum, uniform int tsprings[],
+  uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2], uniform int unent[],
+  uniform int unop[], uniform int unabs[], uniform int nsteps[], uniform int nfreq[], uniform int unaction[],
+  uniform int activate[], uniform int actidx[], uniform int stepnum, uniform REAL time)
 
 {
   launch [ntasks] zero_force_torque_kmax (parnum/ntasks, parnum, force, torque, kmax, emax);
@@ -1844,35 +1848,50 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
                     position, mass, gravity, force, torque, kact, kmax, emax, krot, adaptive);
   sync;
 
-  uniform int * uniform lock = uniform new uniform int [parnum];
-  foreach (i = 0 ... parnum) lock[i] = -1;
+  if (sprnum)
+  {
+    uniform int * uniform lock = uniform new uniform int [parnum];
+    foreach (i = 0 ... parnum) lock[i] = -1;
 
 #if 1
-  /* workaround to https://github.com/ispc/ispc/issues/1293 */
-  uniform spring_task_args args = {sprnum, sprtype, unspring, {sprpart[0], sprpart[1]},
-        {{sprpnt[0][0], sprpnt[0][1], sprpnt[0][2], sprpnt[0][3], sprpnt[0][4], sprpnt[0][5]},
-	 {sprpnt[1][0], sprpnt[1][1], sprpnt[1][2], sprpnt[1][3], sprpnt[1][4], sprpnt[1][5]}},
-	{spring[0], spring[1]}, spridx, {dashpot[0], dashpot[1]}, dashidx, {unload[0], unload[1]}, unidx,
-	{yield[0], yield[1]}, {sprdir[0], sprdir[1], sprdir[2], sprdir[3], sprdir[4], sprdir[5]}, sprflg,
-	sproffset, sprfric, sprkskn, {sprsdsp[0], sprsdsp[1], sprsdsp[2]}, stroke0, {stroke[0], stroke[1],
-	stroke[2]}, {sprfrc[0], sprfrc[1], sprfrc[2]}, {lcurve[0], lcurve[1]}, lcidx, {angular[0], angular[1],
-	angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]}, {rotation[0],
-	rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
-	rotation[8]}, {position[0], position[1], position[2], position[3], position[4], position[5]}, 
-        {inverse[0], inverse[1], inverse[2], inverse[3], inverse[4], inverse[5], inverse[6], inverse[7], inverse[8]},
-	invm, {force[0], force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax,
-	emax, {krot[0], krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive, step};
+    /* workaround to https://github.com/ispc/ispc/issues/1293 */
+    uniform spring_task_args args = {sprnum, sprtype, unspring, {sprpart[0], sprpart[1]},
+	  {{sprpnt[0][0], sprpnt[0][1], sprpnt[0][2], sprpnt[0][3], sprpnt[0][4], sprpnt[0][5]},
+	   {sprpnt[1][0], sprpnt[1][1], sprpnt[1][2], sprpnt[1][3], sprpnt[1][4], sprpnt[1][5]}},
+	  {spring[0], spring[1]}, spridx, {dashpot[0], dashpot[1]}, dashidx, {unload[0], unload[1]}, unidx,
+	  {yield[0], yield[1]}, {sprdir[0], sprdir[1], sprdir[2], sprdir[3], sprdir[4], sprdir[5]}, sprflg,
+	  sproffset, sprfric, sprkskn, {sprsdsp[0], sprsdsp[1], sprsdsp[2]}, stroke0, {stroke[0], stroke[1],
+	  stroke[2]}, {sprfrc[0], sprfrc[1], sprfrc[2]}, {lcurve[0], lcurve[1]}, lcidx, {angular[0], angular[1],
+	  angular[2], angular[3], angular[4], angular[5]}, {linear[0], linear[1], linear[2]}, {rotation[0],
+	  rotation[1], rotation[2], rotation[3], rotation[4], rotation[5], rotation[6], rotation[7],
+	  rotation[8]}, {position[0], position[1], position[2], position[3], position[4], position[5]}, 
+	  {inverse[0], inverse[1], inverse[2], inverse[3], inverse[4], inverse[5], inverse[6], inverse[7], inverse[8]},
+	  invm, {force[0], force[1], force[2]}, {torque[0], torque[1], torque[2]}, {kact[0], kact[1], kact[2]}, kmax,
+	  emax, {krot[0], krot[1], krot[2], krot[3], krot[4], krot[5]}, adaptive, step};
 
-  launch [ntasks] springs_task (sprnum/ntasks, &args, time, lock);
+    launch [ntasks] springs_task (sprnum/ntasks, &args, time, lock);
 #else
-  launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot,
-                   dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfirc, sprkskn, sprsdsp, stroke0,
-		   stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, inverse, invm, force, torque,
-		   kact, kmax, emax, krot, adaptive, step, time, lock);
+    launch [ntasks] springs_task (sprnum/ntasks, sprnum, sprtype, unspring, sprpart, sprpnt, spring, spridx, dashpot,
+		     dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfirc, sprkskn, sprsdsp, stroke0,
+		     stroke, sprfrc, lcurve, lcidx, angular, linear, rotation, position, inverse, invm, force, torque,
+		     kact, kmax, emax, krot, adaptive, step, time, lock);
 #endif
-  sync;
+    sync;
 
-  delete lock;
+    delete lock;
+  }
+
+  if (trqsprnum)
+  {
+    uniform int * uniform lock = uniform new uniform int [parnum];
+    foreach (i = 0 ... parnum) lock[i] = -1;
+
+    launch [ntasks] trqspr_task (trqsprnum/ntasks, trqsprnum, trqsprpart, trqzdir0, trqxdir0, kabg, kabgidx, dabg, dabgidx,
+            trqzdir1, trqxdir1, trqabg, trqabgtot, trqabgspr, angular, rotation, torque, krot, adaptive, step, time, lock);
+    sync;
+
+    delete lock;
+  }
 
   if (unsprnum)
   {

@@ -2348,7 +2348,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass, invm, obspnt, obslin,
             obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0, sprnum, sprtype, unspring, sprmap, sprpart, sprpnt,
 	    spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfric, sprkskn, sprsdsp, stroke0,
-	    stroke, sprfrc, lcurve, lcidx, gravity, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0),
+	    stroke, sprfrc, lcurve, lcidx, gravity, trqsprnum, trqsprpart, trqzdir0, trqxdir0, kabg, kabgidx, dabg, dabgidx,
+	    trqzdir1, trqxdir1, trqabg, trqabgtot, trqabgspr, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0),
 	    unsprnum, tsprings, tspridx, msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx,
 	    stepnum, curtime);
 
