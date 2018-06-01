@@ -1442,7 +1442,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar",
              "unload", "ylim", "inactive", "offset", "friction", "kskn");
   PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *inactive;
-  double friction = 0.0, kskn = 0.5;
+  double friction = 0.0, kskn = 0.0;
   int part1, part2, offset;
 
   direction = NULL;
@@ -1461,7 +1461,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 	    is_list (spring, kwl[4], 0) && is_list_or_number (dashpot, kwl[5], 0) &&
 	    is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
 	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]) &&
-	    is_non_negative (friction, kwl[12]) && is_positive (kskn, kwl[13]));
+	    is_non_negative (friction, kwl[12]) && is_non_negative (kskn, kwl[13]));
 
   if (offset < -1 || offset >= tmsnum)
   {

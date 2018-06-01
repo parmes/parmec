@@ -1130,50 +1130,69 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
                             u[1] - velocity*z[1],
 			    u[2] - velocity*z[2]}; /* tangential velocity */
 
-      if (spring_force == 0.0)
-      {
-	sprsdsp[0][i] = 0.0; /* cancel displacement history */
-	sprsdsp[1][i] = 0.0;
-	sprsdsp[2][i] = 0.0;
-      }
+      uniform REAL flim = fric*abs(total_force);
 
-      uniform REAL ds[3] = {sprsdsp[0][i] + us[0]*step,
-                            sprsdsp[1][i] + us[1]*step,
-			    sprsdsp[2][i] + us[2]*step}; /* total tangential displacement */
+      uniform REAL fs[3] = {.0, .0, .0}; /* friction force */
 
       uniform REAL kskn = sprkskn[i];
 
-      uniform REAL c0 = kskn * abs(stiffness);
 
-      uniform REAL c1 = spring_force == 0.0 ? 0.0 : kskn * abs(damping);
-      
-      uniform REAL fs[3] = {c0 * ds[0] + c1 * us[0],
-                            c0 * ds[1] + c1 * us[1],
-                            c0 * ds[2] + c1 * us[2]};
-
-      uniform REAL flen = LEN (fs);
-
-      uniform REAL flim = fric*abs(total_force);
-
-      if (flen > flim) /* friction cone cutoff */
+      if (kskn == 0.0)
       {
-	uniform REAL coef = flim/flen;
+	uniform REAL ulen = LEN(us);
 
-	SCALE (fs, coef);
+	if (ulen > 0.0)
+	{
+	  uniform REAL coef = flim/ulen;
 
-	uniform REAL dl0 = LEN(ds);
-
-	coef = flim/(c0*dl0); /* flim = c0 * dl1 */
-
-	sprsdsp[0][i] = coef*ds[0]; /* scale displacement history */
-	sprsdsp[1][i] = coef*ds[1];
-	sprsdsp[2][i] = coef*ds[2];
+	  fs[0] = coef*us[0];
+	  fs[1] = coef*us[1];
+	  fs[2] = coef*us[2];
+	}
       }
-      else
+      else /* kskn > 0.0 --> model stick-slip transtion */
       {
-	sprsdsp[0][i] = ds[0]; /* store displacement */
-	sprsdsp[1][i] = ds[1];
-	sprsdsp[2][i] = ds[2];
+	if (spring_force == 0.0)
+	{
+	  sprsdsp[0][i] = 0.0; /* cancel displacement history */
+	  sprsdsp[1][i] = 0.0;
+	  sprsdsp[2][i] = 0.0;
+	}
+
+	uniform REAL ds[3] = {sprsdsp[0][i] + us[0]*step,
+			      sprsdsp[1][i] + us[1]*step,
+			      sprsdsp[2][i] + us[2]*step}; /* total tangential displacement */
+
+	uniform REAL c0 = kskn * abs(stiffness);
+
+	uniform REAL c1 = spring_force == 0.0 ? 0.0 : kskn * abs(damping);
+	
+	fs[0] = c0 * ds[0] + c1 * us[0];
+	fs[1] = c0 * ds[1] + c1 * us[1];
+	fs[2] = c0 * ds[2] + c1 * us[2];
+
+	uniform REAL flen = LEN (fs);
+
+	if (flen > flim) /* friction cone cutoff */
+	{
+	  uniform REAL coef = flim/flen;
+
+	  SCALE (fs, coef);
+
+	  uniform REAL dl0 = LEN(ds);
+
+	  coef = flim/(c0*dl0); /* flim = c0 * dl1 */
+
+	  sprsdsp[0][i] = coef*ds[0]; /* scale displacement history */
+	  sprsdsp[1][i] = coef*ds[1];
+	  sprsdsp[2][i] = coef*ds[2];
+	}
+	else
+	{
+	  sprsdsp[0][i] = ds[0]; /* store displacement */
+	  sprsdsp[1][i] = ds[1];
+	  sprsdsp[2][i] = ds[2];
+	}
       }
 
       sprfrc[2][i] = LEN(fs); /* store friction force magnitude */
