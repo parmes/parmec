@@ -1787,6 +1787,199 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   return PyInt_FromLong (i);
 }
 
+/* create torsional spring constraint */
+static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("part1", "part2", "zdir", "xdir", "kroll", "kyaw", "kpitch", "droll", "dyaw", "dpitch");
+  PyObject *zdir, *xdir, *kroll, *kyaw, *kpitch, *droll, *dyaw, *dpitch;
+  int part1, part2;
+
+  PARSEKEYS ("iiOO|OOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kyaw, &kpitch, &droll, &dyaw, &dpitch);
+
+  TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (zdir, kwl[2], 3) &&
+            is_tuple (xdir, kwl[3], 3) && is_list (kroll, kwl[4], 0) &&
+            is_list (kyaw, kwl[5], 0) && is_list (kpitch, kwl[6], 0) &&
+	    is_list_or_number (droll, kwl[7], 0) &&
+	    is_list_or_number (dyaw, kwl[8], 0) &&
+	    is_list_or_number (dpitch, kwl[9], 0));
+
+  if (part2 < -1)
+  {
+    PyErr_SetString (PyExc_ValueError, "Particle two index is out of range [-1, 0, ...]");
+    return NULL;
+  }
+
+  if (PyList_Size (kroll) < 4 || PyList_Size (kroll) % 2)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid kroll lookup table list length");
+    return NULL;
+  }
+
+  if (droll && PyList_Check (droll) && (PyList_Size (droll) < 4 || PyList_Size (droll) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid droll lookup table list length");
+    return NULL;
+  }
+
+  if (PyList_Size (kyaw) < 4 || PyList_Size (kyaw) % 2)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid kyaw lookup table list length");
+    return NULL;
+  }
+
+  if (dyaw && PyList_Check (dyaw) && (PyList_Size (dyaw) < 4 || PyList_Size (dyaw) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid dyaw lookup table list length");
+    return NULL;
+  }
+
+  if (PyList_Size (kpitch) < 4 || PyList_Size (kpitch) % 2)
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid kpitch lookup table list length");
+    return NULL;
+  }
+
+  if (dpitch && PyList_Check (dpitch) && (PyList_Size (dpitch) < 4 || PyList_Size (dpitch) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid dpitch lookup table list length");
+    return NULL;
+  }
+
+  int kryp_lookup[3] = {kroll ? PyList_Size (kroll) : 4,
+                        kyaw ? PyList_Size (kyaw) : 4,
+                        kpitch ? PyList_Size (kpitch) : 4};
+
+  int dryp_lookup[3] = {droll ? PyList_Size (droll) : 4,
+                        dyaw ? PyList_Size (dyaw) : 4,
+                        dpitch ? PyList_Size (dpitch) : 4};
+
+  trqspr_buffer_grow (kryp_lookup, dryp_lookup);
+
+  int i = trqsprnum ++;
+
+  trqsprid[i] = trqsprmap[i] = i;
+
+  trqspr_changed = 1;
+
+  trqsprpart[0][i] = part1;
+  trqsprpart[1][i] = part2;
+
+  REAL zdir0[3] = {PyFloat_AsDouble (PyTuple_GetItem (zdir,0)),
+                   PyFloat_AsDouble (PyTuple_GetItem (zdir,1)),
+                   PyFloat_AsDouble (PyTuple_GetItem (zdir,2))};
+  REAL xdir0[3] = {PyFloat_AsDouble (PyTuple_GetItem (xdir,0)),
+                   PyFloat_AsDouble (PyTuple_GetItem (xdir,1)),
+                   PyFloat_AsDouble (PyTuple_GetItem (xdir,2))};
+  REAL ydir0[3];
+
+  REAL zlen0 = LEN(zdir0), xlen0 = LEN(zdir0);
+
+  if (zlen0 == 0.0)
+  {
+    PyErr_SetString (PyExc_ValueError, "Zero zdir length");
+    return NULL;
+  }
+
+  if (xlen0 == 0.0)
+  {
+    PyErr_SetString (PyExc_ValueError, "Zero xdir length");
+    return NULL;
+  }
+
+  REAL izl0 = 1./zlen0, ixl0 = 1./xlen0;
+
+  SCALE (zdir0, izl0);
+  SCALE (zdir0, ixl0);
+
+  if (DOT (zdir0, xdir0) > REAL_EPS*REAL_EPS)
+  {
+    PyErr_SetString (PyExc_ValueError, "Directions zdir and xdir do not seem orthogonal");
+    return NULL;
+  }
+
+  trqzdir0[0][i] = zdir0[0];
+  trqzdir0[1][i] = zdir0[1];
+  trqzdir0[2][i] = zdir0[2];
+  trqxdir0[0][i] = xdir0[0];
+  trqxdir0[1][i] = xdir0[1];
+  trqxdir0[2][i] = xdir0[2];
+
+  PyObject *spring[3] = {kroll, kyaw, kpitch};
+  PyObject *dashpot[3] = {droll, dyaw, dpitch};
+
+  for (int o = 0; o < 3; o ++)
+  {
+    int j, k;
+
+    if (spring[o])
+    {
+      for (j = 0, k = krypidx[o][i]; j < kryp_lookup[o]/2; j ++, k ++)
+      {
+	REAL angle = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j));
+	REAL torque = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j+1));
+	if (j && angle <= parmec::kryp[o][0][k-1])
+	{
+	  PyErr_SetString (PyExc_ValueError, "Torsion spring angle values must increase");
+	  return NULL;
+	}
+	parmec::kryp[o][0][k] = angle;
+	parmec::kryp[o][1][k] = torque;
+      }
+      krypidx[o][trqsprnum] = k;
+    }
+    else /* default zero torque */
+    {
+      k = krypidx[o][i];
+      parmec::kryp[o][0][k] = -REAL_MAX;
+      parmec::kryp[o][1][k] = 0.0;
+      parmec::kryp[o][0][k+1] = +REAL_MAX;
+      parmec::kryp[o][1][k+1] = 0.0;
+      krypidx[o][trqsprnum] = k+2;
+    }
+
+    if (dashpot[o] && PyList_Check(dashpot[o]))
+    {
+      for (j = 0, k = drypidx[o][i]; j < dryp_lookup[o]/2; j ++, k ++)
+      {
+	REAL angvel = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j));
+	REAL torque = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j+1));
+	if (j && angvel <= parmec::dryp[o][0][k-1])
+	{
+	  PyErr_SetString (PyExc_ValueError, "Torsion damper angular velocity values must increase");
+	  return NULL;
+	}
+	parmec::dryp[o][0][k] = angvel;
+	parmec::dryp[o][1][k] = torque;
+      }
+      drypidx[o][trqsprnum] = k;
+    }
+    else if (PyNumber_Check(dashpot[o])) /* critical damping ratio */
+    {
+      REAL ratio = PyFloat_AsDouble (dashpot[o]);
+      if (ratio < 0.0)
+      {
+	PyErr_SetString (PyExc_ValueError, "Critical damping ratio not in [0.0, +Inf) interval");
+	return NULL;
+      }
+      k = drypidx[o][i];
+      parmec::dryp[o][0][k] = ratio;
+      parmec::dryp[o][1][k] = ratio;
+      drypidx[o][trqsprnum] = k+1;
+    }
+    else /* default zero torque */
+    {
+      k = drypidx[o][i];
+      parmec::dryp[o][0][k] = -REAL_MAX;
+      parmec::dryp[o][1][k] = 0.0;
+      parmec::dryp[o][0][k+1] = +REAL_MAX;
+      parmec::dryp[o][1][k+1] = 0.0;
+      drypidx[o][trqsprnum] = k+2;
+    }
+  }
+
+  return PyInt_FromLong (i);
+}
+
 /* add collective spring undoing condition */
 static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3585,6 +3778,7 @@ static PyMethodDef methods [] =
   {"ANALYTICAL", (PyCFunction)::ANALYTICAL, METH_VARARGS|METH_KEYWORDS, "Create analytical particle"},
   {"OBSTACLE", (PyCFunction)OBSTACLE, METH_VARARGS|METH_KEYWORDS, "Create obstacle"},
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
+  {"TORSION_SPRING", (PyCFunction)::TORSION_SPRING, METH_VARARGS|METH_KEYWORDS, "Create torsional spring"},
   {"UNSPRING", (PyCFunction)::UNSPRING, METH_VARARGS|METH_KEYWORDS, "Undo translational springs"},
   {"EQM", (PyCFunction)EQM, METH_VARARGS|METH_KEYWORDS, "Calculate equivalent point mass"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
@@ -3639,6 +3833,7 @@ int input (const char *path, char **argv, int argc)
                       "from parmec import ANALYTICAL\n"
                       "from parmec import OBSTACLE\n"
                       "from parmec import SPRING\n"
+                      "from parmec import TORSION_SPRING\n"
                       "from parmec import UNSPRING\n"
                       "from parmec import EQM\n"
                       "from parmec import GRANULAR\n"
