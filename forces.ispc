@@ -1057,7 +1057,7 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 	uniform REAL ratio = dashpot[0][dashidx[i]];
 
-        damping = ratio * 2.0 * sqrt (stiffness * mass); /* critical damping */
+        damping = ratio * 2.0 * sqrt (abs(stiffness) * mass); /* critical damping */
 
 	dashpot_force = velocity * damping;
       }
@@ -1135,7 +1135,6 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
       uniform REAL fs[3] = {.0, .0, .0}; /* friction force */
 
       uniform REAL kskn = sprkskn[i];
-
 
       if (kskn == 0.0)
       {
