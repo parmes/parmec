@@ -1794,6 +1794,13 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   PyObject *zdir, *xdir, *kroll, *kyaw, *kpitch, *droll, *dyaw, *dpitch;
   int part1, part2;
 
+  kroll = NULL;
+  kyaw = NULL;
+  kpitch = NULL;
+  droll = NULL;
+  dyaw = NULL;
+  dpitch = NULL;
+
   PARSEKEYS ("iiOO|OOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kyaw, &kpitch, &droll, &dyaw, &dpitch);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (zdir, kwl[2], 3) &&
@@ -1809,7 +1816,7 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
-  if (PyList_Size (kroll) < 4 || PyList_Size (kroll) % 2)
+  if (kroll && (PyList_Size (kroll) < 4 || PyList_Size (kroll) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid kroll lookup table list length");
     return NULL;
@@ -1821,7 +1828,7 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
-  if (PyList_Size (kyaw) < 4 || PyList_Size (kyaw) % 2)
+  if (kyaw && (PyList_Size (kyaw) < 4 || PyList_Size (kyaw) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid kyaw lookup table list length");
     return NULL;
@@ -1833,7 +1840,7 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
-  if (PyList_Size (kpitch) < 4 || PyList_Size (kpitch) % 2)
+  if (kpitch && (PyList_Size (kpitch) < 4 || PyList_Size (kpitch) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid kpitch lookup table list length");
     return NULL;

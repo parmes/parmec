@@ -1477,16 +1477,32 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     xdir0[2] = trqxdir0[2][i];
     PRODUCT (zdir0, xdir0, ydir0);
 
+#define TRQDBG 0
+
+#if TRQDBG
+    print ("xdir0 = %, %, %\n", xdir0[0], xdir0[1], xdir0[2]);
+    print ("ydir0 = %, %, %\n", ydir0[0], ydir0[1], ydir0[2]);
+    print ("zdir0 = %, %, %\n", zdir0[0], zdir0[1], zdir0[2]);
+
+    print ("Lj = %, %, %\n        %, %, %\n        %, %, %\n",
+      Lj[0], Lj[3], Lj[6], Lj[1], Lj[4], Lj[7], Lj[2], Lj[5], Lj[8]);
+#endif
+
     NVMUL (Lj, xdir0, rot1j);
     NVMUL (Lj, ydir0, rot1j+3);
     NVMUL (Lj, zdir0, rot1j+6);
 
+#if TRQDBG
+    print ("rot1j = %, %, %\n        %, %, %\n        %, %, %\n",
+      rot1j[0], rot1j[3], rot1j[6], rot1j[1], rot1j[4], rot1j[7], rot1j[2], rot1j[5], rot1j[8]);
+#endif
+
     trqzdir1[0][i] = rot1j[6];
     trqzdir1[1][i] = rot1j[7];
     trqzdir1[2][i] = rot1j[8];
-    trqxdir1[0][i] = rot1j[3];
-    trqxdir1[1][i] = rot1j[4];
-    trqxdir1[2][i] = rot1j[5];
+    trqxdir1[0][i] = rot1j[0];
+    trqxdir1[1][i] = rot1j[1];
+    trqxdir1[2][i] = rot1j[2];
 
     if (k >= 0)
     {
@@ -1517,7 +1533,17 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     NVMUL (Lk, ydir0, rot1k+3);
     NVMUL (Lk, zdir0, rot1k+6);
 
-    NTMUL (rot1k, rot1j, rotjk); /* relative rotation from j-corateted system to k-corotated system */
+#if TRQDBG
+    print ("rot1k = %, %, %\n        %, %, %\n        %, %, %\n",
+      rot1k[0], rot1k[3], rot1k[6], rot1k[1], rot1k[4], rot1k[7], rot1k[2], rot1k[5], rot1k[8]);
+#endif
+
+    TNMUL (rot1k, rot1j, rotjk); /* relative rotation from j-corateted system to k-corotated system */
+
+#if TRQDBG
+    print ("rotjk = %, %, %\n        %, %, %\n        %, %, %\n",
+      rotjk[0], rotjk[3], rotjk[6], rotjk[1], rotjk[4], rotjk[7], rotjk[2], rotjk[5], rotjk[8]);
+#endif
 
     uniform REAL roll, pitch, yaw;
     uniform REAL ojk[3], rolldot, yawdot, pitchdot;
@@ -1528,7 +1554,8 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     uniform REAL trqrolltot, trqyawtot, trqpitchtot;
 
     /** this conversion uses conventions as described on page:
-     *  https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
+     *  http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm
+     *  http://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
      *  Coordinate System: right hand
      *  Positive angle: right hand
      *  Order of Euler angles: heading first, then attitude, then bank
@@ -1557,6 +1584,10 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       roll = atan2(-rotjk[7],rotjk[4]); /* atan2(-m12,m11) */
     }
 
+#if TRQDBG
+    print ("roll = %, yaw = %, pitch = %\n", roll, yaw, pitch);
+#endif
+
     trqryp[0][i] = roll;
     trqryp[1][i] = yaw;
     trqryp[2][i] = pitch;
@@ -1573,11 +1604,18 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       trqpitch = look_up (kryp[2], krypidx[2][i], krypidx[2][i+1], pitch, &kpitch);
     else {trqpitch = 0.0; kpitch = 0.0;}
 
+#if TRQDBG
+    print ("trqroll = %, trqyaw = %, trqpitch = %\n", trqroll, trqyaw, trqpitch);
+#endif
 
     SUB (oj, ok, ojk);
     rolldot = DOT(rot1j, ojk);
     yawdot = DOT(&rot1j[3], ojk);
     pitchdot = DOT(&rot1j[6], ojk);
+
+#if TRQDBG
+    print ("rolldot = %, yawdot = %, pitchdot = %\n", rolldot, yawdot, pitchdot);
+#endif
 
     if (drypidx[0][i+1]>drypidx[0][i]+1)
       trqrolldot = look_up (dryp[0], drypidx[0][i], drypidx[0][i+1], rolldot, &droll);
@@ -1591,6 +1629,10 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       trqpitchdot = look_up (dryp[2], drypidx[2][i], drypidx[2][i+1], pitchdot, &dpitch);
     else trqpitchdot = 0.0; /* FIXME: include damping ratio case */
 
+#if TRQDBG
+    print ("trqrolldot = %, trqyawdot = %, trqpitchdot = %\n", trqrolldot, trqyawdot, trqpitchdot);
+#endif
+
     trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
     trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
     trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
@@ -1601,6 +1643,10 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     trq[0] = trqrolltot*rot1j[0] + trqyawtot*rot1j[3] + trqpitchtot*rot1j[6];
     trq[1] = trqrolltot*rot1j[1] + trqyawtot*rot1j[4] + trqpitchtot*rot1j[7];
     trq[2] = trqrolltot*rot1j[2] + trqyawtot*rot1j[5] + trqpitchtot*rot1j[8];
+
+#if TRQDBG
+    print ("trq = %, %, %\n", trq[0], trq[1], trq[2]);
+#endif
 
     trqryptot[0][i] = trqrolltot;
     trqryptot[1][i] = trqyawtot;
@@ -1656,7 +1702,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       if (k0 != k && k0 >= 0) /* global acc previous and local reset current */
       {
 	while (lock[k0] != taskIndex)
-	  atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 force */
+	  atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 torque */
 
 	torque[0][k0] -= tk[0];
 	torque[1][k0] -= tk[1];
@@ -1715,6 +1761,10 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     torque[1][j0] += tj[1];
     torque[2][j0] += tj[2];
 
+#if TRQDBG
+    print ("torque[..][%] = %, %, %\n", j0, tj[0], tj[1], tj[2]);
+#endif
+
     if (adaptive)
     {
       krot[0][j0] += krot_j[0];
@@ -1729,11 +1779,15 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
   if (k0 >= 0) /* final global acc */
   {
     while (lock[k0] != taskIndex)
-      atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 force */
+      atomic_compare_exchange_global (&lock[k0], -1, taskIndex); /* lock access to k0 torque */
 
     torque[0][k0] -= tk[0];
     torque[1][k0] -= tk[1];
     torque[2][k0] -= tk[2];
+    
+#if TRQDBG
+    print ("torque[..][%] = %, %, %\n", k0, tj[0], tj[1], tj[2]);
+#endif
 
     if (adaptive)
     {

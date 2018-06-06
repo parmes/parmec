@@ -1990,8 +1990,8 @@ static void sort_trqspr ()
 
   int i = 0;
 
-  krypidx[0] = krypidx[1] = krypidx[2] =
-  drypidx[0] = drypidx[1] = drypidx[2] = 0;
+  krypidx[0][0] = krypidx[1][0] = krypidx[2][0] =
+  drypidx[0][0] = drypidx[1][0] = drypidx[2][0] = 0;
 
   for (std::vector<spring_data>::const_iterator x = v.begin(); x != v.end(); ++x, ++i)
   {
@@ -2162,6 +2162,7 @@ void init()
   element_buffer_init ();
   obstacle_buffer_init ();
   spring_buffer_init ();
+  trqspr_buffer_init ();
   unspring_buffer_init ();
   constrain_buffer_init ();
   time_series_buffer_init ();
