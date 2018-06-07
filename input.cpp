@@ -1856,9 +1856,9 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
                         kyaw ? PyList_Size (kyaw) : 4,
                         kpitch ? PyList_Size (kpitch) : 4};
 
-  int dryp_lookup[3] = {droll ? PyList_Size (droll) : 4,
-                        dyaw ? PyList_Size (dyaw) : 4,
-                        dpitch ? PyList_Size (dpitch) : 4};
+  int dryp_lookup[3] = {droll && PyList_Check(droll) ? PyList_Size (droll) : 4,
+                        dyaw && PyList_Check(dyaw) ? PyList_Size (dyaw) : 4,
+                        dpitch && PyList_Check(dpitch) ? PyList_Size (dpitch) : 4};
 
   trqspr_buffer_grow (kryp_lookup, dryp_lookup);
 

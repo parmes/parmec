@@ -1415,8 +1415,8 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * uniform trqsprpart[2],
   uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform kryp[3][2],
   uniform int * uniform krypidx[3], uniform REAL * uniform dryp[3][2], uniform int * uniform drypidx[3],
-  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3],
-  uniform REAL * uniform trqryp[3], uniform REAL * uniform trqryptot[3], uniform REAL * uniform trqrypspr[3],
+  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqryp[3],
+  uniform REAL * uniform trqryptot[3], uniform REAL * uniform trqrypspr[3], uniform REAL * uniform inverse[9],
   uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9], uniform REAL * uniform torque[3],
   uniform REAL * uniform krot[6], uniform int adaptive, uniform REAL step, uniform REAL time, uniform int lock[])
 {
@@ -1617,17 +1617,86 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     print ("rolldot = %, yawdot = %, pitchdot = %\n", rolldot, yawdot, pitchdot);
 #endif
 
-    if (drypidx[0][i+1]>drypidx[0][i]+1)
+    uniform REAL I[9], tmp[9], det, Ixx, Iyy, Izz; /* local inertia terms */
+
+    if ((drypidx[0][i]+1 == drypidx[0][i+1])||
+        (drypidx[1][i]+1 == drypidx[1][i+1])||
+        (drypidx[2][i]+1 == drypidx[2][i+1]))
+    {
+      I[0] = inverse[0][j];
+      I[1] = inverse[1][j];
+      I[2] = inverse[2][j];
+      I[3] = inverse[3][j];
+      I[4] = inverse[4][j];
+      I[5] = inverse[5][j];
+      I[6] = inverse[6][j];
+      I[7] = inverse[7][j];
+      I[8] = inverse[8][j];
+
+      if (k >= 0)
+      {
+	I[0] += inverse[0][k];
+	I[1] += inverse[1][k];
+	I[2] += inverse[2][k];
+	I[3] += inverse[3][k];
+	I[4] += inverse[4][k];
+	I[5] += inverse[5][k];
+	I[6] += inverse[6][k];
+	I[7] += inverse[7][k];
+	I[8] += inverse[8][k];
+      }
+
+      NTMUL (I, rot1j, tmp);
+      NNMUL (rot1j, tmp, I);
+      INVERT (I, tmp, det); /* local equivalent inertia = inv (R * (inverse_j + inverse_k) * R') */
+
+      Ixx = tmp[0];
+      Iyy = tmp[4];
+      Izz = tmp[8];
+
+#if TRQDBG
+      print ("Ixx = %, Iyy = %, Izz = %\n", Ixx, Iyy, Izz);
+#endif
+    }
+
+    if (drypidx[0][i]+1 == drypidx[0][i+1]) /* critical damping ratio */
+    {
+      uniform REAL ratio = dryp[0][0][drypidx[0][i]];
+
+      droll = - ratio * 2.0 * sqrt (abs(kroll) * Ixx); /* convenetion: negative damping for positive velocity */
+
+      trqrolldot = rolldot * droll;
+    }
+    else
+    {
       trqrolldot = look_up (dryp[0], drypidx[0][i], drypidx[0][i+1], rolldot, &droll);
-    else trqrolldot = 0.0; /* FIXME: include damping ratio case */
+    }
 
-    if (drypidx[1][i+1]>drypidx[1][i]+1)
+    if (drypidx[1][i]+1 == drypidx[1][i+1]) /* critical damping ratio */
+    {
+      uniform REAL ratio = dryp[1][0][drypidx[1][i]];
+
+      dyaw = - ratio * 2.0 * sqrt (abs(kyaw) * Iyy);
+
+      trqyawdot = yawdot * dyaw;
+    }
+    else
+    {
       trqyawdot = look_up (dryp[1], drypidx[1][i], drypidx[1][i+1], yawdot, &dyaw);
-    else trqyawdot = 0.0; /* FIXME: include damping ratio case */
+    }
 
-    if (drypidx[2][i+1]>drypidx[2][i]+1)
+    if (drypidx[2][i]+1 == drypidx[2][i+1]) /* critical damping ratio */
+    {
+      uniform REAL ratio = dryp[2][0][drypidx[2][i]];
+
+      dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * Izz);
+
+      trqpitchdot = pitchdot * dpitch;
+    }
+    else
+    {
       trqpitchdot = look_up (dryp[2], drypidx[2][i], drypidx[2][i+1], pitchdot, &dpitch);
-    else trqpitchdot = 0.0; /* FIXME: include damping ratio case */
+    }
 
 #if TRQDBG
     print ("trqrolldot = %, trqyawdot = %, trqpitchdot = %\n", trqrolldot, trqyawdot, trqpitchdot);
@@ -1952,7 +2021,7 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
     foreach (i = 0 ... parnum) lock[i] = -1;
 
     launch [ntasks] trqspr_task (trqsprnum/ntasks, trqsprnum, trqsprpart, trqzdir0, trqxdir0, kryp, krypidx, dryp, drypidx,
-            trqzdir1, trqxdir1, trqryp, trqryptot, trqrypspr, angular, rotation, torque, krot, adaptive, step, time, lock);
+      trqzdir1, trqxdir1, trqryp, trqryptot, trqrypspr, inverse, angular, rotation, torque, krot, adaptive, step, time, lock);
     sync;
 
     delete lock;

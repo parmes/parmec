@@ -28,40 +28,9 @@ part1 = MESH (nodes1, elements, matnum, colors)
 
 part2 = MESH (nodes2, elements, matnum, colors)
 
-# roll = global z
-#TORSION_SPRING (part1, part2, (1, 0, 0), (0, 0, 1), kroll=[-1,1E4, 1,-1E4]) #, droll=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(0, 0, 1))
-# roll = global x
-#TORSION_SPRING (part1, part2, (0, 1, 0), (1, 0, 0), kroll=[-1,1E4, 1,-1E4]) #, droll=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(1, 0, 0))
-# roll = global y
-#TORSION_SPRING (part1, part2, (1, 0, 0), (0, 1, 0), kroll=[-1,1E4, 1,-1E4]) #, droll=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(0, 1, 0))
-
-# yaw = global z
-TORSION_SPRING (part1, part2, (1, 0, 0), (0, 1, 0), kyaw=[-1,1E4, 1,-1E4]) #, dyaw=[-1, 5E2, 1, -5E2])
-VELOCITY (part1, angular=(0, 0, 1))
-# yaw = global x
-#TORSION_SPRING (part1, part2, (0, 1, 0), (0, 0, 1), kyaw=[-1,1E4, 1,-1E4]) #, dyaw=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(1, 0, 0))
-# yaw = global y
-#TORSION_SPRING (part1, part2, (1, 0, 0), (0, 0, 1), kyaw=[-1,1E4, 1,-1E4]) #, dyaw=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(0, 1, 0))
-
-# pitch = global z
-#TORSION_SPRING (part1, part2, (0, 0, 1), (0, 1, 0), kpitch=[-1,1E4, 1,-1E4]) #, dpitch=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(0, 0, 1))
-# pitch = global x
-#TORSION_SPRING (part1, part2, (1, 0, 0), (0, 0, 1), kpitch=[-1,1E4, 1,-1E4]) #, dpitch=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(1, 0, 0))
-# pitch = global y
-#TORSION_SPRING (part1, part2, (0, 1, 0), (0, 0, 1), kpitch=[-1,1E4, 1,-1E4]) #, dpitch=[-1, 5E2, 1, -5E2])
-#VELOCITY (part1, angular=(0, 1, 0))
-
-# yaw = global z; rotate about all three axes with different damping rates
-#TORSION_SPRING (part1, part2, (1, 0, 0), (0, 1, 0), kroll=[-1,1E4, 1,-1E4], kyaw=[-1,1E4, 1,-1E4], kpitch=[-1,1E4, 1,-1E4],
-#                                                    droll=[-1, 7E2, 1, -7E2], dyaw=[-1, 5E2, 1, -5E2], dpitch=[-1, 3E2, 1, -3E2])
-#VELOCITY (part1, angular=(1, 1, 1))
+TORSION_SPRING (part1, part2, (1, 0, 0), (0, 1, 0), kroll=[-1,1E4, 1,-1E4], kyaw=[-1,1E4, 1,-1E4], kpitch=[-1,1E4, 1,-1E4],
+                                                    droll=0.5, dyaw=1.0, dpitch=2.0)
+VELOCITY (part1, angular=(1, 1, 1))
 
 t = HISTORY ('TIME')
 ox1 = HISTORY ('OX', part1)
@@ -91,7 +60,7 @@ try:
   plt.ylabel ('omega (rad/s)')
   plt.legend (loc = 'upper right')
   plt.title ('particle 1')
-  plt.savefig ('tests/torsion_spring_oxyz1.png')
+  plt.savefig ('tests/torsion_spring_two_oxyz1.png')
 
   plt.clf ()
   plt.plot (t, ox2, label='ox')
@@ -102,7 +71,7 @@ try:
   plt.ylabel ('omega (rad/s)')
   plt.legend (loc = 'upper right')
   plt.title ('particle 2')
-  plt.savefig ('tests/torsion_spring_oxyz2.png')
+  plt.savefig ('tests/torsion_spring_two_oxyz2.png')
 
 except:
   print 't = ', t

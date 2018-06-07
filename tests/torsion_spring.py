@@ -48,8 +48,10 @@ parnum = MESH (nodes, elements, matnum, colors)
 #VELOCITY (parnum, angular=(0, 1, 0))
 
 # yaw = global z; rotate about all three axes with different damping rates
+#TORSION_SPRING (parnum, -1, (1, 0, 0), (0, 1, 0), kroll=[-1,1E4, 1,-1E4], kyaw=[-1,1E4, 1,-1E4], kpitch=[-1,1E4, 1,-1E4],
+#                                                  droll=[-1, 7E2, 1, -7E2], dyaw=[-1, 5E2, 1, -5E2], dpitch=[-1, 3E2, 1, -3E2])
 TORSION_SPRING (parnum, -1, (1, 0, 0), (0, 1, 0), kroll=[-1,1E4, 1,-1E4], kyaw=[-1,1E4, 1,-1E4], kpitch=[-1,1E4, 1,-1E4],
-                                                  droll=[-1, 7E2, 1, -7E2], dyaw=[-1, 5E2, 1, -5E2], dpitch=[-1, 3E2, 1, -3E2])
+                                                  droll=0.25, dyaw=0.5, dpitch=1.0)
 VELOCITY (parnum, angular=(1, 1, 1))
 
 t = HISTORY ('TIME')
