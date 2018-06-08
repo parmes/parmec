@@ -1565,6 +1565,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
      *  [m20 m21 m22]
      *  Assuming the angles are in radians */
 
+#if 0
     if (rotjk[1] > 1.0-REAL_EPS) /* m10 > 1-epsion --> singularity at north pole */
     {
       yaw = atan2 (rotjk[6],rotjk[8]); /* atan2(m02,m22) */
@@ -1583,14 +1584,32 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       pitch = asin(rotjk[1]);  /* asin(m10) */
       roll = atan2(-rotjk[7],rotjk[4]); /* atan2(-m12,m11) */
     }
+#endif
+
+    SUB (oj, ok, ojk);
+    rolldot = DOT(rot1j, ojk);
+    yawdot = DOT(&rot1j[3], ojk);
+    pitchdot = DOT(&rot1j[6], ojk);
 
 #if TRQDBG
-    print ("roll = %, yaw = %, pitch = %\n", roll, yaw, pitch);
+    print ("rolldot = %, yawdot = %, pitchdot = %\n", rolldot, yawdot, pitchdot);
 #endif
+
+    roll = trqryp[0][i];
+    yaw = trqryp[1][i];
+    pitch = trqryp[2][i];
+
+    roll += rolldot*step;
+    yaw += yawdot*step;
+    pitch += pitchdot*step;
 
     trqryp[0][i] = roll;
     trqryp[1][i] = yaw;
     trqryp[2][i] = pitch;
+
+#if TRQDBG
+    print ("roll = %, yaw = %, pitch = %\n", roll, yaw, pitch);
+#endif
 
     if (krypidx[0][i+1]>krypidx[0][i])
       trqroll = look_up (kryp[0], krypidx[0][i], krypidx[0][i+1], roll, &kroll);
@@ -1606,15 +1625,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 
 #if TRQDBG
     print ("trqroll = %, trqyaw = %, trqpitch = %\n", trqroll, trqyaw, trqpitch);
-#endif
-
-    SUB (oj, ok, ojk);
-    rolldot = DOT(rot1j, ojk);
-    yawdot = DOT(&rot1j[3], ojk);
-    pitchdot = DOT(&rot1j[6], ojk);
-
-#if TRQDBG
-    print ("rolldot = %, yawdot = %, pitchdot = %\n", rolldot, yawdot, pitchdot);
 #endif
 
     uniform REAL I[9], tmp[9], det, Ixx, Iyy, Izz; /* local inertia terms */

@@ -35,12 +35,14 @@ SPRING (part1, p3, -1, p3, spring=[-1, -1E6, 1, 1E6], dashpot=1.0)
 SPRING (part1, p4, -1, p4, spring=[-1, -1E6, 1, 1E6], dashpot=1.0)
 
 # spherical joint at point (0.5,0.5,1)
+ktrq=1E6
+dtrq=1
 SPRING (part1, (0.5,0.5,1), part2, (0.5,0.5,1), spring=[-1, -1E6, 1, 1E6], dashpot=1.0)
 TORSION_SPRING (part1, part2, (1, 0, 0), (0, 1, 0),
-  kroll=[-2, 1E5, -1, 0, 1, 0, 2, -1E5], droll=1.0,
-  kyaw = [-1, 1E5, 1, -1E5], dyaw = 1,
-  kpitch=[-2, 1E5, -1, 0, 1, 0, 2, -1E5], dpitch=1.0)
-VELOCITY (part2, angular=(0.1, 0.1, 0))
+  kroll=[-2, ktrq, -1, 0, 1, 0, 2, -ktrq], droll=dtrq,
+  kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq,
+  kpitch=[-2, ktrq, -1, 0, 1, 0, 2, -ktrq], dpitch=dtrq)
+VELOCITY (part2, angular=(0.1, 0, 0))
 
 GRAVITY (0., 0., -10.)
 

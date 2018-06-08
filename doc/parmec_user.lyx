@@ -2039,6 +2039,19 @@ trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kroll, kyaw, kpitch,
  droll, dyaw, dpitch)
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+axis, ktwist, ksway, dtwist, dsway
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Itemize
 
 \series bold
