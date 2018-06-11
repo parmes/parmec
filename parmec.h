@@ -173,6 +173,7 @@ extern REAL *krpy[3][2]; /* kroll, kpitch, kyaw spring angle-torque lookup table
 extern int *krpyidx[3]; /* spring torque lookup start indexes */
 extern REAL *drpy[3][2]; /* droll, dpitch, dyaw dashpot ang. velocity-torque lookup tables */
 extern int *drpyidx[3]; /* dashpot torque lookup start indexes */
+extern int *trqcone; /* cone constraint flags */
 extern REAL *trqzdir1[3]; /* output: torsion spring z current direction */
 extern REAL *trqxdir1[3]; /* output: torsion spring x current direction */
 extern REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */

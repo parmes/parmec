@@ -57,6 +57,10 @@ enum {SPRING_NONLINEAR_ELASTIC, SPRING_GENERAL_NONLINEAR}; /* spring type */
 
 enum {SPRING_YIELDED = 1, SPRING_UNLOADING = 2, SPRDIR_CONSTANT = 4, SPRDIR_PLANAR = 8, SPRDIR_FOLLOWER = 16, SPRDIR_PROJECT = 32}; /* spring flags */
 
+enum {TRQCONE_ROLL = 1, TRQCONE_PITCH = 2, TRQCONE_YAW = 4,
+      TRQCONE_ROLL_PITCH = 3, TRQCONE_ROLL_YAW = 5, TRQCONE_PITCH_YAW = 6,
+      TRQCONE_ROLL_PITCH_YAW = 7}; /* torsional spring cone constraint flags */
+
 enum {OP_SUM, OP_MAX, OP_MIN}; /* unspring operators */
 
 #ifdef __cplusplus

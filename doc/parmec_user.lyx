@@ -1914,8 +1914,8 @@ and where
 \end_layout
 
 \begin_layout Subsection*
-trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kyaw, kroll, kpitch,
- dyaw, droll, dpitch, cone)
+trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kroll, kpitch, kyaw,
+ droll, dpitch, dyaw, cone)
 \end_layout
 
 \begin_layout Itemize
@@ -2036,9 +2036,10 @@ cone
  - optional tuple ('roll', 'yaw'), ('roll', 'pitch'), ('pitch', 'yaw') or
  ('roll', 'yaw', 'pitch') denoting a cone constraint in the roll, yaw, pitch
  angle space; positive parts of the spring/dashpot torque curves of the
- first mentioned coordinate are used, e.g.
- ('roll', 'pitch') results in 
-\begin_inset Formula $\mathbf{t}=\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]+\text{droll}\left(\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}\right)\left[\frac{\dot{\psi}}{\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}}\mathbf{x}+\frac{\dot{\phi}}{\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}}\mathbf{y}\right]$
+ first in (roll, pitch, yaw) order coordinate are used (hence it makes sense
+ to define at least one of these curves), e.g.
+ both ('roll', 'pitch') and ('pitch', 'roll') result in torque formula 
+\begin_inset Formula $\mathbf{t}=\left[\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)+\text{droll}\left(\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}\right)\right]\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]$
 \end_inset
 
 , etc.; default: not specified

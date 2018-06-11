@@ -186,6 +186,7 @@ REAL *krpy[3][2]; /* kroll, kpitch, kyaw spring angle-torque lookup tables */
 int *krpyidx[3]; /* spring torque lookup start indexes */
 REAL *drpy[3][2]; /* droll, dpitch, dyaw dashpot ang. velocity-torque lookup tables */
 int *drpyidx[3]; /* dashpot torque lookup start indexes */
+int *trqcone; /* cone constraint flags */
 REAL *trqzdir1[3]; /* output: torsion spring z current direction */
 REAL *trqxdir1[3]; /* output: torsion spring x current direction */
 REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
@@ -848,6 +849,7 @@ int trqspr_buffer_init ()
   drpyidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
   drpyidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
   drpyidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  trqcone = aligned_int_alloc (trqspr_buffer_size);
   trqzdir1[0] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[1] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[2] = aligned_real_alloc (trqspr_buffer_size);
@@ -897,6 +899,7 @@ void trqspr_buffer_grow (int krpy_lookup[3], int drpy_lookup[3])
     integer_buffer_grow(drpyidx[0], trqsprnum+1, trqspr_buffer_size+1);
     integer_buffer_grow(drpyidx[1], trqsprnum+1, trqspr_buffer_size+1);
     integer_buffer_grow(drpyidx[2], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(trqcone, trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqzdir1[0], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqzdir1[1], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqzdir1[2], trqsprnum, trqspr_buffer_size);
@@ -1939,6 +1942,7 @@ static void sort_trqspr ()
   int *krpyidx[3]; /* spring torque lookup start indexes */
   REAL *drpy[3][2]; /* droll, dpitch, dyaw dashpot ang. velocity-torque lookup tables */
   int *drpyidx[3]; /* dashpot torque lookup start indexes */
+  int *trqcone; /* cone constraint flags */
   REAL *trqzdir1[3]; /* output: torsion spring z current direction */
   REAL *trqxdir1[3]; /* output: torsion spring x current direction */
   REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
@@ -1972,6 +1976,7 @@ static void sort_trqspr ()
   drpyidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
   drpyidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
   drpyidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  trqcone = aligned_int_alloc (trqspr_buffer_size);
   trqzdir1[0] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[1] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[2] = aligned_real_alloc (trqspr_buffer_size);
@@ -2020,6 +2025,7 @@ static void sort_trqspr ()
     trqrpyspr[0][i] = parmec::trqrpyspr[0][x->number];
     trqrpyspr[1][i] = parmec::trqrpyspr[1][x->number];
     trqrpyspr[2][i] = parmec::trqrpyspr[2][x->number];
+    trqcone[i] = parmec::trqcone[x->number];
 
     for (int l = 0; l < 3; l ++)
     {
@@ -2066,6 +2072,7 @@ static void sort_trqspr ()
   aligned_int_free (parmec::drpyidx[0]);
   aligned_int_free (parmec::drpyidx[1]);
   aligned_int_free (parmec::drpyidx[2]);
+  aligned_int_free (parmec::trqcone);
   aligned_real_free (parmec::trqzdir1[0]);
   aligned_real_free (parmec::trqzdir1[1]);
   aligned_real_free (parmec::trqzdir1[2]);
@@ -2109,6 +2116,7 @@ static void sort_trqspr ()
   parmec::drpyidx[0] = drpyidx[0];
   parmec::drpyidx[1] = drpyidx[1];
   parmec::drpyidx[2] = drpyidx[2];
+  parmec::trqcone = trqcone;
   parmec::trqzdir1[0] = trqzdir1[0];
   parmec::trqzdir1[1] = trqzdir1[1];
   parmec::trqzdir1[2] = trqzdir1[2];
@@ -2352,7 +2360,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass, invm, obspnt, obslin,
             obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0, sprnum, sprtype, unspring, sprmap, sprpart, sprpnt,
 	    spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfric, sprkskn, sprsdsp, stroke0,
-	    stroke, sprfrc, lcurve, lcidx, gravity, trqsprnum, trqsprpart, trqzdir0, trqxdir0, krpy, krpyidx, drpy, drpyidx,
+	    stroke, sprfrc, lcurve, lcidx, gravity, trqsprnum, trqsprpart, trqzdir0, trqxdir0, krpy, krpyidx, drpy, drpyidx, trqcone,
 	    trqzdir1, trqxdir1, trqrpy, trqrpytot, trqrpyspr, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0),
 	    unsprnum, tsprings, tspridx, msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx,
 	    stepnum, curtime);

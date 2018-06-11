@@ -1790,41 +1790,29 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 /* create torsional spring constraint */
 static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "part2", "zdir", "xdir", "kyaw", "kroll", "kpitch", "dyaw", "droll", "dpitch");
-  PyObject *zdir, *xdir, *kyaw, *kroll, *kpitch, *dyaw, *droll, *dpitch;
+  KEYWORDS ("part1", "part2", "zdir", "xdir", "kroll", "kpitch", "kyaw", "droll", "dpitch", "dyaw", "cone");
+  PyObject *zdir, *xdir, *kroll, *kpitch, *kyaw, *droll, *dpitch, *dyaw, *cone;
   int part1, part2;
 
   kroll = NULL;
-  kyaw = NULL;
   kpitch = NULL;
+  kyaw = NULL;
   droll = NULL;
-  dyaw = NULL;
   dpitch = NULL;
+  dyaw = NULL;
+  cone = NULL;
 
-  PARSEKEYS ("iiOO|OOOOOO", &part1, &part2, &zdir, &xdir, &kyaw, &kroll, &kpitch, &dyaw, &droll, &dpitch);
+  PARSEKEYS ("iiOO|OOOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kpitch, &kyaw, &droll, &dpitch, &dyaw, &cone);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (zdir, kwl[2], 3) &&
-            is_tuple (xdir, kwl[3], 3) && is_list (kyaw, kwl[4], 0) &&
-            is_list (kroll, kwl[5], 0) && is_list (kpitch, kwl[6], 0) &&
-	    is_list_or_number (dyaw, kwl[7], 0) &&
-	    is_list_or_number (droll, kwl[8], 0) &&
-	    is_list_or_number (dpitch, kwl[9], 0));
+            is_tuple (xdir, kwl[3], 3) && is_list (kroll, kwl[4], 0) &&
+            is_list (kpitch, kwl[5], 0) && is_list (kyaw, kwl[6], 0) &&
+	    is_list_or_number (droll, kwl[7], 0) && is_list_or_number (dpitch, kwl[8], 0) &&
+	    is_list_or_number (dyaw, kwl[9], 0) && is_tuple (cone, kwl[10], 0));
 
   if (part2 < -1)
   {
     PyErr_SetString (PyExc_ValueError, "Particle two index is out of range [-1, 0, ...]");
-    return NULL;
-  }
-
-  if (kyaw && (PyList_Size (kyaw) < 4 || PyList_Size (kyaw) % 2))
-  {
-    PyErr_SetString (PyExc_ValueError, "Invalid kyaw lookup table list length");
-    return NULL;
-  }
-
-  if (dyaw && PyList_Check (dyaw) && (PyList_Size (dyaw) < 4 || PyList_Size (dyaw) % 2))
-  {
-    PyErr_SetString (PyExc_ValueError, "Invalid dyaw lookup table list length");
     return NULL;
   }
 
@@ -1849,6 +1837,18 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   if (dpitch && PyList_Check (dpitch) && (PyList_Size (dpitch) < 4 || PyList_Size (dpitch) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid dpitch lookup table list length");
+    return NULL;
+  }
+
+  if (kyaw && (PyList_Size (kyaw) < 4 || PyList_Size (kyaw) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid kyaw lookup table list length");
+    return NULL;
+  }
+
+  if (dyaw && PyList_Check (dyaw) && (PyList_Size (dyaw) < 4 || PyList_Size (dyaw) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid dyaw lookup table list length");
     return NULL;
   }
 
@@ -1981,6 +1981,84 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::drpy[o][0][k+1] = +REAL_MAX;
       parmec::drpy[o][1][k+1] = 0.0;
       drpyidx[o][trqsprnum] = k+2;
+    }
+  }
+
+  if (cone)
+  {
+    int n = PyTuple_Size (cone);
+
+    if (n >= 2 && n <= 3)
+    {
+      for (int j = 0; j < n; j ++)
+      {
+	PyObject *angle = PyTuple_GetItem (cone, j);
+
+	if (!PyString_Check(angle))
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component: not a string");
+	  return NULL;
+	}
+
+	IFIS (angle, "roll")
+	{
+	  parmec::trqcone[i] |= TRQCONE_ROLL;
+	}
+	ELIF (angle, "pitch")
+	{
+	  parmec::trqcone[i] |= TRQCONE_PITCH;
+	}
+	ELIF (angle, "yaw")
+	{
+	  parmec::trqcone[i] |= TRQCONE_YAW;
+	}
+	ELSE
+	{
+	  PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component name");
+	  return NULL;
+	}
+      }
+
+      switch (parmec::trqcone[i])
+      {
+      case TRQCONE_ROLL_PITCH:
+        if (kroll == NULL && droll == NULL)
+	{
+	  PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'pitch')");
+	  return NULL;
+	}
+      break;
+      case TRQCONE_ROLL_YAW:
+        if (kroll == NULL && droll == NULL)
+	{
+	  PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'yaw')");
+	  return NULL;
+	}
+      break;
+      case TRQCONE_PITCH_YAW:
+        if (kpitch == NULL && dpitch == NULL)
+	{
+	  PyErr_SetString (PyExc_ValueError, "A pitch curve not defined for cone = ('pitch', 'yaw')");
+	  return NULL;
+	}
+      break;
+      case TRQCONE_ROLL_PITCH_YAW:
+        if (kroll == NULL && droll == NULL)
+	{
+	  PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'pitch', 'yaw')");
+	  return NULL;
+	}
+      break;
+      default:
+	PyErr_SetString (PyExc_ValueError, "Invalid cone tuple: components repeat");
+	return NULL;
+      break;
+      }
+    }
+    else
+    {
+      PyErr_SetString (PyExc_ValueError, "Invalid cone tuple size: neither 2 nor 3");
+      return NULL;
     }
   }
 

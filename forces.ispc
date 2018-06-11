@@ -1415,10 +1415,11 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * uniform trqsprpart[2],
   uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform krpy[3][2],
   uniform int * uniform krpyidx[3], uniform REAL * uniform drpy[3][2], uniform int * uniform drpyidx[3],
-  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqrpy[3],
-  uniform REAL * uniform trqrpytot[3], uniform REAL * uniform trqrpyspr[3], uniform REAL * uniform inverse[9],
-  uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9], uniform REAL * uniform torque[3],
-  uniform REAL * uniform krot[6], uniform int adaptive, uniform REAL step, uniform REAL time, uniform int lock[])
+  uniform int trqcone[], uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3],
+  uniform REAL * uniform trqrpy[3], uniform REAL * uniform trqrpytot[3], uniform REAL * uniform trqrpyspr[3],
+  uniform REAL * uniform inverse[9], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9],
+  uniform REAL * uniform torque[3], uniform REAL * uniform krot[6], uniform int adaptive, uniform REAL step,
+  uniform REAL time, uniform int lock[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? trqsprnum: start+span;
@@ -1562,23 +1563,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     print ("roll = %, pitch = %, yaw = %\n", roll, pitch, yaw);
 #endif
 
-    if (krpyidx[0][i+1]>krpyidx[0][i])
-      trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], roll, &kroll);
-    else {trqroll = 0.0; kroll = 0.0;}
-
-   if (krpyidx[1][i+1]>krpyidx[1][i])
-      trqpitch = look_up (krpy[1], krpyidx[1][i], krpyidx[1][i+1], pitch, &kpitch);
-    else {trqpitch = 0.0; kpitch = 0.0;}
-
-    if (krpyidx[2][i+1]>krpyidx[2][i])
-      trqyaw = look_up (krpy[2], krpyidx[2][i], krpyidx[2][i+1], yaw, &kyaw);
-    else {trqyaw = 0.0; kyaw = 0.0;}
- 
-
-#if TRQDBG
-    print ("trqroll = %, trqpitch = %, trqyaw = %\n", trqroll, trqpitch, trqyaw);
-#endif
-
     uniform REAL I[9], tmp[9], det, Ixx, Iyy, Izz; /* local inertia terms */
 
     if ((drpyidx[0][i]+1 == drpyidx[0][i+1])||
@@ -1621,59 +1605,299 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 #endif
     }
 
-    if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
+    uniform REAL trq[3] = {0., 0., 0.}; /* total torque in the global frame */
+
+    switch (trqcone[i])
     {
-      uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
-
-      droll = - ratio * 2.0 * sqrt (abs(kroll) * Ixx); /* convenetion: negative damping for positive velocity */
-
-      trqrolldot = rolldot * droll;
-    }
-    else
+    case 0:
     {
-      trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], rolldot, &droll);
-    }
+      if (krpyidx[0][i+1]>krpyidx[0][i])
+	trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], roll, &kroll);
+      else {trqroll = 0.0; kroll = 0.0;}
 
-    if (drpyidx[1][i]+1 == drpyidx[1][i+1]) /* critical damping ratio */
-    {
-      uniform REAL ratio = drpy[1][0][drpyidx[1][i]];
+      if (krpyidx[1][i+1]>krpyidx[1][i])
+	trqpitch = look_up (krpy[1], krpyidx[1][i], krpyidx[1][i+1], pitch, &kpitch);
+      else {trqpitch = 0.0; kpitch = 0.0;}
 
-      dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * Iyy);
-
-      trqpitchdot = pitchdot * dpitch;
-    }
-    else
-    {
-      trqpitchdot = look_up (drpy[1], drpyidx[1][i], drpyidx[1][i+1], pitchdot, &dpitch);
-    }
-
-    if (drpyidx[2][i]+1 == drpyidx[2][i+1]) /* critical damping ratio */
-    {
-      uniform REAL ratio = drpy[2][0][drpyidx[2][i]];
-
-      dyaw = - ratio * 2.0 * sqrt (abs(kyaw) * Izz);
-
-      trqyawdot = yawdot * dyaw;
-    }
-    else
-    {
-      trqyawdot = look_up (drpy[2], drpyidx[2][i], drpyidx[2][i+1], yawdot, &dyaw);
-    }
+      if (krpyidx[2][i+1]>krpyidx[2][i])
+	trqyaw = look_up (krpy[2], krpyidx[2][i], krpyidx[2][i+1], yaw, &kyaw);
+      else {trqyaw = 0.0; kyaw = 0.0;}
+   
 
 #if TRQDBG
-    print ("trqrolldot = %, trqpitchdot = %, trqyawdot = %\n", trqrolldot, trqpitchdot, trqyawdot);
+      print ("trqroll = %, trqpitch = %, trqyaw = %\n", trqroll, trqpitch, trqyaw);
 #endif
 
-    trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
-    trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
-    trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
+      if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
 
-    uniform REAL trq[3]; /* total torque in the global frame */
+	droll = - ratio * 2.0 * sqrt (abs(kroll) * Ixx); /* convenetion: negative damping for positive velocity */
 
-    /*                   xdir1                  ydir1                 zdir1 */
-    trq[0] = trqrolltot*rot1j[0] + trqpitchtot*rot1j[3] + trqyawtot*rot1j[6];
-    trq[1] = trqrolltot*rot1j[1] + trqpitchtot*rot1j[4] + trqyawtot*rot1j[7];
-    trq[2] = trqrolltot*rot1j[2] + trqpitchtot*rot1j[5] + trqyawtot*rot1j[8];
+	trqrolldot = rolldot * droll;
+      }
+      else
+      {
+	trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], rolldot, &droll);
+      }
+
+      if (drpyidx[1][i]+1 == drpyidx[1][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[1][0][drpyidx[1][i]];
+
+	dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * Iyy);
+
+	trqpitchdot = pitchdot * dpitch;
+      }
+      else
+      {
+	trqpitchdot = look_up (drpy[1], drpyidx[1][i], drpyidx[1][i+1], pitchdot, &dpitch);
+      }
+
+      if (drpyidx[2][i]+1 == drpyidx[2][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[2][0][drpyidx[2][i]];
+
+	dyaw = - ratio * 2.0 * sqrt (abs(kyaw) * Izz);
+
+	trqyawdot = yawdot * dyaw;
+      }
+      else
+      {
+	trqyawdot = look_up (drpy[2], drpyidx[2][i], drpyidx[2][i+1], yawdot, &dyaw);
+      }
+
+#if TRQDBG
+      print ("trqrolldot = %, trqpitchdot = %, trqyawdot = %\n", trqrolldot, trqpitchdot, trqyawdot);
+#endif
+
+      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
+      trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
+      trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
+
+      /*                   xdir1                  ydir1                 zdir1 */
+      trq[0] = trqrolltot*rot1j[0] + trqpitchtot*rot1j[3] + trqyawtot*rot1j[6];
+      trq[1] = trqrolltot*rot1j[1] + trqpitchtot*rot1j[4] + trqyawtot*rot1j[7];
+      trq[2] = trqrolltot*rot1j[2] + trqpitchtot*rot1j[5] + trqyawtot*rot1j[8];
+    }
+    break;
+    case TRQCONE_ROLL_PITCH:
+    {
+      uniform REAL angle = sqrt(roll*roll + pitch*pitch);
+      uniform REAL angledot = sqrt(rolldot*rolldot + pitchdot*pitchdot);
+
+      if (krpyidx[0][i+1]>krpyidx[0][i])
+      {
+	trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], angle, &kroll);
+	kpitch = kroll;
+      }
+      else {trqroll = 0.0; kroll = kpitch = 0.0;}
+
+      if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
+
+	droll = - ratio * 2.0 * sqrt (abs(kroll) * sqrt(Ixx*Ixx + Iyy*Iyy)); /* convenetion: negative damping for positive velocity */
+
+	trqrolldot = angledot * droll;
+      }
+      else
+      {
+	trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], angledot, &droll);
+      }
+
+      if (krpyidx[2][i+1]>krpyidx[2][i])
+	trqyaw = look_up (krpy[2], krpyidx[2][i], krpyidx[2][i+1], yaw, &kyaw);
+      else {trqyaw = 0.0; kyaw = 0.0;}
+
+      if (drpyidx[2][i]+1 == drpyidx[2][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[2][0][drpyidx[2][i]];
+
+	dyaw = - ratio * 2.0 * sqrt (abs(kyaw) * Izz);
+
+	trqyawdot = yawdot * dyaw;
+      }
+      else
+      {
+	trqyawdot = look_up (drpy[2], drpyidx[2][i], drpyidx[2][i+1], yawdot, &dyaw);
+      }
+
+      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
+      trqpitchtot = 0.0;
+      trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
+
+      if (angle > 0.)
+      {
+	uniform REAL xcoef = roll/angle;
+	uniform REAL ycoef = pitch/angle;
+
+        /*                           xdir1                       ydir1               zdir1 */
+	trq[0] = trqrolltot*xcoef*rot1j[0] + trqrolltot*ycoef*rot1j[3] + trqyawtot*rot1j[6];
+	trq[1] = trqrolltot*xcoef*rot1j[1] + trqrolltot*ycoef*rot1j[4] + trqyawtot*rot1j[7];
+	trq[2] = trqrolltot*xcoef*rot1j[2] + trqrolltot*ycoef*rot1j[5] + trqyawtot*rot1j[8];
+      }
+    }
+    break;
+    case TRQCONE_ROLL_YAW:
+    {
+      uniform REAL angle = sqrt(roll*roll + yaw*yaw);
+      uniform REAL angledot = sqrt(rolldot*rolldot + yawdot*yawdot);
+
+      if (krpyidx[0][i+1]>krpyidx[0][i])
+      {
+	trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], angle, &kroll);
+	kyaw = kroll;
+      }
+      else {trqroll = 0.0; kroll = kyaw = 0.0;}
+
+      if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
+
+	droll = - ratio * 2.0 * sqrt (abs(kroll) * sqrt(Ixx*Ixx + Izz*Izz)); /* convenetion: negative damping for positive velocity */
+
+	trqrolldot = angledot * droll;
+      }
+      else
+      {
+	trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], angledot, &droll);
+      }
+
+      if (krpyidx[1][i+1]>krpyidx[1][i])
+	trqpitch = look_up (krpy[1], krpyidx[1][i], krpyidx[1][i+1], pitch, &kpitch);
+      else {trqpitch = 0.0; kpitch = 0.0;}
+
+      if (drpyidx[1][i]+1 == drpyidx[1][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[1][0][drpyidx[1][i]];
+
+	dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * Iyy);
+
+	trqpitchdot = pitchdot * dpitch;
+      }
+      else
+      {
+	trqpitchdot = look_up (drpy[1], drpyidx[1][i], drpyidx[1][i+1], pitchdot, &dpitch);
+      }
+
+      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
+      trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
+      trqyawtot = 0.0;
+
+      if (angle > 0.)
+      {
+	uniform REAL xcoef = roll/angle;
+	uniform REAL zcoef = yaw/angle;
+
+        /*                           xdir1                  ydir1                     zdir1 */
+	trq[0] = trqrolltot*xcoef*rot1j[0] + trqpitchtot*rot1j[3] + trqrolltot*zcoef*rot1j[6];
+	trq[1] = trqrolltot*xcoef*rot1j[1] + trqpitchtot*rot1j[4] + trqrolltot*zcoef*rot1j[7];
+	trq[2] = trqrolltot*xcoef*rot1j[2] + trqpitchtot*rot1j[5] + trqrolltot*zcoef*rot1j[8];
+      }
+    }
+    break;
+    case TRQCONE_PITCH_YAW:
+    {
+      if (krpyidx[0][i+1]>krpyidx[0][i])
+	trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], roll, &kroll);
+      else {trqroll = 0.0; kroll = 0.0;}
+
+      if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
+
+	droll = - ratio * 2.0 * sqrt (abs(kroll) * Ixx); /* convenetion: negative damping for positive velocity */
+
+	trqrolldot = rolldot * droll;
+      }
+      else
+      {
+	trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], rolldot, &droll);
+      }
+
+      uniform REAL angle = sqrt(pitch*pitch + yaw*yaw);
+      uniform REAL angledot = sqrt(pitchdot*pitchdot + yawdot*yawdot);
+
+      if (krpyidx[1][i+1]>krpyidx[1][i])
+      {
+	trqpitch = look_up (krpy[1], krpyidx[1][i], krpyidx[1][i+1], angle, &kpitch);
+	kyaw = kpitch;
+      }
+      else {trqpitch = 0.0; kpitch = kyaw = 0.0;}
+
+      if (drpyidx[1][i]+1 == drpyidx[1][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
+
+	dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * sqrt(Iyy*Iyy + Izz*Izz)); /* convenetion: negative damping for positive velocity */
+
+	trqpitchdot = angledot * dpitch;
+      }
+      else
+      {
+	trqpitchdot = look_up (drpy[1], drpyidx[1][i], drpyidx[1][i+1], angledot, &dpitch);
+      }
+
+      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
+      trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
+      trqyawtot = 0.0;
+
+      if (angle > 0.)
+      {
+	uniform REAL ycoef = pitch/angle;
+	uniform REAL zcoef = yaw/angle;
+
+        /*                     xdir1                      ydir1                       zdir1 */
+	trq[0] = trqrolltot*rot1j[0] + trqpitchtot*ycoef*rot1j[3] + trqpitchtot*zcoef*rot1j[6];
+	trq[1] = trqrolltot*rot1j[1] + trqpitchtot*ycoef*rot1j[4] + trqpitchtot*zcoef*rot1j[7];
+	trq[2] = trqrolltot*rot1j[2] + trqpitchtot*ycoef*rot1j[5] + trqpitchtot*zcoef*rot1j[8];
+      }
+    }
+    break;
+    case TRQCONE_ROLL_PITCH_YAW:
+    {
+      uniform REAL angle = sqrt(roll*roll + pitch*pitch + yaw*yaw);
+      uniform REAL angledot = sqrt(rolldot*rolldot + pitchdot*pitchdot + dyaw*dyaw);
+
+      if (krpyidx[0][i+1]>krpyidx[0][i])
+      {
+	trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], angle, &kroll);
+	kpitch = kyaw = kroll;
+      }
+      else {trqroll = 0.0; kroll = kpitch = kyaw = 0.0;}
+
+      if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
+      {
+	uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
+
+	droll = - ratio * 2.0 * sqrt (abs(kroll) * sqrt(Ixx*Ixx + Iyy*Iyy + Izz*Izz)); /* convenetion: negative damping for positive velocity */
+
+	trqrolldot = angledot * droll;
+      }
+      else
+      {
+	trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], angledot, &droll);
+      }
+
+      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
+      trqpitchtot = 0.0;
+      trqyawtot = 0.0;
+
+      if (angle > 0.)
+      {
+	uniform REAL xcoef = roll/angle;
+	uniform REAL ycoef = pitch/angle;
+	uniform REAL zcoef = yaw/angle;
+
+        /*                           xdir1                       ydir1                      zdir1 */
+	trq[0] = trqrolltot*xcoef*rot1j[0] + trqrolltot*ycoef*rot1j[3] + trqrolltot*zcoef*rot1j[6];
+	trq[1] = trqrolltot*xcoef*rot1j[1] + trqrolltot*ycoef*rot1j[4] + trqrolltot*zcoef*rot1j[7];
+	trq[2] = trqrolltot*xcoef*rot1j[2] + trqrolltot*ycoef*rot1j[5] + trqrolltot*zcoef*rot1j[8];
+      }
+    }
+    break;
+    }
 
 #if TRQDBG
     print ("trq = %, %, %\n", trq[0], trq[1], trq[2]);
@@ -1922,8 +2146,8 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform int lcidx[], uniform REAL gravity[3], uniform int trqsprnum, uniform int * uniform trqsprpart[2],
   uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform krpy[3][2],
   uniform int * uniform krpyidx[3], uniform REAL * uniform drpy[3][2], uniform int * uniform drpyidx[3],
-  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqrpy[3],
-  uniform REAL * uniform trqrpytot[3], uniform REAL * uniform trqrpyspr[3],
+  uniform int trqcone[], uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3],
+  uniform REAL * uniform trqrpy[3], uniform REAL * uniform trqrpytot[3], uniform REAL * uniform trqrpyspr[3],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL * uniform kact[3], uniform REAL kmax[],
   uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive, uniform int unsprnum, uniform int tsprings[],
   uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2], uniform int unent[],
@@ -1982,8 +2206,8 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
     uniform int * uniform lock = uniform new uniform int [parnum];
     foreach (i = 0 ... parnum) lock[i] = -1;
 
-    launch [ntasks] trqspr_task (trqsprnum/ntasks, trqsprnum, trqsprpart, trqzdir0, trqxdir0, krpy, krpyidx, drpy, drpyidx,
-      trqzdir1, trqxdir1, trqrpy, trqrpytot, trqrpyspr, inverse, angular, rotation, torque, krot, adaptive, step, time, lock);
+    launch [ntasks] trqspr_task (trqsprnum/ntasks, trqsprnum, trqsprpart, trqzdir0, trqxdir0, krpy, krpyidx, drpy, drpyidx, trqcone,
+             trqzdir1, trqxdir1, trqrpy, trqrpytot, trqrpyspr, inverse, angular, rotation, torque, krot, adaptive, step, time, lock);
     sync;
 
     delete lock;

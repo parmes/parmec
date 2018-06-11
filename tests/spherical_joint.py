@@ -38,11 +38,11 @@ SPRING (part1, p4, -1, p4, spring=[-1, -1E6, 1, 1E6], dashpot=1.0)
 ktrq=1E6
 dtrq=1
 SPRING (part1, (0.5,0.5,1), part2, (0.5,0.5,1), spring=[-1, -1E6, 1, 1E6], dashpot=1.0)
-TORSION_SPRING (part1, part2, (1, 0, 0), (0, 1, 0),
-  kroll=[-2, ktrq, -1, 0, 1, 0, 2, -ktrq], droll=dtrq,
-  kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq,
-  kpitch=[-2, ktrq, -1, 0, 1, 0, 2, -ktrq], dpitch=dtrq)
-VELOCITY (part2, angular=(0.1, 0, 0))
+TORSION_SPRING (part1, part2, (0, 0, 1), (1, 0, 0),
+  kroll=[-2, ktrq, -1, 0, 1, 0, 2, -ktrq], droll=dtrq, # allow for some freedom ... (--> cone)
+  kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq, # block yaw rotation
+  cone = ('roll', 'pitch')) # ... in the (roll, pitch) space
+VELOCITY (part2, angular=(0.1, 0.2, 0.0))
 
 GRAVITY (0., 0., -10.)
 
