@@ -169,20 +169,20 @@ extern int *trqsprmap; /* map of torsion spring ids to spring indices */
 extern int *trqsprpart[2]; /* torsion spring particle indices */
 extern REAL *trqzdir0[3]; /* torsion spring reference z direction */
 extern REAL *trqxdir0[3]; /* torsion spring reference x direction */
-extern REAL *kryp[3][2]; /* kroll, kyaw, kpitch spring angle-torque lookup tables */
-extern int *krypidx[3]; /* spring angle-torque lookup start indexes */
-extern REAL *dryp[3][2]; /* droll, dyaw, dpitch dashpot ang. velocity-torque lookup tables */
-extern int *drypidx[3]; /* droll, dyaw, dpitch lookup start indexes */
+extern REAL *krpy[3][2]; /* kroll, kpitch, kyaw spring angle-torque lookup tables */
+extern int *krpyidx[3]; /* spring torque lookup start indexes */
+extern REAL *drpy[3][2]; /* droll, dpitch, dyaw dashpot ang. velocity-torque lookup tables */
+extern int *drpyidx[3]; /* dashpot torque lookup start indexes */
 extern REAL *trqzdir1[3]; /* output: torsion spring z current direction */
 extern REAL *trqxdir1[3]; /* output: torsion spring x current direction */
-extern REAL *trqryp[3]; /* output: torsion spring Euler angles roll, yaw, pitch */
-extern REAL *trqryptot[3]; /* output: total moments conjugate with Euler angles */
-extern REAL *trqrypspr[3]; /* output: spring moments wihout damper components */
+extern REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
+extern REAL *trqrpytot[3]; /* output: total moments conjugate with spring angles */
+extern REAL *trqrpyspr[3]; /* output: spring moments wihout damper components */
 extern int trqspr_changed; /* torqion spring input changed flag */
 extern int trqspr_buffer_size; /* size of torsion spring constraint buffer */
-extern int kryp_lookup_size[3]; /* size of spring angle-torque lookup tables */
-extern int dryp_lookup_size[3]; /* size of spring ang. velocity-torque lookup tables */
-extern void trqspr_buffer_grow (int kryp_lookup[3], int dryp_lookup[3]); /* grow buffer */
+extern int krpy_lookup_size[3]; /* size of spring angle-torque lookup tables */
+extern int drpy_lookup_size[3]; /* size of spring ang. velocity-torque lookup tables */
+extern void trqspr_buffer_grow (int krpy_lookup[3], int drpy_lookup[3]); /* grow buffer */
 
 extern int unsprnum; /* number of unspring definitions */
 extern int *tsprings; /* test springs */

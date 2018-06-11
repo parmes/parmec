@@ -1790,8 +1790,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 /* create torsional spring constraint */
 static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "part2", "zdir", "xdir", "kroll", "kyaw", "kpitch", "droll", "dyaw", "dpitch");
-  PyObject *zdir, *xdir, *kroll, *kyaw, *kpitch, *droll, *dyaw, *dpitch;
+  KEYWORDS ("part1", "part2", "zdir", "xdir", "kyaw", "kroll", "kpitch", "dyaw", "droll", "dpitch");
+  PyObject *zdir, *xdir, *kyaw, *kroll, *kpitch, *dyaw, *droll, *dpitch;
   int part1, part2;
 
   kroll = NULL;
@@ -1801,30 +1801,18 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   dyaw = NULL;
   dpitch = NULL;
 
-  PARSEKEYS ("iiOO|OOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kyaw, &kpitch, &droll, &dyaw, &dpitch);
+  PARSEKEYS ("iiOO|OOOOOO", &part1, &part2, &zdir, &xdir, &kyaw, &kroll, &kpitch, &dyaw, &droll, &dpitch);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (zdir, kwl[2], 3) &&
-            is_tuple (xdir, kwl[3], 3) && is_list (kroll, kwl[4], 0) &&
-            is_list (kyaw, kwl[5], 0) && is_list (kpitch, kwl[6], 0) &&
-	    is_list_or_number (droll, kwl[7], 0) &&
-	    is_list_or_number (dyaw, kwl[8], 0) &&
+            is_tuple (xdir, kwl[3], 3) && is_list (kyaw, kwl[4], 0) &&
+            is_list (kroll, kwl[5], 0) && is_list (kpitch, kwl[6], 0) &&
+	    is_list_or_number (dyaw, kwl[7], 0) &&
+	    is_list_or_number (droll, kwl[8], 0) &&
 	    is_list_or_number (dpitch, kwl[9], 0));
 
   if (part2 < -1)
   {
     PyErr_SetString (PyExc_ValueError, "Particle two index is out of range [-1, 0, ...]");
-    return NULL;
-  }
-
-  if (kroll && (PyList_Size (kroll) < 4 || PyList_Size (kroll) % 2))
-  {
-    PyErr_SetString (PyExc_ValueError, "Invalid kroll lookup table list length");
-    return NULL;
-  }
-
-  if (droll && PyList_Check (droll) && (PyList_Size (droll) < 4 || PyList_Size (droll) % 2))
-  {
-    PyErr_SetString (PyExc_ValueError, "Invalid droll lookup table list length");
     return NULL;
   }
 
@@ -1840,6 +1828,18 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
+  if (kroll && (PyList_Size (kroll) < 4 || PyList_Size (kroll) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid kroll lookup table list length");
+    return NULL;
+  }
+
+  if (droll && PyList_Check (droll) && (PyList_Size (droll) < 4 || PyList_Size (droll) % 2))
+  {
+    PyErr_SetString (PyExc_ValueError, "Invalid droll lookup table list length");
+    return NULL;
+  }
+
   if (kpitch && (PyList_Size (kpitch) < 4 || PyList_Size (kpitch) % 2))
   {
     PyErr_SetString (PyExc_ValueError, "Invalid kpitch lookup table list length");
@@ -1852,15 +1852,15 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     return NULL;
   }
 
-  int kryp_lookup[3] = {kroll ? PyList_Size (kroll) : 4,
-                        kyaw ? PyList_Size (kyaw) : 4,
-                        kpitch ? PyList_Size (kpitch) : 4};
+  int krpy_lookup[3] = {kroll ? PyList_Size (kroll) : 4,
+                        kpitch ? PyList_Size (kpitch) : 4,
+                        kyaw ? PyList_Size (kyaw) : 4};
 
-  int dryp_lookup[3] = {droll && PyList_Check(droll) ? PyList_Size (droll) : 4,
-                        dyaw && PyList_Check(dyaw) ? PyList_Size (dyaw) : 4,
-                        dpitch && PyList_Check(dpitch) ? PyList_Size (dpitch) : 4};
+  int drpy_lookup[3] = {droll && PyList_Check(droll) ? PyList_Size (droll) : 4,
+                        dpitch && PyList_Check(dpitch) ? PyList_Size (dpitch) : 4,
+                        dyaw && PyList_Check(dyaw) ? PyList_Size (dyaw) : 4};
 
-  trqspr_buffer_grow (kryp_lookup, dryp_lookup);
+  trqspr_buffer_grow (krpy_lookup, drpy_lookup);
 
   int i = trqsprnum ++;
 
@@ -1911,8 +1911,8 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   trqxdir0[1][i] = xdir0[1];
   trqxdir0[2][i] = xdir0[2];
 
-  PyObject *spring[3] = {kroll, kyaw, kpitch};
-  PyObject *dashpot[3] = {droll, dyaw, dpitch};
+  PyObject *spring[3] = {kroll, kpitch, kyaw};
+  PyObject *dashpot[3] = {droll, dpitch, dyaw};
 
   for (int o = 0; o < 3; o ++)
   {
@@ -1920,45 +1920,45 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
     if (spring[o])
     {
-      for (j = 0, k = krypidx[o][i]; j < kryp_lookup[o]/2; j ++, k ++)
+      for (j = 0, k = krpyidx[o][i]; j < krpy_lookup[o]/2; j ++, k ++)
       {
 	REAL angle = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j));
 	REAL torque = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j+1));
-	if (j && angle <= parmec::kryp[o][0][k-1])
+	if (j && angle <= parmec::krpy[o][0][k-1])
 	{
 	  PyErr_SetString (PyExc_ValueError, "Torsion spring angle values must increase");
 	  return NULL;
 	}
-	parmec::kryp[o][0][k] = angle;
-	parmec::kryp[o][1][k] = torque;
+	parmec::krpy[o][0][k] = angle;
+	parmec::krpy[o][1][k] = torque;
       }
-      krypidx[o][trqsprnum] = k;
+      krpyidx[o][trqsprnum] = k;
     }
     else /* default zero torque */
     {
-      k = krypidx[o][i];
-      parmec::kryp[o][0][k] = -REAL_MAX;
-      parmec::kryp[o][1][k] = 0.0;
-      parmec::kryp[o][0][k+1] = +REAL_MAX;
-      parmec::kryp[o][1][k+1] = 0.0;
-      krypidx[o][trqsprnum] = k+2;
+      k = krpyidx[o][i];
+      parmec::krpy[o][0][k] = -REAL_MAX;
+      parmec::krpy[o][1][k] = 0.0;
+      parmec::krpy[o][0][k+1] = +REAL_MAX;
+      parmec::krpy[o][1][k+1] = 0.0;
+      krpyidx[o][trqsprnum] = k+2;
     }
 
     if (dashpot[o] && PyList_Check(dashpot[o]))
     {
-      for (j = 0, k = drypidx[o][i]; j < dryp_lookup[o]/2; j ++, k ++)
+      for (j = 0, k = drpyidx[o][i]; j < drpy_lookup[o]/2; j ++, k ++)
       {
 	REAL angvel = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j));
 	REAL torque = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j+1));
-	if (j && angvel <= parmec::dryp[o][0][k-1])
+	if (j && angvel <= parmec::drpy[o][0][k-1])
 	{
 	  PyErr_SetString (PyExc_ValueError, "Torsion damper angular velocity values must increase");
 	  return NULL;
 	}
-	parmec::dryp[o][0][k] = angvel;
-	parmec::dryp[o][1][k] = torque;
+	parmec::drpy[o][0][k] = angvel;
+	parmec::drpy[o][1][k] = torque;
       }
-      drypidx[o][trqsprnum] = k;
+      drpyidx[o][trqsprnum] = k;
     }
     else if (PyNumber_Check(dashpot[o])) /* critical damping ratio */
     {
@@ -1968,19 +1968,19 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 	PyErr_SetString (PyExc_ValueError, "Critical damping ratio not in [0.0, +Inf) interval");
 	return NULL;
       }
-      k = drypidx[o][i];
-      parmec::dryp[o][0][k] = ratio;
-      parmec::dryp[o][1][k] = ratio;
-      drypidx[o][trqsprnum] = k+1;
+      k = drpyidx[o][i];
+      parmec::drpy[o][0][k] = ratio;
+      parmec::drpy[o][1][k] = ratio;
+      drpyidx[o][trqsprnum] = k+1;
     }
     else /* default zero torque */
     {
-      k = drypidx[o][i];
-      parmec::dryp[o][0][k] = -REAL_MAX;
-      parmec::dryp[o][1][k] = 0.0;
-      parmec::dryp[o][0][k+1] = +REAL_MAX;
-      parmec::dryp[o][1][k+1] = 0.0;
-      drypidx[o][trqsprnum] = k+2;
+      k = drpyidx[o][i];
+      parmec::drpy[o][0][k] = -REAL_MAX;
+      parmec::drpy[o][1][k] = 0.0;
+      parmec::drpy[o][0][k+1] = +REAL_MAX;
+      parmec::drpy[o][1][k+1] = 0.0;
+      drpyidx[o][trqsprnum] = k+2;
     }
   }
 

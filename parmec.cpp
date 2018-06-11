@@ -182,19 +182,19 @@ int *trqsprmap; /* map of torsion spring ids to spring indices */
 int *trqsprpart[2]; /* torsion spring particle indices */
 REAL *trqzdir0[3]; /* torsion spring reference z direction */
 REAL *trqxdir0[3]; /* torsion spring reference x direction */
-REAL *kryp[3][2]; /* kroll, kyaw, kpitch spring angle-torque lookup tables */
-int *krypidx[3]; /* spring angle-torque lookup start indexes */
-REAL *dryp[3][2]; /* droll, dyaw, dpitch dashpot ang. velocity-torque lookup tables */
-int *drypidx[3]; /* droll, dyaw, dpitch lookup start indexes */
+REAL *krpy[3][2]; /* kroll, kpitch, kyaw spring angle-torque lookup tables */
+int *krpyidx[3]; /* spring torque lookup start indexes */
+REAL *drpy[3][2]; /* droll, dpitch, dyaw dashpot ang. velocity-torque lookup tables */
+int *drpyidx[3]; /* dashpot torque lookup start indexes */
 REAL *trqzdir1[3]; /* output: torsion spring z current direction */
 REAL *trqxdir1[3]; /* output: torsion spring x current direction */
-REAL *trqryp[3]; /* output: torsion spring Euler angles roll, yaw, pitch */
-REAL *trqryptot[3]; /* output: total moments conjugate with Euler angles */
-REAL *trqrypspr[3]; /* output: spring moments wihout damper components */
+REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
+REAL *trqrpytot[3]; /* output: total moments conjugate with spring angles */
+REAL *trqrpyspr[3]; /* output: spring moments wihout damper components */
 int trqspr_changed; /* torqion spring input changed flag */
 int trqspr_buffer_size; /* size of torsion spring constraint buffer */
-int kryp_lookup_size[3]; /* size of spring angle-torque lookup tables */
-int dryp_lookup_size[3]; /* size of spring ang. velocity-torque lookup tables */
+int krpy_lookup_size[3]; /* size of spring angle-torque lookup tables */
+int drpy_lookup_size[3]; /* size of spring ang. velocity-torque lookup tables */
 
 int unsprnum; /* number of unspring definitions */
 int *tsprings; /* test springs */
@@ -813,12 +813,12 @@ int spring_buffer_init ()
 int trqspr_buffer_init ()
 {
   trqspr_buffer_size = 256;
-  kryp_lookup_size[0] = 1024;
-  kryp_lookup_size[1] = 1024;
-  kryp_lookup_size[2] = 1024;
-  dryp_lookup_size[0] = 1024;
-  dryp_lookup_size[1] = 1024;
-  dryp_lookup_size[2] = 1024;
+  krpy_lookup_size[0] = 1024;
+  krpy_lookup_size[1] = 1024;
+  krpy_lookup_size[2] = 1024;
+  drpy_lookup_size[0] = 1024;
+  drpy_lookup_size[1] = 1024;
+  drpy_lookup_size[2] = 1024;
 
   trqsprid = aligned_int_alloc (trqspr_buffer_size);
   trqsprmap = aligned_int_alloc (trqspr_buffer_size);
@@ -830,52 +830,52 @@ int trqspr_buffer_init ()
   trqxdir0[0] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir0[1] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir0[2] = aligned_real_alloc (trqspr_buffer_size);
-  kryp[0][0] = aligned_real_alloc (kryp_lookup_size[0]);
-  kryp[0][1] = aligned_real_alloc (kryp_lookup_size[0]);
-  kryp[1][0] = aligned_real_alloc (kryp_lookup_size[1]);
-  kryp[1][1] = aligned_real_alloc (kryp_lookup_size[1]);
-  kryp[2][0] = aligned_real_alloc (kryp_lookup_size[2]);
-  kryp[2][1] = aligned_real_alloc (kryp_lookup_size[2]);
-  krypidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
-  krypidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
-  krypidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
-  dryp[0][0] = aligned_real_alloc (dryp_lookup_size[0]);
-  dryp[0][1] = aligned_real_alloc (dryp_lookup_size[0]);
-  dryp[1][0] = aligned_real_alloc (dryp_lookup_size[1]);
-  dryp[1][1] = aligned_real_alloc (dryp_lookup_size[1]);
-  dryp[2][0] = aligned_real_alloc (dryp_lookup_size[2]);
-  dryp[2][1] = aligned_real_alloc (dryp_lookup_size[2]);
-  drypidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
-  drypidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
-  drypidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  krpy[0][0] = aligned_real_alloc (krpy_lookup_size[0]);
+  krpy[0][1] = aligned_real_alloc (krpy_lookup_size[0]);
+  krpy[1][0] = aligned_real_alloc (krpy_lookup_size[1]);
+  krpy[1][1] = aligned_real_alloc (krpy_lookup_size[1]);
+  krpy[2][0] = aligned_real_alloc (krpy_lookup_size[2]);
+  krpy[2][1] = aligned_real_alloc (krpy_lookup_size[2]);
+  krpyidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
+  krpyidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
+  krpyidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  drpy[0][0] = aligned_real_alloc (drpy_lookup_size[0]);
+  drpy[0][1] = aligned_real_alloc (drpy_lookup_size[0]);
+  drpy[1][0] = aligned_real_alloc (drpy_lookup_size[1]);
+  drpy[1][1] = aligned_real_alloc (drpy_lookup_size[1]);
+  drpy[2][0] = aligned_real_alloc (drpy_lookup_size[2]);
+  drpy[2][1] = aligned_real_alloc (drpy_lookup_size[2]);
+  drpyidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
+  drpyidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
+  drpyidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
   trqzdir1[0] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[1] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[2] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir1[0] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir1[1] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir1[2] = aligned_real_alloc (trqspr_buffer_size);
-  trqryp[0] = aligned_real_alloc (trqspr_buffer_size);
-  trqryp[1] = aligned_real_alloc (trqspr_buffer_size);
-  trqryp[2] = aligned_real_alloc (trqspr_buffer_size);
-  trqryptot[0] = aligned_real_alloc (trqspr_buffer_size);
-  trqryptot[1] = aligned_real_alloc (trqspr_buffer_size);
-  trqryptot[2] = aligned_real_alloc (trqspr_buffer_size);
-  trqrypspr[0] = aligned_real_alloc (trqspr_buffer_size);
-  trqrypspr[1] = aligned_real_alloc (trqspr_buffer_size);
-  trqrypspr[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpy[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpy[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpy[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpytot[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpytot[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpytot[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpyspr[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpyspr[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpyspr[2] = aligned_real_alloc (trqspr_buffer_size);
 
   trqsprnum = 0;
-  krypidx[0][trqsprnum] = 0;
-  krypidx[1][trqsprnum] = 0;
-  krypidx[2][trqsprnum] = 0;
-  drypidx[0][trqsprnum] = 0;
-  drypidx[1][trqsprnum] = 0;
-  drypidx[2][trqsprnum] = 0;
+  krpyidx[0][trqsprnum] = 0;
+  krpyidx[1][trqsprnum] = 0;
+  krpyidx[2][trqsprnum] = 0;
+  drpyidx[0][trqsprnum] = 0;
+  drpyidx[1][trqsprnum] = 0;
+  drpyidx[2][trqsprnum] = 0;
   trqspr_changed = 0;
 }
 
 /* grow torsion spring buffer */
-void trqspr_buffer_grow (int kryp_lookup[3], int dryp_lookup[3])
+void trqspr_buffer_grow (int krpy_lookup[3], int drpy_lookup[3])
 {
   if (trqsprnum+1 >= trqspr_buffer_size)
   {
@@ -891,43 +891,43 @@ void trqspr_buffer_grow (int kryp_lookup[3], int dryp_lookup[3])
     real_buffer_grow(trqxdir0[0], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqxdir0[1], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqxdir0[2], trqsprnum, trqspr_buffer_size);
-    integer_buffer_grow(krypidx[0], trqsprnum+1, trqspr_buffer_size+1);
-    integer_buffer_grow(krypidx[1], trqsprnum+1, trqspr_buffer_size+1);
-    integer_buffer_grow(krypidx[2], trqsprnum+1, trqspr_buffer_size+1);
-    integer_buffer_grow(drypidx[0], trqsprnum+1, trqspr_buffer_size+1);
-    integer_buffer_grow(drypidx[1], trqsprnum+1, trqspr_buffer_size+1);
-    integer_buffer_grow(drypidx[2], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(krpyidx[0], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(krpyidx[1], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(krpyidx[2], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(drpyidx[0], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(drpyidx[1], trqsprnum+1, trqspr_buffer_size+1);
+    integer_buffer_grow(drpyidx[2], trqsprnum+1, trqspr_buffer_size+1);
     real_buffer_grow(trqzdir1[0], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqzdir1[1], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqzdir1[2], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqxdir1[0], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqxdir1[1], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqxdir1[2], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqryp[0], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqryp[1], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqryp[2], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqryptot[0], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqryptot[1], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqryptot[2], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqrypspr[0], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqrypspr[1], trqsprnum, trqspr_buffer_size);
-    real_buffer_grow(trqrypspr[2], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpy[0], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpy[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpy[2], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpytot[0], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpytot[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpytot[2], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpyspr[0], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpyspr[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrpyspr[2], trqsprnum, trqspr_buffer_size);
   }
 
   for (int i = 0; i < 3; i ++)
   {
-    if (kryp_lookup_size[i] < krypidx[i][trqsprnum] + kryp_lookup[i])
+    if (krpy_lookup_size[i] < krpyidx[i][trqsprnum] + krpy_lookup[i])
     {
-      kryp_lookup_size[i] = 2 * (krypidx[i][trqsprnum] + kryp_lookup[i]);
-      real_buffer_grow (kryp[i][0], krypidx[i][trqsprnum], kryp_lookup_size[i]);
-      real_buffer_grow (kryp[i][1], krypidx[i][trqsprnum], kryp_lookup_size[i]);
+      krpy_lookup_size[i] = 2 * (krpyidx[i][trqsprnum] + krpy_lookup[i]);
+      real_buffer_grow (krpy[i][0], krpyidx[i][trqsprnum], krpy_lookup_size[i]);
+      real_buffer_grow (krpy[i][1], krpyidx[i][trqsprnum], krpy_lookup_size[i]);
     }
 
-    if (dryp_lookup_size[i] < drypidx[i][trqsprnum] + dryp_lookup[i])
+    if (drpy_lookup_size[i] < drpyidx[i][trqsprnum] + drpy_lookup[i])
     {
-      dryp_lookup_size[i] = 2 * (drypidx[i][trqsprnum] + dryp_lookup[i]);
-      real_buffer_grow (dryp[i][0], drypidx[i][trqsprnum], dryp_lookup_size[i]);
-      real_buffer_grow (dryp[i][1], drypidx[i][trqsprnum], dryp_lookup_size[i]);
+      drpy_lookup_size[i] = 2 * (drpyidx[i][trqsprnum] + drpy_lookup[i]);
+      real_buffer_grow (drpy[i][0], drpyidx[i][trqsprnum], drpy_lookup_size[i]);
+      real_buffer_grow (drpy[i][1], drpyidx[i][trqsprnum], drpy_lookup_size[i]);
     }
   }
 }
@@ -1935,15 +1935,15 @@ static void sort_trqspr ()
   int *trqsprpart[2]; /* torsion spring particle indices */
   REAL *trqzdir0[3]; /* torsion spring z reference direction */
   REAL *trqxdir0[3]; /* torsion spring x reference direction */
-  REAL *kryp[3][2]; /* kroll, kyaw, kpitch spring angle-torque lookup tables */
-  int *krypidx[3]; /* spring angle-torque lookup start indexes */
-  REAL *dryp[3][2]; /* droll, dyaw, dpitch dashpot ang. velocity-torque lookup tables */
-  int *drypidx[3]; /* droll, dyaw, dpitch lookup start indexes */
+  REAL *krpy[3][2]; /* kroll, kpitch, kyaw spring angle-torque lookup tables */
+  int *krpyidx[3]; /* spring torque lookup start indexes */
+  REAL *drpy[3][2]; /* droll, dpitch, dyaw dashpot ang. velocity-torque lookup tables */
+  int *drpyidx[3]; /* dashpot torque lookup start indexes */
   REAL *trqzdir1[3]; /* output: torsion spring z current direction */
   REAL *trqxdir1[3]; /* output: torsion spring x current direction */
-  REAL *trqryp[3]; /* output: torsion spring Euler angles roll, yaw, pitch */
-  REAL *trqryptot[3]; /* output: total moments conjugate with Euler angles */
-  REAL *trqrypspr[3]; /* output: spring moments wihout damper components */
+  REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
+  REAL *trqrpytot[3]; /* output: total moments conjugate with spring angles */
+  REAL *trqrpyspr[3]; /* output: spring moments wihout damper components */
 
   trqsprid = aligned_int_alloc (trqspr_buffer_size);
   trqsprpart[0] = aligned_int_alloc (trqspr_buffer_size);
@@ -1954,44 +1954,44 @@ static void sort_trqspr ()
   trqxdir0[0] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir0[1] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir0[2] = aligned_real_alloc (trqspr_buffer_size);
-  kryp[0][0] = aligned_real_alloc (kryp_lookup_size[0]);
-  kryp[0][1] = aligned_real_alloc (kryp_lookup_size[0]);
-  kryp[1][0] = aligned_real_alloc (kryp_lookup_size[1]);
-  kryp[1][1] = aligned_real_alloc (kryp_lookup_size[1]);
-  kryp[2][0] = aligned_real_alloc (kryp_lookup_size[2]);
-  kryp[2][1] = aligned_real_alloc (kryp_lookup_size[2]);
-  krypidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
-  krypidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
-  krypidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
-  dryp[0][0] = aligned_real_alloc (dryp_lookup_size[0]);
-  dryp[0][1] = aligned_real_alloc (dryp_lookup_size[0]);
-  dryp[1][0] = aligned_real_alloc (dryp_lookup_size[1]);
-  dryp[1][1] = aligned_real_alloc (dryp_lookup_size[1]);
-  dryp[2][0] = aligned_real_alloc (dryp_lookup_size[2]);
-  dryp[2][1] = aligned_real_alloc (dryp_lookup_size[2]);
-  drypidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
-  drypidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
-  drypidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  krpy[0][0] = aligned_real_alloc (krpy_lookup_size[0]);
+  krpy[0][1] = aligned_real_alloc (krpy_lookup_size[0]);
+  krpy[1][0] = aligned_real_alloc (krpy_lookup_size[1]);
+  krpy[1][1] = aligned_real_alloc (krpy_lookup_size[1]);
+  krpy[2][0] = aligned_real_alloc (krpy_lookup_size[2]);
+  krpy[2][1] = aligned_real_alloc (krpy_lookup_size[2]);
+  krpyidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
+  krpyidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
+  krpyidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
+  drpy[0][0] = aligned_real_alloc (drpy_lookup_size[0]);
+  drpy[0][1] = aligned_real_alloc (drpy_lookup_size[0]);
+  drpy[1][0] = aligned_real_alloc (drpy_lookup_size[1]);
+  drpy[1][1] = aligned_real_alloc (drpy_lookup_size[1]);
+  drpy[2][0] = aligned_real_alloc (drpy_lookup_size[2]);
+  drpy[2][1] = aligned_real_alloc (drpy_lookup_size[2]);
+  drpyidx[0] = aligned_int_alloc (trqspr_buffer_size+1);
+  drpyidx[1] = aligned_int_alloc (trqspr_buffer_size+1);
+  drpyidx[2] = aligned_int_alloc (trqspr_buffer_size+1);
   trqzdir1[0] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[1] = aligned_real_alloc (trqspr_buffer_size);
   trqzdir1[2] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir1[0] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir1[1] = aligned_real_alloc (trqspr_buffer_size);
   trqxdir1[2] = aligned_real_alloc (trqspr_buffer_size);
-  trqryp[0] = aligned_real_alloc (trqspr_buffer_size);
-  trqryp[1] = aligned_real_alloc (trqspr_buffer_size);
-  trqryp[2] = aligned_real_alloc (trqspr_buffer_size);
-  trqryptot[0] = aligned_real_alloc (trqspr_buffer_size);
-  trqryptot[1] = aligned_real_alloc (trqspr_buffer_size);
-  trqryptot[2] = aligned_real_alloc (trqspr_buffer_size);
-  trqrypspr[0] = aligned_real_alloc (trqspr_buffer_size);
-  trqrypspr[1] = aligned_real_alloc (trqspr_buffer_size);
-  trqrypspr[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpy[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpy[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpy[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpytot[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpytot[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpytot[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpyspr[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpyspr[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrpyspr[2] = aligned_real_alloc (trqspr_buffer_size);
 
   int i = 0;
 
-  krypidx[0][0] = krypidx[1][0] = krypidx[2][0] =
-  drypidx[0][0] = drypidx[1][0] = drypidx[2][0] = 0;
+  krpyidx[0][0] = krpyidx[1][0] = krpyidx[2][0] =
+  drpyidx[0][0] = drpyidx[1][0] = drpyidx[2][0] = 0;
 
   for (std::vector<spring_data>::const_iterator x = v.begin(); x != v.end(); ++x, ++i)
   {
@@ -2011,30 +2011,30 @@ static void sort_trqspr ()
     trqxdir1[0][i] = parmec::trqxdir1[0][x->number];
     trqxdir1[1][i] = parmec::trqxdir1[1][x->number];
     trqxdir1[2][i] = parmec::trqxdir1[2][x->number];
-    trqryp[0][i] = parmec::trqryp[0][x->number];
-    trqryp[1][i] = parmec::trqryp[1][x->number];
-    trqryp[2][i] = parmec::trqryp[2][x->number];
-    trqryptot[0][i] = parmec::trqryptot[0][x->number];
-    trqryptot[1][i] = parmec::trqryptot[1][x->number];
-    trqryptot[2][i] = parmec::trqryptot[2][x->number];
-    trqrypspr[0][i] = parmec::trqrypspr[0][x->number];
-    trqrypspr[1][i] = parmec::trqrypspr[1][x->number];
-    trqrypspr[2][i] = parmec::trqrypspr[2][x->number];
+    trqrpy[0][i] = parmec::trqrpy[0][x->number];
+    trqrpy[1][i] = parmec::trqrpy[1][x->number];
+    trqrpy[2][i] = parmec::trqrpy[2][x->number];
+    trqrpytot[0][i] = parmec::trqrpytot[0][x->number];
+    trqrpytot[1][i] = parmec::trqrpytot[1][x->number];
+    trqrpytot[2][i] = parmec::trqrpytot[2][x->number];
+    trqrpyspr[0][i] = parmec::trqrpyspr[0][x->number];
+    trqrpyspr[1][i] = parmec::trqrpyspr[1][x->number];
+    trqrpyspr[2][i] = parmec::trqrpyspr[2][x->number];
 
     for (int l = 0; l < 3; l ++)
     {
-      krypidx[l][i+1] = krypidx[l][i] + parmec::krypidx[l][x->number+1]-parmec::krypidx[l][x->number];
-      for (int j = krypidx[l][i], k = parmec::krypidx[l][x->number]; j < krypidx[l][i+1]; j ++, k ++)
+      krpyidx[l][i+1] = krpyidx[l][i] + parmec::krpyidx[l][x->number+1]-parmec::krpyidx[l][x->number];
+      for (int j = krpyidx[l][i], k = parmec::krpyidx[l][x->number]; j < krpyidx[l][i+1]; j ++, k ++)
       {
-	kryp[l][0][j] = parmec::kryp[l][0][k];
-	kryp[l][1][j] = parmec::kryp[l][1][k];
+	krpy[l][0][j] = parmec::krpy[l][0][k];
+	krpy[l][1][j] = parmec::krpy[l][1][k];
       }
 
-      drypidx[l][i+1] = drypidx[l][i] + parmec::drypidx[l][x->number+1]-parmec::drypidx[l][x->number];
-      for (int j = drypidx[l][i], k = parmec::drypidx[l][x->number]; j < drypidx[l][i+1]; j ++, k ++)
+      drpyidx[l][i+1] = drpyidx[l][i] + parmec::drpyidx[l][x->number+1]-parmec::drpyidx[l][x->number];
+      for (int j = drpyidx[l][i], k = parmec::drpyidx[l][x->number]; j < drpyidx[l][i+1]; j ++, k ++)
       {
-	dryp[l][0][j] = parmec::dryp[l][0][k];
-	dryp[l][1][j] = parmec::dryp[l][1][k];
+	drpy[l][0][j] = parmec::drpy[l][0][k];
+	drpy[l][1][j] = parmec::drpy[l][1][k];
       }
     }
   }
@@ -2048,39 +2048,39 @@ static void sort_trqspr ()
   aligned_real_free (parmec::trqxdir0[0]);
   aligned_real_free (parmec::trqxdir0[1]);
   aligned_real_free (parmec::trqxdir0[2]);
-  aligned_real_free (parmec::kryp[0][0]);
-  aligned_real_free (parmec::kryp[0][1]);
-  aligned_real_free (parmec::kryp[1][0]);
-  aligned_real_free (parmec::kryp[1][1]);
-  aligned_real_free (parmec::kryp[2][0]);
-  aligned_real_free (parmec::kryp[2][1]);
-  aligned_int_free (parmec::krypidx[0]);
-  aligned_int_free (parmec::krypidx[1]);
-  aligned_int_free (parmec::krypidx[2]);
-  aligned_real_free (parmec::dryp[0][0]);
-  aligned_real_free (parmec::dryp[0][1]);
-  aligned_real_free (parmec::dryp[1][0]);
-  aligned_real_free (parmec::dryp[1][1]);
-  aligned_real_free (parmec::dryp[2][0]);
-  aligned_real_free (parmec::dryp[2][1]);
-  aligned_int_free (parmec::drypidx[0]);
-  aligned_int_free (parmec::drypidx[1]);
-  aligned_int_free (parmec::drypidx[2]);
+  aligned_real_free (parmec::krpy[0][0]);
+  aligned_real_free (parmec::krpy[0][1]);
+  aligned_real_free (parmec::krpy[1][0]);
+  aligned_real_free (parmec::krpy[1][1]);
+  aligned_real_free (parmec::krpy[2][0]);
+  aligned_real_free (parmec::krpy[2][1]);
+  aligned_int_free (parmec::krpyidx[0]);
+  aligned_int_free (parmec::krpyidx[1]);
+  aligned_int_free (parmec::krpyidx[2]);
+  aligned_real_free (parmec::drpy[0][0]);
+  aligned_real_free (parmec::drpy[0][1]);
+  aligned_real_free (parmec::drpy[1][0]);
+  aligned_real_free (parmec::drpy[1][1]);
+  aligned_real_free (parmec::drpy[2][0]);
+  aligned_real_free (parmec::drpy[2][1]);
+  aligned_int_free (parmec::drpyidx[0]);
+  aligned_int_free (parmec::drpyidx[1]);
+  aligned_int_free (parmec::drpyidx[2]);
   aligned_real_free (parmec::trqzdir1[0]);
   aligned_real_free (parmec::trqzdir1[1]);
   aligned_real_free (parmec::trqzdir1[2]);
   aligned_real_free (parmec::trqxdir1[0]);
   aligned_real_free (parmec::trqxdir1[1]);
   aligned_real_free (parmec::trqxdir1[2]);
-  aligned_real_free (parmec::trqryp[0]);
-  aligned_real_free (parmec::trqryp[1]);
-  aligned_real_free (parmec::trqryp[2]);
-  aligned_real_free (parmec::trqryptot[0]);
-  aligned_real_free (parmec::trqryptot[1]);
-  aligned_real_free (parmec::trqryptot[2]);
-  aligned_real_free (parmec::trqrypspr[0]);
-  aligned_real_free (parmec::trqrypspr[1]);
-  aligned_real_free (parmec::trqrypspr[2]);
+  aligned_real_free (parmec::trqrpy[0]);
+  aligned_real_free (parmec::trqrpy[1]);
+  aligned_real_free (parmec::trqrpy[2]);
+  aligned_real_free (parmec::trqrpytot[0]);
+  aligned_real_free (parmec::trqrpytot[1]);
+  aligned_real_free (parmec::trqrpytot[2]);
+  aligned_real_free (parmec::trqrpyspr[0]);
+  aligned_real_free (parmec::trqrpyspr[1]);
+  aligned_real_free (parmec::trqrpyspr[2]);
 
   parmec::trqsprid = trqsprid;
   parmec::trqsprpart[0] = trqsprpart[0];
@@ -2091,39 +2091,39 @@ static void sort_trqspr ()
   parmec::trqxdir0[0] = trqxdir0[0];
   parmec::trqxdir0[1] = trqxdir0[1];
   parmec::trqxdir0[2] = trqxdir0[2];
-  parmec::kryp[0][0] = kryp[0][0];
-  parmec::kryp[0][1] = kryp[0][1];
-  parmec::kryp[1][0] = kryp[1][0];
-  parmec::kryp[1][1] = kryp[1][1];
-  parmec::kryp[2][0] = kryp[2][0];
-  parmec::kryp[2][1] = kryp[2][1];
-  parmec::krypidx[0] = krypidx[0];
-  parmec::krypidx[1] = krypidx[1];
-  parmec::krypidx[2] = krypidx[2];
-  parmec::dryp[0][0] = dryp[0][0];
-  parmec::dryp[0][1] = dryp[0][1];
-  parmec::dryp[1][0] = dryp[1][0];
-  parmec::dryp[1][1] = dryp[1][1];
-  parmec::dryp[2][0] = dryp[2][0];
-  parmec::dryp[2][1] = dryp[2][1];
-  parmec::drypidx[0] = drypidx[0];
-  parmec::drypidx[1] = drypidx[1];
-  parmec::drypidx[2] = drypidx[2];
+  parmec::krpy[0][0] = krpy[0][0];
+  parmec::krpy[0][1] = krpy[0][1];
+  parmec::krpy[1][0] = krpy[1][0];
+  parmec::krpy[1][1] = krpy[1][1];
+  parmec::krpy[2][0] = krpy[2][0];
+  parmec::krpy[2][1] = krpy[2][1];
+  parmec::krpyidx[0] = krpyidx[0];
+  parmec::krpyidx[1] = krpyidx[1];
+  parmec::krpyidx[2] = krpyidx[2];
+  parmec::drpy[0][0] = drpy[0][0];
+  parmec::drpy[0][1] = drpy[0][1];
+  parmec::drpy[1][0] = drpy[1][0];
+  parmec::drpy[1][1] = drpy[1][1];
+  parmec::drpy[2][0] = drpy[2][0];
+  parmec::drpy[2][1] = drpy[2][1];
+  parmec::drpyidx[0] = drpyidx[0];
+  parmec::drpyidx[1] = drpyidx[1];
+  parmec::drpyidx[2] = drpyidx[2];
   parmec::trqzdir1[0] = trqzdir1[0];
   parmec::trqzdir1[1] = trqzdir1[1];
   parmec::trqzdir1[2] = trqzdir1[2];
   parmec::trqxdir1[0] = trqxdir1[0];
   parmec::trqxdir1[1] = trqxdir1[1];
   parmec::trqxdir1[2] = trqxdir1[2];
-  parmec::trqryp[0] = trqryp[0];
-  parmec::trqryp[1] = trqryp[1];
-  parmec::trqryp[2] = trqryp[2];
-  parmec::trqryptot[0] = trqryptot[0];
-  parmec::trqryptot[1] = trqryptot[1];
-  parmec::trqryptot[2] = trqryptot[2];
-  parmec::trqrypspr[0] = trqrypspr[0];
-  parmec::trqrypspr[1] = trqrypspr[1];
-  parmec::trqrypspr[2] = trqrypspr[2];
+  parmec::trqrpy[0] = trqrpy[0];
+  parmec::trqrpy[1] = trqrpy[1];
+  parmec::trqrpy[2] = trqrpy[2];
+  parmec::trqrpytot[0] = trqrpytot[0];
+  parmec::trqrpytot[1] = trqrpytot[1];
+  parmec::trqrpytot[2] = trqrpytot[2];
+  parmec::trqrpyspr[0] = trqrpyspr[0];
+  parmec::trqrpyspr[1] = trqrpyspr[1];
+  parmec::trqrpyspr[2] = trqrpyspr[2];
 }
 
 /* add up prescribed body forces */
@@ -2200,13 +2200,16 @@ void reset ()
   faccon = 0;
   obsnum = 0;
   sprnum = 0;
+  trqsprnum = 0;
   cnsnum = 0;
   tmsnum = 0;
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
 
-  springs_changed = 0; /* unset springs changed flag */
+  springs_changed = 0; /* unset linear springs changed flag */
+
+  trqspr_changed = 0; /* unset torsion springs changed flag */
 
   /* unselected particles default output flags */
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LENGTH|OUT_ORIENT|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|
@@ -2349,8 +2352,8 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     forces (ntasks, master, slave, parnum, angular, linear, rotation, position, inertia, inverse, mass, invm, obspnt, obslin,
             obsang, parmat, mparam, pairnum, pairs, ikind, iparam, step0, sprnum, sprtype, unspring, sprmap, sprpart, sprpnt,
 	    spring, spridx, dashpot, dashidx, unload, unidx, yield, sprdir, sprflg, sproffset, sprfric, sprkskn, sprsdsp, stroke0,
-	    stroke, sprfrc, lcurve, lcidx, gravity, trqsprnum, trqsprpart, trqzdir0, trqxdir0, kryp, krypidx, dryp, drypidx,
-	    trqzdir1, trqxdir1, trqryp, trqryptot, trqrypspr, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0),
+	    stroke, sprfrc, lcurve, lcidx, gravity, trqsprnum, trqsprpart, trqzdir0, trqxdir0, krpy, krpyidx, drpy, drpyidx,
+	    trqzdir1, trqxdir1, trqrpy, trqrpytot, trqrpyspr, force, torque, kact, kmax, emax, krot, (adaptive > 0.0 && adaptive <= 1.0),
 	    unsprnum, tsprings, tspridx, msprings, mspridx, unlim, unent, unop, unabs, nsteps, nfreq, unaction, activate, actidx,
 	    stepnum, curtime);
 

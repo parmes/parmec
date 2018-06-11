@@ -1798,26 +1798,34 @@ Create a torsional spring constraint.
 \begin_inset Formula 
 \begin{align*}
 \mathbf{t}\left(t\right) & =\left(\text{kroll}\left(\psi\right)+\text{droll}\left(\dot{\psi}\right)\right)\mathbf{x}\left(t\right)\\
- & +\left(\text{kyaw}\left(\theta\right)+\text{dyaw}\left(\dot{\theta}\right)\right)\mathbf{y}\left(t\right)\\
- & +\left(\text{kpitch}\left(\phi\right)+\text{dpitch}\left(\dot{\phi}\right)\right)\mathbf{z}\left(t\right)
+ & +\left(\text{kpitch}\left(\phi\right)+\text{dpitch}\left(\dot{\phi}\right)\right)\mathbf{y}\left(t\right)\\
+ & +\left(\text{kyaw}\left(\theta\right)+\text{dyaw}\left(\dot{\theta}\right)\right)\mathbf{z}\left(t\right)
 \end{align*}
 
 \end_inset
 
-where the Euler angles 
+where the angles 
 \begin_inset Formula $\psi$
-\end_inset
-
-, 
-\begin_inset Formula $\theta$
 \end_inset
 
 , 
 \begin_inset Formula $\phi$
 \end_inset
 
- are calculated from the co-rotated unit reference directions 
-\begin_inset Formula $\mathbf{z}\perp\mathbf{x}$
+, 
+\begin_inset Formula $\theta$
+\end_inset
+
+ are calculated withe the help of co-rotated unit directions 
+\begin_inset Formula $\mathbf{x}$
+\end_inset
+
+, 
+\begin_inset Formula $\mathbf{y}$
+\end_inset
+
+, 
+\begin_inset Formula $\mathbf{z}$
 \end_inset
 
  as follows
@@ -1837,11 +1845,15 @@ where the Euler angles
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathbf{A}_{i}\left(t\right)=\mathbf{\Lambda}_{i}\left(t\right)\left[\begin{array}{ccc}
+\left[\begin{array}{ccc}
 x_{1} & y_{1} & z_{1}\\
 x_{2} & y_{2} & z_{2}\\
 x_{3} & y_{3} & z_{3}
-\end{array}\right]\left(0\right),\,\,\,i=1,2
+\end{array}\right]\left(t\right)=\mathbf{\Lambda}_{1}\left(t\right)\left[\begin{array}{ccc}
+x_{1} & y_{1} & z_{1}\\
+x_{2} & y_{2} & z_{2}\\
+x_{3} & y_{3} & z_{3}
+\end{array}\right]\left(0\right)
 \]
 
 \end_inset
@@ -1852,8 +1864,7 @@ x_{3} & y_{3} & z_{3}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\left[\begin{array}{ccc}
-\mathbf{x}\left(t\right) & \mathbf{y}\left(t\right) & \mathbf{z}\left(t\right)\end{array}\right]=\mathbf{A}_{1}\left(t\right)
+\dot{\psi}=\mathbf{x}\cdot\left(\mathbf{\omega}_{1}-\mathbf{\omega}_{2}\right)
 \]
 
 \end_inset
@@ -1864,7 +1875,7 @@ x_{3} & y_{3} & z_{3}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathbf{B}\left(t\right)=\mathbf{A}_{2}\left(t\right)\mathbf{A}_{1}^{T}\left(t\right)
+\dot{\phi}=\mathbf{z}\cdot\left(\mathbf{\omega}_{1}-\mathbf{\omega}_{2}\right)
 \]
 
 \end_inset
@@ -1875,10 +1886,7 @@ x_{3} & y_{3} & z_{3}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\psi_{\text{roll}}=\left\{ \begin{array}{c}
-0.0\text{ if }B_{21}\in\left\{ -1,1\right\} \\
-\text{atan2}(-B_{23},B_{22})\text{ otherwise}
-\end{array}\right.
+\dot{\theta}=\mathbf{y}\cdot\left(\mathbf{\omega}_{1}-\mathbf{\omega}_{2}\right)
 \]
 
 \end_inset
@@ -1889,167 +1897,25 @@ x_{3} & y_{3} & z_{3}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\theta_{\text{yaw}}=\left\{ \begin{array}{c}
-\text{atan2}\left(B_{13},B_{33}\right)\text{ if }B_{21}\in\left\{ -1,1\right\} \\
-\text{atan2}\left(-B_{31},B_{11}\right)
-\end{array}\right.
+\psi\left(t\right)=\int_{0}^{t}\dot{\psi}\left(t\right)dt,\,\,\phi\left(t\right)=\int_{0}^{t}\dot{\phi}\left(t\right)dt,\,\,\theta\left(t\right)=\int_{0}^{t}\dot{\theta}\left(t\right)dt
 \]
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\phi_{\text{pitch}}=\left\{ \begin{array}{c}
-\pi/2\text{ if }B_{21}=1\\
--\pi/2\text{ if }B_{21}=-1\\
-\text{asin}(B_{21})\text{ otherwise}
-\end{array}\right.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\dot{\psi}\simeq\mathbf{x}\cdot\left(\mathbf{\omega}_{1}-\mathbf{\omega}_{2}\right)
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\dot{\theta}\simeq\mathbf{y}\cdot\left(\mathbf{\omega}_{1}-\mathbf{\omega}_{2}\right)
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\dot{\phi}\simeq\mathbf{z}\cdot\left(\mathbf{\omega}_{1}-\mathbf{\omega}_{2}\right)
-\]
-
-\end_inset
-
-Above, 
+and where 
 \begin_inset Formula $\mathbf{\omega}_{i}$
 \end_inset
 
- are their spatial angular velocities of particles 1 and 2, 
-\begin_inset Formula $\mathbf{\Lambda}_{i}$
+ are the spatial angular velocities of particles 1 and 2, and 
+\begin_inset Formula $\mathbf{\Lambda}_{1}$
 \end_inset
 
- are their rigid rotation matrices, and 
-\begin_inset Formula $\mathbf{B}$
-\end_inset
-
- is the matrix of relative rotation from the 
-\begin_inset Formula $\left(\mathbf{x},\mathbf{y},\mathbf{z}\right)$
-\end_inset
-
- frame co-rotated with particle 1 into the same frame co-rotated with particle
- 2.
- 
-\begin_inset Formula $\mathbf{B}$
-\end_inset
-
- is can also expressed as a product of Euler rotations
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\mathbf{B}=\left(\mathbf{A}_{\theta}\mathbf{A}_{\phi}\right)\mathbf{A}_{\psi}=\left(\left[\begin{array}{ccc}
-c\theta & 0 & s\theta\\
-0 & 1 & 0\\
--s\theta & 0 & c\theta
-\end{array}\right]\left[\begin{array}{ccc}
-c\phi & -s\phi & 0\\
-s\phi & c\phi & 0\\
-0 & 0 & 1
-\end{array}\right]\right)\left[\begin{array}{ccc}
-1 & 0 & 0\\
-0 & c\phi & -s\phi\\
-0 & s\phi & c\phi
-\end{array}\right]
-\]
-
-\end_inset
-
-where 
-\begin_inset Formula $c\theta$
-\end_inset
-
- and 
-\begin_inset Formula $s\theta$
-\end_inset
-
- stand for 
-\begin_inset Formula $\cos\left(\theta\right)$
-\end_inset
-
- and 
-\begin_inset Formula $\sin\left(\theta\right),$
-\end_inset
-
- etc.
- See also pages 
-\begin_inset CommandInset href
-LatexCommand href
-name "one"
-target "http://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm"
-
-\end_inset
-
-, 
-\begin_inset CommandInset href
-LatexCommand href
-name "two"
-target "http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm"
-
-\end_inset
-
- and 
-\begin_inset CommandInset href
-LatexCommand href
-name "three"
-target "http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToMatrix/index.htm"
-
-\end_inset
-
-, which have been used as references in the context of Euler angles.
+ is the rigid rotation matrix of particle 1.
 \end_layout
 
 \begin_layout Subsection*
-trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kroll, kyaw, kpitch,
- droll, dyaw, dpitch)
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-axis, ktwist, ksway, dtwist, dsway
-\end_layout
-
-\end_inset
-
-
+trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kyaw, kroll, kpitch,
+ dyaw, droll, dpitch, cone)
 \end_layout
 
 \begin_layout Itemize
@@ -2113,15 +1979,15 @@ xdir
 \begin_layout Itemize
 
 \series bold
+kyaw
+\series default
+, 
+\series bold
 kroll
 \series default
 ,
 \series bold
- kyaw
-\series default
-, 
-\series bold
-kpitch
+ kpitch
 \series default
  - spring torque lookup tables 
 \begin_inset Formula $\left[\text{angle}_{1},\text{torque}_{1},\text{angle}_{2},\text{torque}_{2},...\right]$
@@ -2137,11 +2003,15 @@ kpitch
 \begin_layout Itemize
 
 \series bold
-droll, dyaw
+dyaw
 \series default
 , 
 \series bold
-dpitch
+droll
+\series default
+,
+\series bold
+ dpitch
 \series default
  - dashpot torque lookup tables 
 \begin_inset Formula $\left[\text{angvel}_{1},\text{torque}_{1},\text{angvel}_{2},\text{torque}_{2},...\right]$
@@ -2156,6 +2026,22 @@ dpitch
 \end_inset
 
 
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+cone
+\series default
+ - optional tuple ('roll', 'yaw'), ('roll', 'pitch'), ('pitch', 'yaw') or
+ ('roll', 'yaw', 'pitch') denoting a cone constraint in the roll, yaw, pitch
+ angle space; positive parts of the spring/dashpot torque curves of the
+ first mentioned coordinate are used, e.g.
+ ('roll', 'pitch') results in 
+\begin_inset Formula $\mathbf{t}=\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]+\text{droll}\left(\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}\right)\left[\frac{\dot{\psi}}{\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}}\mathbf{x}+\frac{\dot{\phi}}{\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}}\mathbf{y}\right]$
+\end_inset
+
+, etc.; default: not specified
 \end_layout
 
 \begin_layout Section

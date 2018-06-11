@@ -1413,10 +1413,10 @@ task void springs_task (uniform int span, uniform int sprnum, uniform int sprtyp
 
 /* torsion springs task */
 task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * uniform trqsprpart[2],
-  uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform kryp[3][2],
-  uniform int * uniform krypidx[3], uniform REAL * uniform dryp[3][2], uniform int * uniform drypidx[3],
-  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqryp[3],
-  uniform REAL * uniform trqryptot[3], uniform REAL * uniform trqrypspr[3], uniform REAL * uniform inverse[9],
+  uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform krpy[3][2],
+  uniform int * uniform krpyidx[3], uniform REAL * uniform drpy[3][2], uniform int * uniform drpyidx[3],
+  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqrpy[3],
+  uniform REAL * uniform trqrpytot[3], uniform REAL * uniform trqrpyspr[3], uniform REAL * uniform inverse[9],
   uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9], uniform REAL * uniform torque[3],
   uniform REAL * uniform krot[6], uniform int adaptive, uniform REAL step, uniform REAL time, uniform int lock[])
 {
@@ -1449,7 +1449,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
   /* update torsion spring points and torques; update global torque */
   for (uniform int i = start; i < end; i ++) /* XXX --> try foreach */
   {
-    uniform REAL zdir0[3], xdir0[3], ydir0[3], rot1j[9], rot1k[9], rotjk[9];
+    uniform REAL zdir0[3], xdir0[3], ydir0[3], rot1j[9];
     uniform int j = trqsprpart[0][i], k = trqsprpart[1][i];
 
     if (j0 != j) /* springs are sorted (j,k)-wise --> avoid repeated reads */
@@ -1529,22 +1529,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       IDENTITY (Lk);
     }
 
-    NVMUL (Lk, xdir0, rot1k);
-    NVMUL (Lk, ydir0, rot1k+3);
-    NVMUL (Lk, zdir0, rot1k+6);
-
-#if TRQDBG
-    print ("rot1k = %, %, %\n        %, %, %\n        %, %, %\n",
-      rot1k[0], rot1k[3], rot1k[6], rot1k[1], rot1k[4], rot1k[7], rot1k[2], rot1k[5], rot1k[8]);
-#endif
-
-    TNMUL (rot1k, rot1j, rotjk); /* relative rotation from j-corateted system to k-corotated system */
-
-#if TRQDBG
-    print ("rotjk = %, %, %\n        %, %, %\n        %, %, %\n",
-      rotjk[0], rotjk[3], rotjk[6], rotjk[1], rotjk[4], rotjk[7], rotjk[2], rotjk[5], rotjk[8]);
-#endif
-
     uniform REAL roll, pitch, yaw;
     uniform REAL ojk[3], rolldot, yawdot, pitchdot;
     uniform REAL kroll, kyaw, kpitch;
@@ -1553,85 +1537,53 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     uniform REAL trqrolldot, trqyawdot, trqpitchdot;
     uniform REAL trqrolltot, trqyawtot, trqpitchtot;
 
-    /** this conversion uses conventions as described on page:
-     *  http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm
-     *  http://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
-     *  Coordinate System: right hand
-     *  Positive angle: right hand
-     *  Order of Euler angles: heading first, then attitude, then bank
-     *  matrix row column ordering:
-     *  [m00 m01 m02]
-     *  [m10 m11 m12]
-     *  [m20 m21 m22]
-     *  Assuming the angles are in radians */
-
-#if 0
-    if (rotjk[1] > 1.0-REAL_EPS) /* m10 > 1-epsion --> singularity at north pole */
-    {
-      yaw = atan2 (rotjk[6],rotjk[8]); /* atan2(m02,m22) */
-      pitch = ALG_PI/2;
-      roll = 0;
-    }
-    else if (rotjk[1] < -1.0+REAL_EPS) /* m10 < -1+epsilon --> singularity at south pole */
-    {
-      yaw = atan2 (rotjk[6],rotjk[8]); /* atan2(m02,m22) */
-      pitch = -ALG_PI/2;
-      roll = 0;
-    }
-    else
-    {
-      yaw = atan2(-rotjk[2],rotjk[0]); /* atan2(-m20,m00) */
-      pitch = asin(rotjk[1]);  /* asin(m10) */
-      roll = atan2(-rotjk[7],rotjk[4]); /* atan2(-m12,m11) */
-    }
-#endif
-
     SUB (oj, ok, ojk);
     rolldot = DOT(rot1j, ojk);
-    yawdot = DOT(&rot1j[3], ojk);
-    pitchdot = DOT(&rot1j[6], ojk);
+    pitchdot = DOT(&rot1j[3], ojk);
+    yawdot = DOT(&rot1j[6], ojk);
 
 #if TRQDBG
-    print ("rolldot = %, yawdot = %, pitchdot = %\n", rolldot, yawdot, pitchdot);
+    print ("rolldot = %, pitchdot = %, yawdot = %\n", rolldot, pitchdot, yawdot);
 #endif
 
-    roll = trqryp[0][i];
-    yaw = trqryp[1][i];
-    pitch = trqryp[2][i];
+    roll = trqrpy[0][i];
+    pitch = trqrpy[1][i];
+    yaw = trqrpy[2][i];
 
     roll += rolldot*step;
-    yaw += yawdot*step;
     pitch += pitchdot*step;
+    yaw += yawdot*step;
 
-    trqryp[0][i] = roll;
-    trqryp[1][i] = yaw;
-    trqryp[2][i] = pitch;
+    trqrpy[0][i] = roll;
+    trqrpy[1][i] = pitch;
+    trqrpy[2][i] = yaw;
 
 #if TRQDBG
-    print ("roll = %, yaw = %, pitch = %\n", roll, yaw, pitch);
+    print ("roll = %, pitch = %, yaw = %\n", roll, pitch, yaw);
 #endif
 
-    if (krypidx[0][i+1]>krypidx[0][i])
-      trqroll = look_up (kryp[0], krypidx[0][i], krypidx[0][i+1], roll, &kroll);
+    if (krpyidx[0][i+1]>krpyidx[0][i])
+      trqroll = look_up (krpy[0], krpyidx[0][i], krpyidx[0][i+1], roll, &kroll);
     else {trqroll = 0.0; kroll = 0.0;}
 
-    if (krypidx[1][i+1]>krypidx[1][i])
-      trqyaw = look_up (kryp[1], krypidx[1][i], krypidx[1][i+1], yaw, &kyaw);
-    else {trqyaw = 0.0; kyaw = 0.0;}
-
-    if (krypidx[2][i+1]>krypidx[2][i])
-      trqpitch = look_up (kryp[2], krypidx[2][i], krypidx[2][i+1], pitch, &kpitch);
+   if (krpyidx[1][i+1]>krpyidx[1][i])
+      trqpitch = look_up (krpy[1], krpyidx[1][i], krpyidx[1][i+1], pitch, &kpitch);
     else {trqpitch = 0.0; kpitch = 0.0;}
 
+    if (krpyidx[2][i+1]>krpyidx[2][i])
+      trqyaw = look_up (krpy[2], krpyidx[2][i], krpyidx[2][i+1], yaw, &kyaw);
+    else {trqyaw = 0.0; kyaw = 0.0;}
+ 
+
 #if TRQDBG
-    print ("trqroll = %, trqyaw = %, trqpitch = %\n", trqroll, trqyaw, trqpitch);
+    print ("trqroll = %, trqpitch = %, trqyaw = %\n", trqroll, trqpitch, trqyaw);
 #endif
 
     uniform REAL I[9], tmp[9], det, Ixx, Iyy, Izz; /* local inertia terms */
 
-    if ((drypidx[0][i]+1 == drypidx[0][i+1])||
-        (drypidx[1][i]+1 == drypidx[1][i+1])||
-        (drypidx[2][i]+1 == drypidx[2][i+1]))
+    if ((drpyidx[0][i]+1 == drpyidx[0][i+1])||
+        (drpyidx[1][i]+1 == drpyidx[1][i+1])||
+        (drpyidx[2][i]+1 == drpyidx[2][i+1]))
     {
       I[0] = inverse[0][j];
       I[1] = inverse[1][j];
@@ -1669,9 +1621,9 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 #endif
     }
 
-    if (drypidx[0][i]+1 == drypidx[0][i+1]) /* critical damping ratio */
+    if (drpyidx[0][i]+1 == drpyidx[0][i+1]) /* critical damping ratio */
     {
-      uniform REAL ratio = dryp[0][0][drypidx[0][i]];
+      uniform REAL ratio = drpy[0][0][drpyidx[0][i]];
 
       droll = - ratio * 2.0 * sqrt (abs(kroll) * Ixx); /* convenetion: negative damping for positive velocity */
 
@@ -1679,60 +1631,60 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     }
     else
     {
-      trqrolldot = look_up (dryp[0], drypidx[0][i], drypidx[0][i+1], rolldot, &droll);
+      trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], rolldot, &droll);
     }
 
-    if (drypidx[1][i]+1 == drypidx[1][i+1]) /* critical damping ratio */
+    if (drpyidx[1][i]+1 == drpyidx[1][i+1]) /* critical damping ratio */
     {
-      uniform REAL ratio = dryp[1][0][drypidx[1][i]];
+      uniform REAL ratio = drpy[1][0][drpyidx[1][i]];
 
-      dyaw = - ratio * 2.0 * sqrt (abs(kyaw) * Iyy);
-
-      trqyawdot = yawdot * dyaw;
-    }
-    else
-    {
-      trqyawdot = look_up (dryp[1], drypidx[1][i], drypidx[1][i+1], yawdot, &dyaw);
-    }
-
-    if (drypidx[2][i]+1 == drypidx[2][i+1]) /* critical damping ratio */
-    {
-      uniform REAL ratio = dryp[2][0][drypidx[2][i]];
-
-      dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * Izz);
+      dpitch = - ratio * 2.0 * sqrt (abs(kpitch) * Iyy);
 
       trqpitchdot = pitchdot * dpitch;
     }
     else
     {
-      trqpitchdot = look_up (dryp[2], drypidx[2][i], drypidx[2][i+1], pitchdot, &dpitch);
+      trqpitchdot = look_up (drpy[1], drpyidx[1][i], drpyidx[1][i+1], pitchdot, &dpitch);
+    }
+
+    if (drpyidx[2][i]+1 == drpyidx[2][i+1]) /* critical damping ratio */
+    {
+      uniform REAL ratio = drpy[2][0][drpyidx[2][i]];
+
+      dyaw = - ratio * 2.0 * sqrt (abs(kyaw) * Izz);
+
+      trqyawdot = yawdot * dyaw;
+    }
+    else
+    {
+      trqyawdot = look_up (drpy[2], drpyidx[2][i], drpyidx[2][i+1], yawdot, &dyaw);
     }
 
 #if TRQDBG
-    print ("trqrolldot = %, trqyawdot = %, trqpitchdot = %\n", trqrolldot, trqyawdot, trqpitchdot);
+    print ("trqrolldot = %, trqpitchdot = %, trqyawdot = %\n", trqrolldot, trqpitchdot, trqyawdot);
 #endif
 
     trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
-    trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
     trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
+    trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
 
     uniform REAL trq[3]; /* total torque in the global frame */
 
     /*                   xdir1                  ydir1                 zdir1 */
-    trq[0] = trqrolltot*rot1j[0] + trqyawtot*rot1j[3] + trqpitchtot*rot1j[6];
-    trq[1] = trqrolltot*rot1j[1] + trqyawtot*rot1j[4] + trqpitchtot*rot1j[7];
-    trq[2] = trqrolltot*rot1j[2] + trqyawtot*rot1j[5] + trqpitchtot*rot1j[8];
+    trq[0] = trqrolltot*rot1j[0] + trqpitchtot*rot1j[3] + trqyawtot*rot1j[6];
+    trq[1] = trqrolltot*rot1j[1] + trqpitchtot*rot1j[4] + trqyawtot*rot1j[7];
+    trq[2] = trqrolltot*rot1j[2] + trqpitchtot*rot1j[5] + trqyawtot*rot1j[8];
 
 #if TRQDBG
     print ("trq = %, %, %\n", trq[0], trq[1], trq[2]);
 #endif
 
-    trqryptot[0][i] = trqrolltot;
-    trqryptot[1][i] = trqyawtot;
-    trqryptot[2][i] = trqpitchtot;
-    trqrypspr[0][i] = trqroll;
-    trqrypspr[1][i] = trqyaw;
-    trqrypspr[2][i] = trqpitch;
+    trqrpytot[0][i] = trqrolltot;
+    trqrpytot[1][i] = trqpitchtot;
+    trqrpytot[2][i] = trqyawtot;
+    trqrpyspr[0][i] = trqroll;
+    trqrpyspr[1][i] = trqpitch;
+    trqrpyspr[2][i] = trqyaw;
 
     if (j0 != j && j0 >= 0) /* global acc previous and local reset current */
     {
@@ -1766,9 +1718,9 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 
     if (adaptive)
     {
-      krot_j[0] += kroll*rot1j[0]; /* K(1,1) */
-      krot_j[1] += kyaw*rot1j[4]; /* K(2,2) */
-      krot_j[2] += kpitch*rot1j[8]; /* K(3,3) */
+      krot_j[0] += abs(kroll)*rot1j[0]; /* K(1,1) */
+      krot_j[1] += abs(kpitch)*rot1j[4]; /* K(2,2) */
+      krot_j[2] += abs(kyaw)*rot1j[8]; /* K(3,3) */
 #if 0
       krot_j[3] += 0.0; /* K(2,1) */
       krot_j[4] += 0.0; /* K(3,1) */
@@ -1818,9 +1770,9 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 
       if (adaptive)
       {
-	krot_k[0] += kroll*rot1j[0]; /* K(1,1) */
-	krot_k[1] += kyaw*rot1j[4]; /* K(2,2) */
-	krot_k[2] += kpitch*rot1j[8]; /* K(3,3) */
+	krot_k[0] += abs(kroll)*rot1j[0]; /* K(1,1) */
+	krot_k[1] += abs(kpitch)*rot1j[4]; /* K(2,2) */
+	krot_k[2] += abs(kyaw)*rot1j[8]; /* K(3,3) */
 #if 0
 	krot_k[3] += 0.0; /* K(2,1) */
 	krot_k[4] += 0.0; /* K(3,1) */
@@ -1968,10 +1920,10 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
   uniform REAL sprfric[], uniform REAL sprkskn[], uniform REAL * uniform sprsdsp[3], uniform REAL stroke0[],
   uniform REAL * uniform stroke[3], uniform REAL * uniform sprfrc[3], uniform REAL * uniform lcurve[2],
   uniform int lcidx[], uniform REAL gravity[3], uniform int trqsprnum, uniform int * uniform trqsprpart[2],
-  uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform kryp[3][2],
-  uniform int * uniform krypidx[3], uniform REAL * uniform dryp[3][2], uniform int * uniform drypidx[3],
-  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqryp[3],
-  uniform REAL * uniform trqryptot[3], uniform REAL * uniform trqrypspr[3],
+  uniform REAL * uniform trqzdir0[3], uniform REAL * uniform trqxdir0[3], uniform REAL * uniform krpy[3][2],
+  uniform int * uniform krpyidx[3], uniform REAL * uniform drpy[3][2], uniform int * uniform drpyidx[3],
+  uniform REAL * uniform trqzdir1[3], uniform REAL * uniform trqxdir1[3], uniform REAL * uniform trqrpy[3],
+  uniform REAL * uniform trqrpytot[3], uniform REAL * uniform trqrpyspr[3],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3], uniform REAL * uniform kact[3], uniform REAL kmax[],
   uniform REAL emax[], uniform REAL * uniform krot[6], uniform int adaptive, uniform int unsprnum, uniform int tsprings[],
   uniform int tspridx[], uniform int msprings[], uniform int mspridx[], uniform REAL * uniform unlim[2], uniform int unent[],
@@ -2030,8 +1982,8 @@ export void forces (uniform int ntasks, uniform master_conpnt master[], uniform 
     uniform int * uniform lock = uniform new uniform int [parnum];
     foreach (i = 0 ... parnum) lock[i] = -1;
 
-    launch [ntasks] trqspr_task (trqsprnum/ntasks, trqsprnum, trqsprpart, trqzdir0, trqxdir0, kryp, krypidx, dryp, drypidx,
-      trqzdir1, trqxdir1, trqryp, trqryptot, trqrypspr, inverse, angular, rotation, torque, krot, adaptive, step, time, lock);
+    launch [ntasks] trqspr_task (trqsprnum/ntasks, trqsprnum, trqsprpart, trqzdir0, trqxdir0, krpy, krpyidx, drpy, drpyidx,
+      trqzdir1, trqxdir1, trqrpy, trqrpytot, trqrpyspr, inverse, angular, rotation, torque, krot, adaptive, step, time, lock);
     sync;
 
     delete lock;
