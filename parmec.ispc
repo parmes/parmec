@@ -98,6 +98,8 @@ export void invert_inertia (uniform int ntasks, uniform int size, uniform REAL *
   sync;
 }
 
+/* superseeded by critical_perparticle; does not include torsion springs; can this be made relevant again? */
+#if 0
 /* estimate critical time step */
 export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform int pairnum, uniform REAL * uniform iparam[NIPARAM],
   uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform spring[2], uniform int spridx[],
@@ -216,6 +218,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
   }
   else return 1.0;
 }
+#endif
 
 /* Euler task */
 task void euler_task (uniform int span, uniform int parnum, uniform REAL * uniform angular[6],

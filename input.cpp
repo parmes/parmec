@@ -3074,8 +3074,29 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
   else if (perparticleout) return perparticleout;
   else
   {
-    REAL h = ispc::critical (parnum, mass, pairnum, iparam, sprnum, sprpart, spring, spridx, dashpot, dashidx);
+    /* estimate per-particle steps */
+    REAL *hcri = new REAL[parnum];
+    REAL *ocri = new REAL[parnum];
+    REAL *rcri = new REAL[parnum];
+    ispc::critical_perparticle (ntasks, master, slave, parnum, mass, inertia, invm, inverse,
+                                rotation, position, sprnum, sprflg, sprpart, sprpnt, sprdir,
+				spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, hcri,
+				ocri, rcri);
+    /* sort per-particle steps */
+    std::vector<cristep> v;
+    v.reserve (parnum);
+    for (int i = 0; i < parnum; i ++)
+    {
+      struct cristep x = {hcri[i], i, ocri[i], rcri[i]};
+      v.push_back(x);
+    }
+    std::sort (v.begin(), v.end(), cmp_cristep());
+    delete [] hcri;
+    delete [] ocri;
+    delete [] rcri;
 
+    /* return the lowest step */
+    REAL h = v[0].step;
     return PyFloat_FromDouble (h);
   }
 }

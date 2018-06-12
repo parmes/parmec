@@ -33,10 +33,11 @@ PRESCRIBE (part1, linear=(vx, vy, vz))
 RESTRAIN (part1, angular=[1, 0, 0, 0, 1, 0, 0, 0, 1])
 
 # spherical joint at point (0.5,0.5,1)
+klin=5E6
 ktrq=5E6
 dtrq=2
-SPRING (part1, (0.5,0.5,1), part2, (0.5,0.5,1), spring=[-1, -1E6, 1, 1E6], dashpot=1.0)
-TORSION_SPRING (part2, part1, (0, 0, 1), (1, 0, 0),
+SPRING (part1, (0.5,0.5,1), part2, (0.5,0.5,1), spring=[-1, -klin, 1, klin], dashpot=1.0)
+TORSION_SPRING (part1, part2, (0, 0, 1), (1, 0, 0),
   kroll=[-1, ktrq, -0.25, 0, 0.25, 0, 1, -ktrq], droll=dtrq, # allow for some freedom ... (--> cone)
   kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq, # block yaw rotation
   cone = ('roll', 'pitch')) # ... in the (roll, pitch) space
@@ -48,7 +49,7 @@ ox = HISTORY ('OX', part2)
 oy = HISTORY ('OY', part2)
 oz = HISTORY ('OZ', part2)
 
-h = 7E-4
+h = 0.5 * CRITICAL()
 
 print 'Time step:', h
 
