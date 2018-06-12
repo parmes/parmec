@@ -2035,11 +2035,11 @@ cone
 \series default
  - optional tuple ('roll', 'yaw'), ('roll', 'pitch'), ('pitch', 'yaw') or
  ('roll', 'yaw', 'pitch') denoting a cone constraint in the roll, yaw, pitch
- angle space; positive parts of the spring/dashpot torque curves of the
- first in (roll, pitch, yaw) order coordinate are used (hence it makes sense
- to define at least one of these curves), e.g.
+ angle space; the spring/dashpot torque curves of the first in (roll, pitch,
+ yaw) order coordinate are used (hence it makes sense to define at least
+ one of these curves), e.g.
  both ('roll', 'pitch') and ('pitch', 'roll') result in torque formula 
-\begin_inset Formula $\mathbf{t}=\left[\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)+\text{droll}\left(\sqrt{\dot{\psi}^{2}+\dot{\phi}^{2}}\right)\right]\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]$
+\begin_inset Formula $\mathbf{t}=\left[\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)+\text{droll}\left(\frac{d}{dt}\sqrt{\psi^{2}+\phi^{2}}\right)\right]\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]$
 \end_inset
 
 , etc.; default: not specified

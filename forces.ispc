@@ -1684,7 +1684,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     case TRQCONE_ROLL_PITCH:
     {
       uniform REAL angle = sqrt(roll*roll + pitch*pitch);
-      uniform REAL angledot = sqrt(rolldot*rolldot + pitchdot*pitchdot);
+      uniform REAL angledot = angle > 0.0 ? (rolldot*roll+pitchdot*pitch)/angle : 0.0;
 
       if (krpyidx[0][i+1]>krpyidx[0][i])
       {
@@ -1742,7 +1742,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     case TRQCONE_ROLL_YAW:
     {
       uniform REAL angle = sqrt(roll*roll + yaw*yaw);
-      uniform REAL angledot = sqrt(rolldot*rolldot + yawdot*yawdot);
+      uniform REAL angledot = angle > 0.0 ? (rolldot*roll+yawdot*yaw)/angle : 0.0;
 
       if (krpyidx[0][i+1]>krpyidx[0][i])
       {
@@ -1817,7 +1817,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       }
 
       uniform REAL angle = sqrt(pitch*pitch + yaw*yaw);
-      uniform REAL angledot = sqrt(pitchdot*pitchdot + yawdot*yawdot);
+      uniform REAL angledot = angle > 0.0 ? (pitchdot*pitch+yawdot*yaw)/angle : 0.0;
 
       if (krpyidx[1][i+1]>krpyidx[1][i])
       {
@@ -1858,7 +1858,7 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
     case TRQCONE_ROLL_PITCH_YAW:
     {
       uniform REAL angle = sqrt(roll*roll + pitch*pitch + yaw*yaw);
-      uniform REAL angledot = sqrt(rolldot*rolldot + pitchdot*pitchdot + dyaw*dyaw);
+      uniform REAL angledot = angle > 0.0 ? (rolldot*roll+pitchdot*pitch+yawdot*yaw)/angle : 0.0;
 
       if (krpyidx[0][i+1]>krpyidx[0][i])
       {
