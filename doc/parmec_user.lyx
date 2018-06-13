@@ -1786,7 +1786,7 @@ name "subsec:TORSION_SPRING"
 
 TORSION_SPRING 
 \color red
-(under development)
+(experimental)
 \end_layout
 
 \begin_layout Standard
@@ -1960,7 +1960,7 @@ xdir
 \begin_inset Formula $\mathbf{x}=\left(x_{1},x_{2},x_{3}\right)$
 \end_inset
 
-, co-rotated with the two particles, and used to determine the Euler angles
+, co-rotated with the two particles, and used to determine the torsion angles
  
 \begin_inset Formula $\psi$
 \end_inset
@@ -1993,7 +1993,7 @@ kroll
 \begin_inset Formula $\left[\text{angle}_{1},\text{torque}_{1},\text{angle}_{2},\text{torque}_{2},...\right]$
 \end_inset
 
-, about the three Euler angles; default: 
+, about the three torsion angles; default: 
 \begin_inset Formula $\left[-\infty,0,+\infty,0\right]$
 \end_inset
 
@@ -2034,10 +2034,10 @@ droll
 cone
 \series default
  - optional tuple ('roll', 'yaw'), ('roll', 'pitch'), ('pitch', 'yaw') or
- ('roll', 'yaw', 'pitch') denoting a cone constraint in the roll, yaw, pitch
- angle space; the spring/dashpot torque curves of the first in (roll, pitch,
- yaw) order coordinate are used (hence it makes sense to define at least
- one of these curves), e.g.
+ ('roll', 'pitch', 'yaw') denoting a cone constraint in the (roll, pitch,
+ yaw) angle space; the spring/dashpot torque curves of the first in (roll,
+ pitch, yaw) order coordinate are used (hence it makes sense to define at
+ least one of these curves), e.g.
  both ('roll', 'pitch') and ('pitch', 'roll') result in torque formula 
 \begin_inset Formula $\mathbf{t}=\left[\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)+\text{droll}\left(\frac{d}{dt}\sqrt{\psi^{2}+\phi^{2}}\right)\right]\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]$
 \end_inset
