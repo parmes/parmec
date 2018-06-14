@@ -179,6 +179,7 @@ extern REAL *trqxdir1[3]; /* output: torsion spring x current direction */
 extern REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
 extern REAL *trqrpytot[3]; /* output: total moments conjugate with spring angles */
 extern REAL *trqrpyspr[3]; /* output: spring moments wihout damper components */
+extern REAL *trqrefpnt[3]; /* input: reference point coordinates on part[0] or (inf, inf, inf) */
 extern int trqspr_changed; /* torqion spring input changed flag */
 extern int trqspr_buffer_size; /* size of torsion spring constraint buffer */
 extern int krpy_lookup_size[3]; /* size of spring angle-torque lookup tables */

@@ -192,6 +192,7 @@ REAL *trqxdir1[3]; /* output: torsion spring x current direction */
 REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
 REAL *trqrpytot[3]; /* output: total moments conjugate with spring angles */
 REAL *trqrpyspr[3]; /* output: spring moments wihout damper components */
+REAL *trqrefpnt[3]; /* input: reference point coordinates on part[0] or (inf, inf, inf) */
 int trqspr_changed; /* torqion spring input changed flag */
 int trqspr_buffer_size; /* size of torsion spring constraint buffer */
 int krpy_lookup_size[3]; /* size of spring angle-torque lookup tables */
@@ -865,6 +866,9 @@ int trqspr_buffer_init ()
   trqrpyspr[0] = aligned_real_alloc (trqspr_buffer_size);
   trqrpyspr[1] = aligned_real_alloc (trqspr_buffer_size);
   trqrpyspr[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrefpnt[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrefpnt[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrefpnt[2] = aligned_real_alloc (trqspr_buffer_size);
 
   trqsprnum = 0;
   krpyidx[0][trqsprnum] = 0;
@@ -915,6 +919,9 @@ void trqspr_buffer_grow (int krpy_lookup[3], int drpy_lookup[3])
     real_buffer_grow(trqrpyspr[0], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqrpyspr[1], trqsprnum, trqspr_buffer_size);
     real_buffer_grow(trqrpyspr[2], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrefpnt[0], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrefpnt[1], trqsprnum, trqspr_buffer_size);
+    real_buffer_grow(trqrefpnt[2], trqsprnum, trqspr_buffer_size);
   }
 
   for (int i = 0; i < 3; i ++)
@@ -1319,8 +1326,9 @@ int output_buffer_init ()
   outidx = aligned_int_alloc (output_buffer_size+1);
   outent = aligned_int_alloc (output_buffer_size);
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LENGTH|OUT_ORIENT|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|
-               OUT_LINVEL|OUT_ANGVEL| OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR|OUT_SS|OUT_FF;
-  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+               OUT_LINVEL|OUT_ANGVEL| OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR|OUT_SS|OUT_FF|
+	       OUT_ZDIR|OUT_ZDIR|OUT_RPY|OUT_RPYTOT|OUT_RPYSPR;
+  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST;
   outformat = OUT_FORMAT_XDMF;
 
   outnum = 0;
@@ -1948,6 +1956,7 @@ static void sort_trqspr ()
   REAL *trqrpy[3]; /* output: torsion spring angles roll, pitch, yaw */
   REAL *trqrpytot[3]; /* output: total moments conjugate with spring angles */
   REAL *trqrpyspr[3]; /* output: spring moments wihout damper components */
+  REAL *trqrefpnt[3]; /* input: reference point coordinates on part[0] or (inf, inf, inf) */
 
   trqsprid = aligned_int_alloc (trqspr_buffer_size);
   trqsprpart[0] = aligned_int_alloc (trqspr_buffer_size);
@@ -1992,6 +2001,9 @@ static void sort_trqspr ()
   trqrpyspr[0] = aligned_real_alloc (trqspr_buffer_size);
   trqrpyspr[1] = aligned_real_alloc (trqspr_buffer_size);
   trqrpyspr[2] = aligned_real_alloc (trqspr_buffer_size);
+  trqrefpnt[0] = aligned_real_alloc (trqspr_buffer_size);
+  trqrefpnt[1] = aligned_real_alloc (trqspr_buffer_size);
+  trqrefpnt[2] = aligned_real_alloc (trqspr_buffer_size);
 
   int i = 0;
 
@@ -2025,6 +2037,9 @@ static void sort_trqspr ()
     trqrpyspr[0][i] = parmec::trqrpyspr[0][x->number];
     trqrpyspr[1][i] = parmec::trqrpyspr[1][x->number];
     trqrpyspr[2][i] = parmec::trqrpyspr[2][x->number];
+    trqrefpnt[0][i] = parmec::trqrefpnt[0][x->number];
+    trqrefpnt[1][i] = parmec::trqrefpnt[1][x->number];
+    trqrefpnt[2][i] = parmec::trqrefpnt[2][x->number];
     trqcone[i] = parmec::trqcone[x->number];
 
     for (int l = 0; l < 3; l ++)
@@ -2088,6 +2103,9 @@ static void sort_trqspr ()
   aligned_real_free (parmec::trqrpyspr[0]);
   aligned_real_free (parmec::trqrpyspr[1]);
   aligned_real_free (parmec::trqrpyspr[2]);
+  aligned_real_free (parmec::trqrefpnt[0]);
+  aligned_real_free (parmec::trqrefpnt[1]);
+  aligned_real_free (parmec::trqrefpnt[2]);
 
   parmec::trqsprid = trqsprid;
   parmec::trqsprpart[0] = trqsprpart[0];
@@ -2132,6 +2150,9 @@ static void sort_trqspr ()
   parmec::trqrpyspr[0] = trqrpyspr[0];
   parmec::trqrpyspr[1] = trqrpyspr[1];
   parmec::trqrpyspr[2] = trqrpyspr[2];
+  parmec::trqrefpnt[0] = trqrefpnt[0];
+  parmec::trqrefpnt[1] = trqrefpnt[1];
+  parmec::trqrefpnt[2] = trqrefpnt[2];
 }
 
 /* add up prescribed body forces */
@@ -2221,8 +2242,9 @@ void reset ()
 
   /* unselected particles default output flags */
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LENGTH|OUT_ORIENT|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|
-               OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR|OUT_SS|OUT_FF;
-  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
+               OUT_LINVEL|OUT_ANGVEL|OUT_FORCE|OUT_TORQUE|OUT_F|OUT_FN|OUT_FT|OUT_SF|OUT_AREA|OUT_PAIR|OUT_SS|OUT_FF|
+	       OUT_ZDIR|OUT_ZDIR|OUT_RPY|OUT_RPYTOT|OUT_RPYSPR;
+  outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST;
   outformat = OUT_FORMAT_XDMF;
 
   /* zero global damping by default */

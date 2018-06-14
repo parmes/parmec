@@ -1790,8 +1790,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 /* create torsional spring constraint */
 static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
-  KEYWORDS ("part1", "part2", "zdir", "xdir", "kroll", "kpitch", "kyaw", "droll", "dpitch", "dyaw", "cone");
-  PyObject *zdir, *xdir, *kroll, *kpitch, *kyaw, *droll, *dpitch, *dyaw, *cone;
+  KEYWORDS ("part1", "part2", "zdir", "xdir", "kroll", "kpitch", "kyaw", "droll", "dpitch", "dyaw", "cone", "refpnt");
+  PyObject *zdir, *xdir, *kroll, *kpitch, *kyaw, *droll, *dpitch, *dyaw, *cone, *refpnt;
   int part1, part2;
 
   kroll = NULL;
@@ -1801,14 +1801,15 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   dpitch = NULL;
   dyaw = NULL;
   cone = NULL;
+  refpnt = NULL;
 
-  PARSEKEYS ("iiOO|OOOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kpitch, &kyaw, &droll, &dpitch, &dyaw, &cone);
+  PARSEKEYS ("iiOO|OOOOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kpitch, &kyaw, &droll, &dpitch, &dyaw, &cone, &refpnt);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (zdir, kwl[2], 3) &&
             is_tuple (xdir, kwl[3], 3) && is_list (kroll, kwl[4], 0) &&
             is_list (kpitch, kwl[5], 0) && is_list (kyaw, kwl[6], 0) &&
 	    is_list_or_number (droll, kwl[7], 0) && is_list_or_number (dpitch, kwl[8], 0) &&
-	    is_list_or_number (dyaw, kwl[9], 0) && is_tuple (cone, kwl[10], 0));
+	    is_list_or_number (dyaw, kwl[9], 0) && is_tuple (cone, kwl[10], 0) && is_tuple (refpnt, kwl[11], 3));
 
   if (part2 < -1)
   {
@@ -2060,6 +2061,19 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       PyErr_SetString (PyExc_ValueError, "Invalid cone tuple size: neither 2 nor 3");
       return NULL;
     }
+  }
+
+  if (refpnt)
+  {
+    trqrefpnt[0][i] = PyFloat_AsDouble(PyTuple_GetItem(refpnt, 0));
+    trqrefpnt[1][i] = PyFloat_AsDouble(PyTuple_GetItem(refpnt, 1));
+    trqrefpnt[2][i] = PyFloat_AsDouble(PyTuple_GetItem(refpnt, 2));
+  }
+  else
+  {
+    trqrefpnt[0][i] = REAL_MAX;
+    trqrefpnt[1][i] = REAL_MAX;
+    trqrefpnt[2][i] = REAL_MAX;
   }
 
   return PyInt_FromLong (i);
@@ -3491,10 +3505,15 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 	if (subset) outmode[i] = OUT_MODE_CD;
 	else outmode[1] = OUT_MODE_CD;
       }
-      ELIF (mode, "SD")
+      ELIF (mode, "SL")
       {
-	if (subset) outmode[i] = OUT_MODE_SD;
-	else outmode[i] = OUT_MODE_SD;
+	if (subset) outmode[i] = OUT_MODE_SL;
+	else outmode[i] = OUT_MODE_SL;
+      }
+      ELIF (mode, "ST")
+      {
+	if (subset) outmode[i] = OUT_MODE_ST;
+	else outmode[i] = OUT_MODE_ST;
       }
       ELSE
       {
@@ -3533,10 +3552,15 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 	    if (subset) outmode[i] |= OUT_MODE_CD;
 	    else outmode[1] |= OUT_MODE_CD;
 	  }
-	  ELIF (item, "SD")
+	  ELIF (item, "SL")
 	  {
-	    if (subset) outmode[i] |= OUT_MODE_SD;
-	    else outmode[i] |= OUT_MODE_SD;
+	    if (subset) outmode[i] |= OUT_MODE_SL;
+	    else outmode[i] |= OUT_MODE_SL;
+	  }
+	  ELIF (item, "ST")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_ST;
+	    else outmode[i] |= OUT_MODE_ST;
 	  }
 	  ELSE
 	  {
@@ -3554,8 +3578,8 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else
   {
-    if (subset) outmode[i] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD;
-    else outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SD; 
+    if (subset) outmode[i] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST;
+    else outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST; 
   }
 
   if (entities)

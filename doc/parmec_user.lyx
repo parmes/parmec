@@ -1915,7 +1915,7 @@ and where
 
 \begin_layout Subsection*
 trsnum = TORSION_SPRING (part1, part2, zdir, xdir | kroll, kpitch, kyaw,
- droll, dpitch, dyaw, cone)
+ droll, dpitch, dyaw, cone, refpnt)
 \end_layout
 
 \begin_layout Itemize
@@ -2039,10 +2039,41 @@ cone
  pitch, yaw) order coordinate are used (hence it makes sense to define at
  least one of these curves), e.g.
  both ('roll', 'pitch') and ('pitch', 'roll') result in torque formula 
-\begin_inset Formula $\mathbf{t}=\left[\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)+\text{droll}\left(\frac{d}{dt}\sqrt{\psi^{2}+\phi^{2}}\right)\right]\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]$
+\begin_inset Formula 
+\[
+\mathbf{t}=\left[\text{kroll}\left(\sqrt{\psi^{2}+\phi^{2}}\right)+\text{droll}\left(\frac{d}{dt}\sqrt{\psi^{2}+\phi^{2}}\right)\right]\left[\frac{\psi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{x}+\frac{\phi}{\sqrt{\psi^{2}+\phi^{2}}}\mathbf{y}\right]\text{, etc.}
+\]
+
 \end_inset
 
-, etc.; default: not specified
+default: not specified
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+refpnt
+\series default
+ - a reference point moving with 
+\series bold
+part1
+\series default
+, used to position in space the 
+\begin_inset CommandInset ref
+LatexCommand nameref
+reference "subsec:OUTPUT"
+
+\end_inset
+
+ vector fields; default: 
+\begin_inset Formula $0.5\left(\text{centre}\left(\text{part1}\right)+\text{centre}\left(\text{part2}\right)\right)$
+\end_inset
+
+ or 
+\begin_inset Formula $\text{centre}\left(\text{part1}\right)$
+\end_inset
+
+ when part2 = -1
 \end_layout
 
 \begin_layout Section
@@ -3408,11 +3439,7 @@ Before running a simulation, define scalar and/or vector entities included
 \end_layout
 
 \begin_layout Itemize
-*0.dump 
-\color red
-(under development)
-\color inherit
- files for spherical 
+*0.dump files for spherical 
 \begin_inset Note Note
 status open
 
@@ -3435,10 +3462,6 @@ a subset
 
 \begin_layout Itemize
 *1.dump, *2.dump, ...
- 
-\color red
-(under development)
-\color inherit
  files for spherical 
 \begin_inset Note Note
 status open
@@ -3462,11 +3485,7 @@ and/or
 \series bold
 and/or
 \series default
- (*0.med) 
-\color red
-(experimental)
-\color inherit
- files for obstacles and mesh based particles 
+ (*0.med) files for obstacles and mesh based particles 
 \series bold
 not
 \series default
@@ -3487,12 +3506,8 @@ and/or
 \series bold
 and/or
 \series default
- (*1.med, *2.med...) 
-\color red
-(experimental)
-\color inherit
- files for mesh based particles specified as subsets, where numbers 1, 2,
- ...
+ (*1.med, *2.med...) files for mesh based particles specified as subsets, where
+ numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3505,11 +3520,7 @@ and/or
 \series bold
 and/or
 \series default
- (*0rb.med) 
-\color red
-(under development)
-\color inherit
- files for rigid body data of particles 
+ (*0rb.med) files for rigid body data of particles 
 \series bold
 not
 \series default
@@ -3530,12 +3541,8 @@ and/or
 \series bold
 and/or
 \series default
- (*1rb.med, *2rb.med, ...) 
-\color red
-(under development)
-\color inherit
- files for rigid body data of particles specified as subsets, where numbers
- 1, 2, ...
+ (*1rb.med, *2rb.med, ...) files for rigid body data of particles specified as
+ subsets, where numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3548,11 +3555,7 @@ and/or
 \series bold
 and/or
 \series default
- (*0cd.med) 
-\color red
-(under development)
-\color inherit
- files for contact data including particles 
+ (*0cd.med) files for contact data including particles 
 \series bold
 not
 \series default
@@ -3573,29 +3576,21 @@ and/or
 \series bold
 and/or
 \series default
- (*1cd.med, *2cd.med, ...) 
-\color red
-(under development)
-\color inherit
- files for contact data including particles specified as subsets, where
- numbers 1, 2, ...
+ (*1cd.med, *2cd.med, ...) files for contact data including particles specified
+ as subsets, where numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
 \begin_layout Itemize
-*0sd.vtk.* 
+*0sl.vtk.* 
 \series bold
 and/or
 \series default
- (*0sd.h5, *0sd.xmf) 
+ (*0sl.h5, *0sl.xmf) 
 \series bold
 and/or
 \series default
- (*0sd.med) 
-\color red
-(under development)
-\color inherit
- files for spring data including particles 
+ (*0sl.med) files for linear spring data including particles 
 \series bold
 not
 \series default
@@ -3607,21 +3602,17 @@ a subset
 \end_layout
 
 \begin_layout Itemize
-*1sd.vtk.*, *2sd.vtk.*, ...
+*1sl.vtk.*, *2sl.vtk.*, ...
  
 \series bold
 and/or
 \series default
- (*1sd.h5, *1sd.xmf, *2sd.h5, *2sd.xmf, ...) 
+ (*1sl.h5, *1sl.xmf, *2sl.h5, *2sl.xmf, ...) 
 \series bold
 and/or
 \series default
- (*1sd.med, *2sd.med, ...) 
-\color red
-(under development)
-\color inherit
- files for spring data including particles specified as subsets, where numbers
- 1, 2, ...
+ (*1sl.med, *2sl.med, ...) files for linear spring data including particles specified
+ as subsets, where numbers 1, 2, ...
  match consecutive OUTPUT calls
 \end_layout
 
@@ -3636,13 +3627,14 @@ entities
 \series default
  - list of output entities; default: ['NUMBER', 'COLOR', 'DISPL','LENGTH',
  'ORIENT', 'ORIENT1', 'ORIENT2', 'ORIENT3', 'LINVEL', 'ANGVEL', 'FORCE',
- 'TORQUE', 'F', 'FN', 'FT', 'SF', 'FF', 'SS', 'AREA', 'PAIR'] where:
+ 'TORQUE', 'F', 'FN', 'FT', 'SF', 'FF', 'SS', 'AREA', 'PAIR', 'ZDIR', 'XDIR',
+ 'RPY', 'RPYTOT', 'RPYSPR'] where:
 \end_layout
 
 \begin_deeper
 \begin_layout Itemize
 'NUMBER' - scalar field of particle numbers (modes: 'SPH', 'MESH', 'RB'),
- or scalar field of spring numbers (modes: 'SD')
+ or scalar field of spring numbers (modes: 'SL', 'ST')
 \end_layout
 
 \begin_layout Itemize
@@ -3653,16 +3645,16 @@ entities
 \begin_layout Itemize
 'DISPL' - 3-component vector field of displacements (modes: 'SPH', 'MESH',
  'RB'), or scalar field of contact depths (modes: 'CD'), or scalar field
- of spring strokes (modes: 'SD')
+ of spring strokes (modes: 'SL')
 \end_layout
 
 \begin_layout Itemize
-'LENGTH' - scalar field of spring lengths (modes: 'SD')
+'LENGTH' - scalar field of spring lengths (modes: 'SL')
 \end_layout
 
 \begin_layout Itemize
 'ORIENT' - 9-component tensor field representing rigid rotation matrix (modes:
- 'RB'), or 3-component vector field of spring orientations (modes: 'SD')
+ 'RB'), or 3-component vector field of spring orientations (modes: 'SL')
 \end_layout
 
 \begin_layout Itemize
@@ -3692,7 +3684,7 @@ entities
 
 \begin_layout Itemize
 'F' - 3-component vector field of total contact forces (modes: 'CD'), or
- scalar field of total spring forces (modes: 'SD')
+ scalar field of total spring forces (modes: 'SL')
 \end_layout
 
 \begin_layout Itemize
@@ -3705,11 +3697,11 @@ entities
 
 \begin_layout Itemize
 'SF' - scalar field of spring force magnitude, without dashpot contribution
- (modes: 'CD', 'SD')
+ (modes: 'CD', 'SL')
 \end_layout
 
 \begin_layout Itemize
-'FF' - scalar field of total friction force magnitude (modes: 'CD', 'SD')
+'FF' - scalar field of total friction force magnitude (modes: 'CD', 'SL')
 \end_layout
 
 \begin_layout Itemize
@@ -3727,7 +3719,7 @@ reference "sec:TSERIES"
 
 \end_inset
 
-, used as an unloading curve) (modes: 'SD')
+, used as an unloading curve) (modes: 'SL')
 \end_layout
 
 \begin_layout Itemize
@@ -3736,7 +3728,32 @@ reference "sec:TSERIES"
 
 \begin_layout Itemize
 'PAIR' - 2-component vector field of particle pair numbers (modes: 'CD',
- 'SD')
+ 'SL')
+\end_layout
+
+\begin_layout Itemize
+'ZDIR' - 3-component vector field of z-directions for torsion springs (modes:
+ 'TS')
+\end_layout
+
+\begin_layout Itemize
+'XDIR' - 3-component vector field of x-directions for torsion springs (modes:
+ 'TS')
+\end_layout
+
+\begin_layout Itemize
+'RPY' - 3-component vector field of (roll, pitch, yaw) angles for torsion
+ springs (modes: 'TS')
+\end_layout
+
+\begin_layout Itemize
+'RPYTOT' - 3-component vector field of total torques conjugate to (roll,
+ pitch, yaw) angles for torsion springs (modes: 'TS')
+\end_layout
+
+\begin_layout Itemize
+'RPYSPR' - 3-component vector field of angle-conjugate spring torques (without
+ dampers) for torsion springs (modes: 'TS')
 \end_layout
 
 \end_deeper
@@ -3772,8 +3789,8 @@ and ellipsoid
 \end_inset
 
  output, 'MESH' for mesh output, 'RB' for rigid body output, 'CD' for contact
- data output, 'SD' for spring data output; default: ['SPH', 'MESH', 'RB',
- 'CD', 'SD']
+ data output, 'SL' for linear spring data output, 'TS' for torsional spring
+ data output; default: ['SPH', 'MESH', 'RB', 'CD', 'SL', 'TS']
 \end_layout
 
 \begin_layout Itemize

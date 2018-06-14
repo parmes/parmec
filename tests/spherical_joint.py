@@ -42,7 +42,8 @@ SPRING (part1, (0.5,0.5,1), part2, (0.5,0.5,1), spring=[-1, -klin, 1, klin], das
 TORSION_SPRING (part2, part1, (0, 0, 1), (1, 0, 0),
   kroll=[-1, ktrq, -0.25, 0, 0.25, 0, 1, -ktrq], droll=dtrq, # allow for some freedom ... (--> cone)
   kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq, # block yaw rotation
-  cone = ('roll', 'pitch')) # ... in the (roll, pitch) space
+  cone = ('roll', 'pitch'), # ... in the (roll, pitch) space
+  refpnt = (0.5, 0.5, 1)) # reference point for output purposes
 
 # apply gravity
 GRAVITY (0., 0., -10.)
