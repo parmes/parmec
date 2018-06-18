@@ -1605,8 +1605,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 #endif
     }
 
-    uniform REAL trq[3] = {0., 0., 0.}; /* total torque in the global frame */
-
     switch (trqcone[i])
     {
     case 0:
@@ -1674,11 +1672,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
       trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
       trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
-
-      /*                   xdir1                  ydir1                 zdir1 */
-      trq[0] = trqrolltot*rot1j[0] + trqpitchtot*rot1j[3] + trqyawtot*rot1j[6];
-      trq[1] = trqrolltot*rot1j[1] + trqpitchtot*rot1j[4] + trqyawtot*rot1j[7];
-      trq[2] = trqrolltot*rot1j[2] + trqpitchtot*rot1j[5] + trqyawtot*rot1j[8];
     }
     break;
     case TRQCONE_ROLL_PITCH:
@@ -1723,8 +1716,6 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 	trqyawdot = look_up (drpy[2], drpyidx[2][i], drpyidx[2][i+1], yawdot, &dyaw);
       }
 
-      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
-      trqpitchtot = 0.0;
       trqyawtot = trqyaw + (trqyaw == 0.0 ? 0.0 : trqyawdot);
 
       if (angle > 0.)
@@ -1732,11 +1723,12 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 	uniform REAL xcoef = roll/angle;
 	uniform REAL ycoef = pitch/angle;
 
-        /*                           xdir1                       ydir1               zdir1 */
-	trq[0] = trqrolltot*xcoef*rot1j[0] + trqrolltot*ycoef*rot1j[3] + trqyawtot*rot1j[6];
-	trq[1] = trqrolltot*xcoef*rot1j[1] + trqrolltot*ycoef*rot1j[4] + trqyawtot*rot1j[7];
-	trq[2] = trqrolltot*xcoef*rot1j[2] + trqrolltot*ycoef*rot1j[5] + trqyawtot*rot1j[8];
+	trqrolltot = xcoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqpitchtot = ycoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqpitch = trqroll*ycoef;
+	trqroll *= xcoef;
       }
+      else { trqrolltot = trqpitchtot = 0.0; trqroll = trqpitch = 0.0; }
     }
     break;
     case TRQCONE_ROLL_YAW:
@@ -1781,20 +1773,19 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 	trqpitchdot = look_up (drpy[1], drpyidx[1][i], drpyidx[1][i+1], pitchdot, &dpitch);
       }
 
-      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
       trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
-      trqyawtot = 0.0;
 
       if (angle > 0.)
       {
 	uniform REAL xcoef = roll/angle;
 	uniform REAL zcoef = yaw/angle;
 
-        /*                           xdir1                  ydir1                     zdir1 */
-	trq[0] = trqrolltot*xcoef*rot1j[0] + trqpitchtot*rot1j[3] + trqrolltot*zcoef*rot1j[6];
-	trq[1] = trqrolltot*xcoef*rot1j[1] + trqpitchtot*rot1j[4] + trqrolltot*zcoef*rot1j[7];
-	trq[2] = trqrolltot*xcoef*rot1j[2] + trqpitchtot*rot1j[5] + trqrolltot*zcoef*rot1j[8];
+	trqrolltot = xcoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqyawtot = zcoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqyaw = trqroll*zcoef;
+	trqroll *= xcoef;
       }
+      else { trqrolltot = trqyawtot = 0.0; trqroll = trqyaw = 0.0; }
     }
     break;
     case TRQCONE_PITCH_YAW:
@@ -1840,19 +1831,18 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
       }
 
       trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
-      trqpitchtot = trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot);
-      trqyawtot = 0.0;
 
       if (angle > 0.)
       {
 	uniform REAL ycoef = pitch/angle;
 	uniform REAL zcoef = yaw/angle;
 
-        /*                     xdir1                      ydir1                       zdir1 */
-	trq[0] = trqrolltot*rot1j[0] + trqpitchtot*ycoef*rot1j[3] + trqpitchtot*zcoef*rot1j[6];
-	trq[1] = trqrolltot*rot1j[1] + trqpitchtot*ycoef*rot1j[4] + trqpitchtot*zcoef*rot1j[7];
-	trq[2] = trqrolltot*rot1j[2] + trqpitchtot*ycoef*rot1j[5] + trqpitchtot*zcoef*rot1j[8];
+        trqpitchtot = ycoef*(trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot));
+        trqyawtot = zcoef*(trqpitch + (trqpitch == 0.0 ? 0.0 : trqpitchdot));
+	trqyaw = zcoef*trqpitch;
+	trqpitch *= ycoef;
       }
+      else { trqpitchtot = trqyawtot = 0.0; trqpitch = trqyaw = 0.0; }
     }
     break;
     case TRQCONE_ROLL_PITCH_YAW:
@@ -1880,24 +1870,30 @@ task void trqspr_task (uniform int span, uniform int trqsprnum, uniform int * un
 	trqrolldot = look_up (drpy[0], drpyidx[0][i], drpyidx[0][i+1], angledot, &droll);
       }
 
-      trqrolltot = trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot);
-      trqpitchtot = 0.0;
-      trqyawtot = 0.0;
-
       if (angle > 0.)
       {
 	uniform REAL xcoef = roll/angle;
 	uniform REAL ycoef = pitch/angle;
 	uniform REAL zcoef = yaw/angle;
 
-        /*                           xdir1                       ydir1                      zdir1 */
-	trq[0] = trqrolltot*xcoef*rot1j[0] + trqrolltot*ycoef*rot1j[3] + trqrolltot*zcoef*rot1j[6];
-	trq[1] = trqrolltot*xcoef*rot1j[1] + trqrolltot*ycoef*rot1j[4] + trqrolltot*zcoef*rot1j[7];
-	trq[2] = trqrolltot*xcoef*rot1j[2] + trqrolltot*ycoef*rot1j[5] + trqrolltot*zcoef*rot1j[8];
+	trqrolltot = xcoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqpitchtot = ycoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqyawtot = zcoef*(trqroll + (trqroll == 0.0 ? 0.0 : trqrolldot));
+	trqpitch = ycoef*trqroll;
+	trqyaw = zcoef*trqroll;
+	trqroll *= xcoef;
       }
+      else { trqrolltot = trqpitchtot = trqyawtot = 0.0; trqroll = trqpitch = trqyaw = 0.0; }
     }
     break;
     }
+
+    uniform REAL trq[3]; /* total torque in the global frame */
+
+    /*                     xdir1                  ydir1                zdir1 */
+    trq[0] = trqrolltot*rot1j[0] + trqpitchtot*rot1j[3] + trqyawtot*rot1j[6];
+    trq[1] = trqrolltot*rot1j[1] + trqpitchtot*rot1j[4] + trqyawtot*rot1j[7];
+    trq[2] = trqrolltot*rot1j[2] + trqpitchtot*rot1j[5] + trqyawtot*rot1j[8];
 
 #if TRQDBG
     print ("trq = %, %, %\n", trq[0], trq[1], trq[2]);

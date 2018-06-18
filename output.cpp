@@ -481,7 +481,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_NUMBER)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "number";
+    const char fieldName[MED_NAME_SIZE+1] = "NUMBER";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "number";
     const char componentUnit[MED_SNAME_SIZE+1] = "1";
@@ -526,7 +526,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_DISPL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "displ";
+    const char fieldName[MED_NAME_SIZE+1] = "DISPL";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "dx              dy              dz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -566,7 +566,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_LINVEL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "linvel";
+    const char fieldName[MED_NAME_SIZE+1] = "LINVEL";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "vx              vy              vz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -602,7 +602,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_ANGVEL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "angvel";
+    const char fieldName[MED_NAME_SIZE+1] = "ANGVEL";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "ox              oy              oz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -651,7 +651,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_FORCE)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "force";
+    const char fieldName[MED_NAME_SIZE+1] = "FORCE";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "fx              fy              fz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -700,7 +700,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_TORQUE)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "torque";
+    const char fieldName[MED_NAME_SIZE+1] = "TORQUE";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "tx              ty              tz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -749,7 +749,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_ORIENT)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "orient";
+    const char fieldName[MED_NAME_SIZE+1] = "ORIENT";
     const med_int ncomponent = 9;
     const char componentName[9*MED_SNAME_SIZE+1] = "o1x             o1y             o1z             o2x             o2y             o2z             o3x             o3y             o3z";
     const char componentUnit[9*MED_SNAME_SIZE+1] = "1.0             1.0             1.0             1.0             1.0             1.0             1.0             1.0             1.0";
@@ -803,7 +803,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
   }
 
   int mask[3] = {OUT_ORIENT1, OUT_ORIENT2, OUT_ORIENT3};
-  const char fieldName[3][MED_NAME_SIZE+1] = {"orient1", "orient2", "orient3"};
+  const char fieldName[3][MED_NAME_SIZE+1] = {"ORIENT1", "ORIENT2", "ORIENT3"};
   const char componentName[3][3*MED_SNAME_SIZE+1] = {"o1x             o1y             o1z",
                                                      "o2x             o2y             o2z",
 						     "o3x             o3y             o3z"};
@@ -917,7 +917,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_NUMBER)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "number";
+    const char fieldName[MED_NAME_SIZE+1] = "NUMBER";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "number";
     const char componentUnit[MED_SNAME_SIZE+1] = "1";
@@ -950,7 +950,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_DISPL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "displ";
+    const char fieldName[MED_NAME_SIZE+1] = "DISPL";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "displ";
     const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
@@ -984,7 +984,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_LENGTH)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "length";
+    const char fieldName[MED_NAME_SIZE+1] = "LENGTH";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "length";
     const char componentUnit[MED_SNAME_SIZE+1] = "1.0";
@@ -1021,7 +1021,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_ORIENT)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "orient";
+    const char fieldName[MED_NAME_SIZE+1] = "ORIENT";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "orx             ory             orz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -1280,7 +1280,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_NUMBER)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "number";
+    const char fieldName[MED_NAME_SIZE+1] = "NUMBER";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "number";
     const char componentUnit[MED_SNAME_SIZE+1] = "1";
@@ -1313,7 +1313,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_ZDIR)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "zdir";
+    const char fieldName[MED_NAME_SIZE+1] = "ZDIR";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -1349,7 +1349,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_XDIR)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "xdir";
+    const char fieldName[MED_NAME_SIZE+1] = "XDIR";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -1383,9 +1383,9 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 
-  if (ent & OUT_RPY)
+  if (ent & OUT_YDIR)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "rpy";
+    const char fieldName[MED_NAME_SIZE+1] = "YDIR";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -1402,9 +1402,15 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     {
       j = set[i];
 
-      values.push_back (trqrpy[0][j]);
-      values.push_back (trqrpy[1][j]);
-      values.push_back (trqrpy[2][j]);
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      values.push_back (ydir[0]);
+      values.push_back (ydir[1]);
+      values.push_back (ydir[2]);
     }
 
     if (output_frame == 0)
@@ -1419,9 +1425,9 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 
-  if (ent & OUT_RPYTOT)
+  if (ent & OUT_TRQROT)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "rpytot";
+    const char fieldName[MED_NAME_SIZE+1] = "TRQROT";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -1438,9 +1444,19 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     {
       j = set[i];
 
-      values.push_back (trqrpytot[0][j]);
-      values.push_back (trqrpytot[1][j]);
-      values.push_back (trqrpytot[2][j]);
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqrot[3] = {xdir[0]*trqrpy[0][j]+ydir[0]*trqrpy[1][j]+zdir[0]*trqrpy[2][j],
+                        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
+                        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
+
+      values.push_back (trqrot[0]);
+      values.push_back (trqrot[1]);
+      values.push_back (trqrot[2]);
     }
 
     if (output_frame == 0)
@@ -1455,9 +1471,9 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 
-  if (ent & OUT_RPYSPR)
+  if (ent & OUT_TRQTOT)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "rpyspr";
+    const char fieldName[MED_NAME_SIZE+1] = "TRQTOT";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -1474,9 +1490,65 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     {
       j = set[i];
 
-      values.push_back (trqrpyspr[0][j]);
-      values.push_back (trqrpyspr[1][j]);
-      values.push_back (trqrpyspr[2][j]);
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqtot[3] = {xdir[0]*trqrpytot[0][j]+ydir[0]*trqrpytot[1][j]+zdir[0]*trqrpytot[2][j],
+                        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
+                        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
+
+      values.push_back (trqtot[0]);
+      values.push_back (trqtot[1]);
+      values.push_back (trqtot[2]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_TRQSPR)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "TRQSPR";
+    const med_int ncomponent = 3;
+    const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
+    const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqspr[3] = {xdir[0]*trqrpyspr[0][j]+ydir[0]*trqrpyspr[1][j]+zdir[0]*trqrpyspr[2][j],
+                        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
+                        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
+
+      values.push_back (trqspr[0]);
+      values.push_back (trqspr[1]);
+      values.push_back (trqspr[2]);
     }
 
     if (output_frame == 0)
@@ -2129,7 +2201,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_DISPL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "displ";
+    const char fieldName[MED_NAME_SIZE+1] = "DISPL";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "dx              dy              dz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -2242,7 +2314,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_LINVEL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "linvel";
+    const char fieldName[MED_NAME_SIZE+1] = "LINVEL";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "vx              vy              vz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -2360,7 +2432,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_NUMBER)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "number";
+    const char fieldName[MED_NAME_SIZE+1] = "NUMBER";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "number";
     const char componentUnit[MED_SNAME_SIZE+1] = "1";
@@ -2392,7 +2464,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_COLOR)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "color";
+    const char fieldName[MED_NAME_SIZE+1] = "COLOR";
     const med_int ncomponent = 1;
     const char componentName[MED_SNAME_SIZE+1] = "color";
     const char componentUnit[MED_SNAME_SIZE+1] = "1";
@@ -2424,7 +2496,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_ANGVEL)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "angvel";
+    const char fieldName[MED_NAME_SIZE+1] = "ANGVEL";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "ox              oy              oz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -2477,7 +2549,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_FORCE)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "force";
+    const char fieldName[MED_NAME_SIZE+1] = "FORCE";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "fx              fy              fz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -2522,7 +2594,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
   if (ent & OUT_TORQUE)
   {
-    const char fieldName[MED_NAME_SIZE+1] = "torque";
+    const char fieldName[MED_NAME_SIZE+1] = "TORQUE";
     const med_int ncomponent = 3;
     const char componentName[3*MED_SNAME_SIZE+1] = "tx              ty              tz";
     const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
@@ -2800,7 +2872,7 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
     out << refpnt[0] << " " << refpnt[1] << " " << refpnt[2] << "\n";
   }
 
-  if (ent & (OUT_NUMBER|OUT_ZDIR|OUT_XDIR|OUT_RPY|OUT_RPYTOT|OUT_RPYSPR))
+  if (ent & (OUT_NUMBER|OUT_ZDIR|OUT_XDIR|OUT_YDIR|OUT_TRQROT|OUT_TRQTOT|OUT_TRQSPR))
   {
     out << "POINT_DATA " << num << "\n";
   }
@@ -2840,39 +2912,91 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
     }
   }
 
-  if (ent & OUT_RPY)
+  if (ent & OUT_YDIR)
   {
-    out << "VECTORS RPY float\n";
+    out << "VECTORS YDIR float\n";
     for (i = 0; i < num; i ++)
     {
       j = set[i];
-      out << trqrpy[0][j] << " "
-	  << trqrpy[1][j] << " "
-	  << trqrpy[2][j] << "\n";
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      out << ydir[0] << " "
+	  << ydir[1] << " "
+	  << ydir[2] << "\n";
     }
   }
 
-  if (ent & OUT_RPYTOT)
+  if (ent & OUT_TRQROT)
   {
-    out << "VECTORS RPYTOT float\n";
+    out << "VECTORS TRQROT float\n";
     for (i = 0; i < num; i ++)
     {
       j = set[i];
-      out << trqrpytot[0][j] << " "
-	  << trqrpytot[1][j] << " "
-	  << trqrpytot[2][j] << "\n";
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqrot[3] = {xdir[0]*trqrpy[0][j]+ydir[0]*trqrpy[1][j]+zdir[0]*trqrpy[2][j],
+                        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
+                        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
+
+      out << trqrot[0] << " "
+	  << trqrot[1] << " "
+	  << trqrot[2] << "\n";
     }
   }
 
-  if (ent & OUT_RPYSPR)
+  if (ent & OUT_TRQTOT)
   {
-    out << "VECTORS RPYSPR float\n";
+    out << "VECTORS TRQTOT float\n";
     for (i = 0; i < num; i ++)
     {
       j = set[i];
-      out << trqrpyspr[0][j] << " "
-	  << trqrpyspr[1][j] << " "
-	  << trqrpyspr[2][j] << "\n";
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqtot[3] = {xdir[0]*trqrpytot[0][j]+ydir[0]*trqrpytot[1][j]+zdir[0]*trqrpytot[2][j],
+                        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
+                        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
+
+      out << trqtot[0] << " "
+	  << trqtot[1] << " "
+	  << trqtot[2] << "\n";
+    }
+  }
+
+  if (ent & OUT_TRQSPR)
+  {
+    out << "VECTORS TRQSPR float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqspr[3] = {xdir[0]*trqrpyspr[0][j]+ydir[0]*trqrpyspr[1][j]+zdir[0]*trqrpyspr[2][j],
+                        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
+                        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
+
+      out << trqspr[0] << " "
+	  << trqspr[1] << " "
+	  << trqspr[2] << "\n";
     }
   }
 }
@@ -3093,43 +3217,96 @@ static void h5_torsional_spring_dataset (int num, int *set, int ent, hid_t h5_st
     ASSERT (H5LTmake_dataset_double (h5_step, "XDIR", 2, dims, data) >= 0, "HDF5 file write error");
   }
 
-  if (ent & OUT_RPY)
+  if (ent & OUT_YDIR)
   {
     for (pdata = data, i = 0; i < num; i ++, pdata += 3)
     {
       j = set[i];
-      pdata[0] = trqrpy[0][j];
-      pdata[1] = trqrpy[1][j];
-      pdata[2] = trqrpy[2][j];
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      pdata[0] = ydir[0];
+      pdata[1] = ydir[1];
+      pdata[2] = ydir[2];
     }
 
-    ASSERT (H5LTmake_dataset_double (h5_step, "RPY", 2, dims, data) >= 0, "HDF5 file write error");
+    ASSERT (H5LTmake_dataset_double (h5_step, "YDIR", 2, dims, data) >= 0, "HDF5 file write error");
   }
 
-  if (ent & OUT_RPYTOT)
+  if (ent & OUT_TRQROT)
   {
     for (pdata = data, i = 0; i < num; i ++, pdata += 3)
     {
       j = set[i];
-      pdata[0] = trqrpytot[0][j];
-      pdata[1] = trqrpytot[1][j];
-      pdata[2] = trqrpytot[2][j];
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqrot[3] = {xdir[0]*trqrpy[0][j]+ydir[0]*trqrpy[1][j]+zdir[0]*trqrpy[2][j],
+                        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
+                        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
+
+      pdata[0] = trqrot[0];
+      pdata[1] = trqrot[1];
+      pdata[2] = trqrot[2];
     }
 
-    ASSERT (H5LTmake_dataset_double (h5_step, "RPYTOT", 2, dims, data) >= 0, "HDF5 file write error");
+    ASSERT (H5LTmake_dataset_double (h5_step, "TRQROT", 2, dims, data) >= 0, "HDF5 file write error");
   }
 
-  if (ent & OUT_RPYSPR)
+  if (ent & OUT_TRQTOT)
   {
     for (pdata = data, i = 0; i < num; i ++, pdata += 3)
     {
       j = set[i];
-      pdata[0] = trqrpyspr[0][j];
-      pdata[1] = trqrpyspr[1][j];
-      pdata[2] = trqrpyspr[2][j];
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqtot[3] = {xdir[0]*trqrpytot[0][j]+ydir[0]*trqrpytot[1][j]+zdir[0]*trqrpytot[2][j],
+                        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
+                        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
+
+      pdata[0] = trqtot[0];
+      pdata[1] = trqtot[1];
+      pdata[2] = trqtot[2];
     }
 
-    ASSERT (H5LTmake_dataset_double (h5_step, "RPYSPR", 2, dims, data) >= 0, "HDF5 file write error");
+    ASSERT (H5LTmake_dataset_double (h5_step, "TRQTOT", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  if (ent & OUT_TRQSPR)
+  {
+    for (pdata = data, i = 0; i < num; i ++, pdata += 3)
+    {
+      j = set[i];
+
+      REAL zdir[3] = {trqzdir1[0][j], trqzdir1[1][j], trqzdir1[2][j]};
+      REAL xdir[3] = {trqxdir1[0][j], trqxdir1[1][j], trqxdir1[2][j]};
+      REAL ydir[3];
+
+      PRODUCT (zdir, xdir, ydir);
+
+      REAL trqspr[3] = {xdir[0]*trqrpyspr[0][j]+ydir[0]*trqrpyspr[1][j]+zdir[0]*trqrpyspr[2][j],
+                        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
+                        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
+
+      pdata[0] = trqspr[0];
+      pdata[1] = trqspr[1];
+      pdata[2] = trqspr[2];
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "TRQSPR", 2, dims, data) >= 0, "HDF5 file write error");
   }
 
   delete [] data;
@@ -3462,29 +3639,38 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "</Attribute>\n");
     }
 
-    if (ent & OUT_RPY)
+    if (ent & OUT_YDIR)
     {
-      fprintf (xmf_file, "<Attribute Name=\"RPY\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<Attribute Name=\"YDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/RPY\n", h5file, output_frame);
+      fprintf (xmf_file, "%s:/%d/YDIR\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }
 
-    if (ent & OUT_RPYTOT)
+    if (ent & OUT_TRQROT)
     {
-      fprintf (xmf_file, "<Attribute Name=\"RPYTOT\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<Attribute Name=\"TRQROT\" Center=\"Node\" AttributeType=\"Vector\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/RPYTOT\n", h5file, output_frame);
+      fprintf (xmf_file, "%s:/%d/TRQROT\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }
 
-    if (ent & OUT_RPYSPR)
+    if (ent & OUT_TRQTOT)
     {
-      fprintf (xmf_file, "<Attribute Name=\"RPYSPR\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<Attribute Name=\"TRQTOT\" Center=\"Node\" AttributeType=\"Vector\">\n");
       fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/RPYSPR\n", h5file, output_frame);
+      fprintf (xmf_file, "%s:/%d/TRQTOT\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_TRQSPR)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"TRQSPR\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/TRQSPR\n", h5file, output_frame);
       fprintf (xmf_file, "</DataStructure>\n");
       fprintf (xmf_file, "</Attribute>\n");
     }

@@ -3686,6 +3686,36 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 	if (subset) outent[i] |= OUT_PAIR;
 	else outrest[0] |= OUT_PAIR;
       }
+      ELIF (item, "XDIR")
+      {
+	if (subset) outent[i] |= OUT_XDIR;
+	else outrest[0] |= OUT_XDIR;
+      }
+      ELIF (item, "YDIR")
+      {
+	if (subset) outent[i] |= OUT_YDIR;
+	else outrest[0] |= OUT_YDIR;
+      }
+      ELIF (item, "ZDIR")
+      {
+	if (subset) outent[i] |= OUT_ZDIR;
+	else outrest[0] |= OUT_ZDIR;
+      }
+      ELIF (item, "TRQROT")
+      {
+	if (subset) outent[i] |= OUT_TRQROT;
+	else outrest[0] |= OUT_TRQROT;
+      }
+      ELIF (item, "TRQTOT")
+      {
+	if (subset) outent[i] |= OUT_TRQTOT;
+	else outrest[0] |= OUT_TRQTOT;
+      }
+      ELIF (item, "TRQSPR")
+      {
+	if (subset) outent[i] |= OUT_TRQSPR;
+	else outrest[0] |= OUT_TRQSPR;
+      }
       ELSE
       {
 	PyErr_SetString (PyExc_ValueError, "Invalid entity");

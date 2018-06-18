@@ -15,3 +15,5 @@ condet8.h
 *.h5
 *.xmf
 *.png
+*.med
+*.lyx#
