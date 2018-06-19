@@ -3264,6 +3264,81 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     hisent = HIS_SS;
     srckind = 1;
   }
+  ELIF (entity, "ZDIR_X")
+  {
+    hisent = HIS_ZDIR_X;
+    srckind = 1;
+  }
+  ELIF (entity, "ZDIR_Y")
+  {
+    hisent = HIS_ZDIR_Y;
+    srckind = 1;
+  }
+  ELIF (entity, "ZDIR_Z")
+  {
+    hisent = HIS_ZDIR_Z;
+    srckind = 1;
+  }
+  ELIF (entity, "XDIR_X")
+  {
+    hisent = HIS_XDIR_X;
+    srckind = 1;
+  }
+  ELIF (entity, "XDIR_Y")
+  {
+    hisent = HIS_XDIR_Y;
+    srckind = 1;
+  }
+  ELIF (entity, "XDIR_Z")
+  {
+    hisent = HIS_XDIR_Z;
+    srckind = 1;
+  }
+  ELIF (entity, "ROLL")
+  {
+    hisent = HIS_ROLL;
+    srckind = 1;
+  }
+  ELIF (entity, "PITCH")
+  {
+    hisent = HIS_PITCH;
+    srckind = 1;
+  }
+  ELIF (entity, "YAW")
+  {
+    hisent = HIS_YAW;
+    srckind = 1;
+  }
+  ELIF (entity, "TRQTOT_R")
+  {
+    hisent = HIS_TRQTOT_R;
+    srckind = 1;
+  }
+  ELIF (entity, "TRQTOT_P")
+  {
+    hisent = HIS_TRQTOT_P;
+    srckind = 1;
+  }
+  ELIF (entity, "TRQTOT_Y")
+  {
+    hisent = HIS_TRQTOT_Y;
+    srckind = 1;
+  }
+  ELIF (entity, "TRQSPR_R")
+  {
+    hisent = HIS_TRQSPR_R;
+    srckind = 1;
+  }
+  ELIF (entity, "TRQSPR_P")
+  {
+    hisent = HIS_TRQSPR_P;
+    srckind = 1;
+  }
+  ELIF (entity, "TRQSPR_Y")
+  {
+    hisent = HIS_TRQSPR_Y;
+    srckind = 1;
+  }
   ELSE
   {
     PyErr_SetString (PyExc_ValueError, "Invalid entity");

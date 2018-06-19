@@ -4885,8 +4885,98 @@ void output_history ()
 	  break;
 	  case HIS_SS:
 	  {
-	    int l = sprmap[k];
+	    int l = trqsprmap[k];
 	    value += (REAL)unspring[l];
+	  }
+	  break;
+	  case HIS_ZDIR_X:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqzdir1[0][l];
+	  }
+	  break;
+	  case HIS_ZDIR_Y:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqzdir1[1][l];
+	  }
+	  break;
+	  case HIS_ZDIR_Z:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqzdir1[2][l];
+	  }
+	  break;
+	  case HIS_XDIR_X:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqxdir1[0][l];
+	  }
+	  break;
+	  case HIS_XDIR_Y:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqxdir1[1][l];
+	  }
+	  break;
+	  case HIS_XDIR_Z:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqxdir1[2][l];
+	  }
+	  break;
+	  case HIS_ROLL:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpy[0][l];
+	  }
+	  break;
+	  case HIS_PITCH:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpy[1][l];
+	  }
+	  break;
+	  case HIS_YAW:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpy[2][l];
+	  }
+	  break;
+	  case HIS_TRQTOT_R:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpytot[0][l];
+	  }
+	  break;
+	  case HIS_TRQTOT_P:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpytot[1][l];
+	  }
+	  break;
+	  case HIS_TRQTOT_Y:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpytot[2][l];
+	  }
+	  break;
+	  case HIS_TRQSPR_R:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpyspr[0][l];
+	  }
+	  break;
+	  case HIS_TRQSPR_P:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpyspr[1][l];
+	  }
+	  break;
+	  case HIS_TRQSPR_Y:
+	  {
+	    int l = trqsprmap[k];
+	    value += (REAL)trqrpyspr[2][l];
 	  }
 	  break;
 	  }
@@ -5015,6 +5105,12 @@ void output_h5history ()
       double *LENGTH = h5read (h5_step, "LENGTH", &NUM);
       double *SF = h5read (h5_step, "SF", &NUM);
       double *SS = h5read (h5_step, "SS", &NUM);
+      double *ZDIR = h5read (h5_step, "ZDIR", &NUM);
+      double *XDIR = h5read (h5_step, "XDIR", &NUM);
+      double *YDIR = h5read (h5_step, "YDIR", &NUM);
+      double *TRQROT = h5read (h5_step, "TRQROT", &NUM);
+      double *TRQTOT = h5read (h5_step, "TRQTOT", &NUM);
+      double *TRQSPR = h5read (h5_step, "TRQSPR", &NUM);
 
       for (MAP *item = MAP_First (ent2data); item; item = MAP_Next (item))
       {
@@ -5379,6 +5475,150 @@ void output_h5history ()
 		int l = sprmap[k];
 	        ASSERT (SS, "HDF5 file read error: SS dataset missing");
 		value += SS[l];
+	      }
+	      break;
+	      case HIS_ZDIR_X:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+		value += ZDIR[3*l+0];
+	      }
+	      break;
+	      case HIS_ZDIR_Y:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+		value += ZDIR[3*l+1];
+	      }
+	      break;
+	      case HIS_ZDIR_Z:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+		value += ZDIR[3*l+2];
+	      }
+	      break;
+	      case HIS_XDIR_X:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		value += XDIR[3*l+0];
+	      }
+	      break;
+	      case HIS_XDIR_Y:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		value += XDIR[3*l+1];
+	      }
+	      break;
+	      case HIS_XDIR_Z:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		value += XDIR[3*l+2];
+	      }
+	      break;
+	      case HIS_ROLL:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		double *grot = &TRQROT[3*l];
+		double *xdir = &XDIR[3*l];
+		value += DOT (xdir, grot);
+	      }
+	      break;
+	      case HIS_PITCH:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		double *grot = &TRQROT[3*l];
+		double *zdir = &ZDIR[3*l];
+		double *xdir = &XDIR[3*l];
+		double ydir[3];
+		PRODUCT (zdir, xdir, ydir);
+		value += DOT (ydir, grot);
+	      }
+	      break;
+	      case HIS_YAW:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+		double *grot = &TRQROT[3*l];
+		double *zdir = &ZDIR[3*l];
+		value += DOT(zdir, grot);
+	      }
+	      break;
+	      case HIS_TRQTOT_R:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		double *gtot = &TRQTOT[3*l];
+		double *xdir = &XDIR[3*l];
+		value += DOT (xdir, gtot);
+	      }
+	      break;
+	      case HIS_TRQTOT_P:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		double *gtot = &TRQTOT[3*l];
+		double *zdir = &ZDIR[3*l];
+		double *xdir = &XDIR[3*l];
+		double ydir[3];
+		PRODUCT (zdir, xdir, ydir);
+		value += DOT (ydir, gtot);
+	      }
+	      break;
+	      case HIS_TRQTOT_Y:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+		double *gtot = &TRQTOT[3*l];
+		double *zdir = &ZDIR[3*l];
+		value += DOT(zdir, gtot);
+	      }
+	      break;
+              case HIS_TRQSPR_R:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		double *gspr = &TRQSPR[3*l];
+		double *xdir = &XDIR[3*l];
+		value += DOT (xdir, gspr);
+	      }
+	      break;
+	      case HIS_TRQSPR_P:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+		double *gspr = &TRQSPR[3*l];
+		double *zdir = &ZDIR[3*l];
+		double *xdir = &XDIR[3*l];
+		double ydir[3];
+		PRODUCT (zdir, xdir, ydir);
+		value += DOT (ydir, gspr);
+	      }
+	      break;
+	      case HIS_TRQSPR_Y:
+	      {
+		int l = trqsprmap[k];
+	        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
+	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+		double *gspr = &TRQSPR[3*l];
+		double *zdir = &ZDIR[3*l];
+		value += DOT(zdir, gspr);
 	      }
 	      break;
 	      }

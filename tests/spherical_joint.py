@@ -39,7 +39,7 @@ dlin=1 # linear damping ratio
 ktrq=5E6 # angular stiffness
 dtrq=2 # angular damping ratio
 SPRING (part1, (0.5,0.5,1), part2, (0.5,0.5,1), spring=[-1, -klin, 1, klin], dashpot=dlin)
-TORSION_SPRING (part2, part1, (0, 0, 1), (1, 0, 0),
+trsnum = TORSION_SPRING (part2, part1, (0, 0, 1), (1, 0, 0),
   kroll=[-1, ktrq, -0.25, 0, 0.25, 0, 1, -ktrq], droll=dtrq, # allow for some freedom ... (--> cone)
   kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq, # block yaw rotation
   cone = ('roll', 'pitch'), # ... in the (roll, pitch) space
@@ -54,6 +54,14 @@ ox = HISTORY ('OX', part2)
 oy = HISTORY ('OY', part2)
 oz = HISTORY ('OZ', part2)
 
+# save spring angles and total torques
+roll = HISTORY ('ROLL', trsnum)
+pitch = HISTORY ('PITCH', trsnum)
+yaw = HISTORY ('YAW', trsnum)
+trqtot_r = HISTORY ('TRQTOT_R', trsnum)
+trqtot_p = HISTORY ('TRQTOT_P', trsnum)
+trqtot_y = HISTORY ('TRQTOT_Y', trsnum)
+
 # run at half critical step
 h = 0.5 * CRITICAL()
 print 'Time step:', h
@@ -65,6 +73,7 @@ DEM (20., h, (0.1, 0.001))
 print 'Generating plots ...'
 try:
   import matplotlib.pyplot as plt
+
   plt.clf ()
   plt.plot (t, ox, label='ox')
   plt.plot (t, oy, label='oy')
@@ -75,8 +84,38 @@ try:
   plt.legend (loc = 'upper right')
   plt.title ('particle 2')
   plt.savefig ('tests/spherical_joint_oxyz.png')
+
+  plt.clf ()
+  plt.plot (t, roll, label='roll')
+  plt.plot (t, pitch, label='pitch')
+  plt.plot (t, yaw, label='yaw')
+  plt.xlim ((0, t[-1]))
+  plt.xlabel ('time (s)')
+  plt.ylabel ('angle (rad)')
+  plt.legend (loc = 'upper right')
+  plt.title ('torsion spring')
+  plt.savefig ('tests/spherical_joint_rpy.png')
+
+  plt.clf ()
+  plt.plot (t, trqtot_r, label='trqtot_r')
+  plt.plot (t, trqtot_p, label='trqtot_p')
+  plt.plot (t, trqtot_y, label='trqtot_y')
+  plt.semilogy()
+  plt.xlim ((0, t[-1]))
+  plt.xlabel ('time (s)')
+  plt.ylabel ('torque (Nm)')
+  plt.legend (loc = 'upper right')
+  plt.title ('torsion spring')
+  plt.savefig ('tests/spherical_joint_trqtot.png')
+
 except:
   print 't = ', t
   print 'ox = ', ox
   print 'oy = ', oy
   print 'oz = ', oz
+  print 'roll = ', roll
+  print 'pitch = ', pitch
+  print 'yaw = ', yaw
+  print 'trqtot_r = ', trqtot_r
+  print 'trqtot_p = ', trqtot_p
+  print 'trqtot_y = ', trqtot_y
