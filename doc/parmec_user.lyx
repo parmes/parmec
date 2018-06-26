@@ -2390,6 +2390,77 @@ nsteps
 \begin_layout Section
 \begin_inset CommandInset label
 LatexCommand label
+name "sec:BALL_JOINT"
+
+\end_inset
+
+BALL_JOINT 
+\color red
+(under development)
+\end_layout
+
+\begin_layout Standard
+Create a ball joint between two particles at a coincident point.
+ The joint is modeled as an algebraic constraint, without affecting the
+ stable time step.
+ Any number of joints between any number of particles can be added.
+ A linear system is solved at every time step to calculate joint forces.
+\end_layout
+
+\begin_layout Subsection*
+jnum = BALL_JOINT (part1, point | point2) 
+\color red
+(under development)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+jnum
+\series default
+ - joint number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+part1
+\series default
+ - first particle number
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+point
+\series default
+ - coincident point 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+part2
+\series default
+ - optional second particle number; default: not specified (in this case
+ 
+\series bold
+part1
+\series default
+ is fixed in space at 
+\series bold
+point
+\series default
+)
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:EQM"
 
 \end_inset

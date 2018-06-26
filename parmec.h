@@ -213,6 +213,11 @@ extern REAL *cnsang[9]; /* constrained angular directions */
 extern int constrain_buffer_size; /* size of constrained particles buffer */
 extern int constrain_buffer_grow (); /* grow buffer */
 
+extern int jnum; /* number of joints */
+extern int *jpart[2]; /* joint particles */
+extern REAL *jpoint[3]; /* joint points */
+extern int joint_buffer_size; /* size of joints buffer */
+
 extern int tmsnum; /* number of time series */
 extern pointer_t *tms; /* time series */
 extern int time_series_buffer_size; /* size of time series buffer */

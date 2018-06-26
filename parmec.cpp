@@ -223,6 +223,11 @@ REAL *cnslin[9]; /* constrained linear directions */
 REAL *cnsang[9]; /* constrained angular directions */
 int constrain_buffer_size; /* size of constrained particles buffer */
 
+int jnum; /* number of joints */
+int *jpart[2]; /* joint particles */
+REAL *jpoint[3]; /* joint points */
+int joint_buffer_size; /* size of joints buffer */
+
 int tmsnum; /* number of time series */
 pointer_t *tms; /* time series */
 int time_series_buffer_size; /* size of time series buffer */
