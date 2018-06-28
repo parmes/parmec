@@ -41,6 +41,7 @@ SOFTWARE.
 #include "mesh.h"
 #include "input.h"
 #include "output.h"
+#include "joints.h"
 #include "constants.h"
 #include "parmec_ispc.h"
 #include "partition_ispc.h"
@@ -226,7 +227,8 @@ int restrain_buffer_size; /* size of restrained particles buffer */
 int jnum; /* number of joints */
 int *jpart[2]; /* joint particles */
 REAL *jpoint[3]; /* joint points */
-int joint_buffer_size; /* size of joints buffer */
+int joints_changed; /* joints changed flag */
+int joints_buffer_size; /* size of joints buffer */
 
 int tmsnum; /* number of time series */
 pointer_t *tms; /* time series */
@@ -1143,6 +1145,35 @@ int restrain_buffer_grow ()
   real_buffer_grow (rstang[8], rstnum, restrain_buffer_size);
 
   return restrain_buffer_size;
+}
+
+/* init joints buffer */
+int joints_buffer_init ()
+{
+  joints_buffer_size = 256;
+
+  jpart[0] = aligned_int_alloc (joints_buffer_size);
+  jpart[1] = aligned_int_alloc (joints_buffer_size);
+  jpoint[0] = aligned_real_alloc (joints_buffer_size);
+  jpoint[1] = aligned_real_alloc (joints_buffer_size);
+  jpoint[2] = aligned_real_alloc (joints_buffer_size);
+
+  jnum = 0;
+  joints_changed = 0;
+}
+
+/* grow joints buffer */
+int joints_buffer_grow ()
+{
+  joints_buffer_size *= 2;
+
+  integer_buffer_grow (jpart[0], jnum, joints_buffer_size);
+  integer_buffer_grow (jpart[1], jnum, joints_buffer_size);
+  real_buffer_grow (jpoint[0], jnum, restrain_buffer_size);
+  real_buffer_grow (jpoint[1], jnum, restrain_buffer_size);
+  real_buffer_grow (jpoint[2], jnum, restrain_buffer_size);
+
+  return joints_buffer_size;
 }
 
 /* init time series buffer */
@@ -2198,6 +2229,7 @@ void init()
   spring_buffer_init ();
   trqspr_buffer_init ();
   unspring_buffer_init ();
+  joints_buffer_init ();
   restrain_buffer_init ();
   time_series_buffer_init ();
   lcurve_buffer_init ();
@@ -2236,14 +2268,15 @@ void reset ()
   sprnum = 0;
   trqsprnum = 0;
   rstnum = 0;
+  jnum = 0;
   tmsnum = 0;
   prsnum = 0;
   hisnum = 0;
   outnum = 0;
 
   springs_changed = 0; /* unset linear springs changed flag */
-
   trqspr_changed = 0; /* unset torsion springs changed flag */
+  joints_changed = 0; /* unset joints changed flag */
 
   /* unselected particles default output flags */
   outrest[0] = OUT_NUMBER|OUT_COLOR|OUT_DISPL|OUT_LENGTH|OUT_ORIENT|OUT_ORIENT1|OUT_ORIENT2|OUT_ORIENT3|
@@ -2336,6 +2369,15 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     trqspr_changed = 0;
   }
 
+#if 0
+  if (joints_changed)
+  {
+    reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm);
+
+    joints_changed = 0;
+  }
+#endif
+
   if (curtime == 0.0)
   {
     step0 = step;
@@ -2393,6 +2435,10 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 	    stepnum, curtime);
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
+
+#if 0
+    solve_joints (jnum, jpart, jpoint, position, rotation, inverse, invm, linear, angular, force, torque, step0);
+#endif
 
     restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
 

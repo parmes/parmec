@@ -2294,6 +2294,40 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   return PyInt_FromLong (i);
 }
 
+/* isnert algebraic ball joint */
+static PyObject* BALL_JOINT (PyObject *self, PyObject *args, PyObject *kwds)
+{
+  KEYWORDS ("part1", "point", "part2");
+  int part1, part2;
+  PyObject *point;
+
+  part2 = -1;
+
+  PARSEKEYS ("iO|i", &part1, &point, &part2);
+
+  TYPETEST (is_ge_lt (part1, 0, parnum, kwl[0]) && is_tuple (point, kwl[1], 3));
+
+  if (part2 >= 0)
+  {
+    if (part2 >= parnum)
+    {
+      PyErr_SetString (PyExc_ValueError, "Particle number 'part2' is out of range");
+      return NULL;
+    }
+  }
+
+  int i = jnum ++;
+
+  jpart[0][i] = part1;
+  jpart[1][i] = part2;
+
+  jpoint[0][i] = PyFloat_AsDouble(PyTuple_GetItem (point, 0));
+  jpoint[1][i] = PyFloat_AsDouble(PyTuple_GetItem (point, 1));
+  jpoint[2][i] = PyFloat_AsDouble(PyTuple_GetItem (point, 2));
+
+  return PyInt_FromLong (i);
+}
+
 /* Calculate equivalent point mass from particle inertia and mass properties */
 static PyObject* EQM (PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -4015,6 +4049,7 @@ static PyMethodDef methods [] =
   {"SPRING", (PyCFunction)::SPRING, METH_VARARGS|METH_KEYWORDS, "Create translational spring"},
   {"TORSION_SPRING", (PyCFunction)::TORSION_SPRING, METH_VARARGS|METH_KEYWORDS, "Create torsional spring"},
   {"UNSPRING", (PyCFunction)::UNSPRING, METH_VARARGS|METH_KEYWORDS, "Undo translational springs"},
+  {"BALL_JOINT", (PyCFunction)::BALL_JOINT, METH_VARARGS|METH_KEYWORDS, "Insert algebraic ball joint"},
   {"EQM", (PyCFunction)EQM, METH_VARARGS|METH_KEYWORDS, "Calculate equivalent point mass"},
   {"GRANULAR", (PyCFunction)GRANULAR, METH_VARARGS|METH_KEYWORDS, "Define surface pairing for the granular interaction model"},
   {"RESTRAIN", (PyCFunction)RESTRAIN, METH_VARARGS|METH_KEYWORDS, "Constrain particle motion"},
@@ -4070,6 +4105,7 @@ int input (const char *path, char **argv, int argc)
                       "from parmec import SPRING\n"
                       "from parmec import TORSION_SPRING\n"
                       "from parmec import UNSPRING\n"
+                      "from parmec import BALL_JOINT\n"
                       "from parmec import EQM\n"
                       "from parmec import GRANULAR\n"
                       "from parmec import RESTRAIN\n"

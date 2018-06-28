@@ -39,8 +39,8 @@ SOFTWARE.
 
 void simple_solve (
         /* matrix in CRS format */
-        const std::vector<int>    &ptr,
-        const std::vector<int>    &col,
+        const std::vector<int> &ptr,
+        const std::vector<int> &col,
         const std::vector<REAL> &val,
         /* right hand side */
         const std::vector<REAL> &rhs,

@@ -98,6 +98,12 @@ objs4/output.o: output.cpp
 objs8/output.o: output.cpp
 	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $(MEDFLG) $(MEDINC) $< -c -o $@
 
+objs4/joints.o: joints.cpp
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) -I. -std=c++11 $< -c -o $@
+
+objs8/joints.o: joints.cpp
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) -I. -std=c++11 $< -c -o $@
+
 objs4/%_ispc.h objs4/%_ispc.o objs4/%_ispc_sse2.o objs4/%_ispc_sse4.o objs4/%_ispc_avx.o: %.ispc
 	$(ISPC) -DREAL=4 -Iobjs4 --target=$(ISPC_TARGETS) $< -o objs4/$*_ispc.o -h objs4/$*_ispc.h
 
