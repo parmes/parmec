@@ -32,6 +32,8 @@ SOFTWARE.
 #include <amgcl/solver/bicgstab.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 
+/* FYI: use "-std=c++11 -I." when compiling files that include amgcl */
+
 #ifndef __solver__
 #define __solver__
 

@@ -206,12 +206,12 @@ extern int msprings_buffer_size; /* size of msprings buffer */
 extern int activate_buffer_size; /* size of activate buffer */
 extern void unspring_buffer_grow (int tsprings_increment, int msprings_increment, int activate_increment); /* grow buffer */
 
-extern int cnsnum; /* number of constraints */
-extern int *cnspart; /* constrained particle numbers */
-extern REAL *cnslin[9]; /* constrained linear directions */
-extern REAL *cnsang[9]; /* constrained angular directions */
-extern int constrain_buffer_size; /* size of constrained particles buffer */
-extern int constrain_buffer_grow (); /* grow buffer */
+extern int rstnum; /* number of restraint */
+extern int *rstpart; /* restrained particle numbers */
+extern REAL *rstlin[9]; /* restrained linear directions */
+extern REAL *rstang[9]; /* restrained angular directions */
+extern int restrain_buffer_size; /* size of restrained particles buffer */
+extern int restrain_buffer_grow (); /* grow buffer */
 
 extern int jnum; /* number of joints */
 extern int *jpart[2]; /* joint particles */

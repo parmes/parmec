@@ -1,8 +1,8 @@
 ifeq ($(DEBUG),yes)
-  CFLAGS=-std=c++11 -I. -g -O0 -m64 -fopenmp -DDEBUG # += could be used for an existing variable
+  CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG # += could be used for an existing variable
   ISPC=ispc -g -O0 --arch=x86-64 -DDEBUG
 else
-  CFLAGS=-std=c++11 -I. -O2 -m64 -fopenmp
+  CFLAGS=-O2 -m64 -fopenmp
   ISPC=ispc -O2 --arch=x86-64 --woff
 endif
 

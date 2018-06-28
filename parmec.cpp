@@ -48,7 +48,7 @@ SOFTWARE.
 #include "dynamics_ispc.h"
 #include "shapes_ispc.h"
 #include "obstacles_ispc.h"
-#include "constrain_ispc.h"
+#include "restrain_ispc.h"
 
 using namespace parmec;
 using namespace ispc; /* ISPC calls are used below */
@@ -217,11 +217,11 @@ int tsprings_buffer_size; /* size of tsprings buffer */
 int msprings_buffer_size; /* size of msprings buffer */
 int activate_buffer_size; /* size of activate buffer */
 
-int cnsnum; /* number of constraints */
-int *cnspart; /* constrained particle numbers */
-REAL *cnslin[9]; /* constrained linear directions */
-REAL *cnsang[9]; /* constrained angular directions */
-int constrain_buffer_size; /* size of constrained particles buffer */
+int rstnum; /* number of restraint */
+int *rstpart; /* restrained particle numbers */
+REAL *rstlin[9]; /* restrained linear directions */
+REAL *rstang[9]; /* restrained angular directions */
+int restrain_buffer_size; /* size of restrained particles buffer */
 
 int jnum; /* number of joints */
 int *jpart[2]; /* joint particles */
@@ -1089,60 +1089,60 @@ void unspring_buffer_grow (int tsprings_increment, int msprings_increment, int a
   }
 }
 
-/* init constrained particles buffer */
-int constrain_buffer_init ()
+/* init restrained particles buffer */
+int restrain_buffer_init ()
 {
-  constrain_buffer_size = 256;
+  restrain_buffer_size = 256;
 
-  cnspart = aligned_int_alloc (constrain_buffer_size);
-  cnslin[0] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[1] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[2] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[3] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[4] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[5] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[6] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[7] = aligned_real_alloc (constrain_buffer_size);
-  cnslin[8] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[0] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[1] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[2] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[3] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[4] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[5] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[6] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[7] = aligned_real_alloc (constrain_buffer_size);
-  cnsang[8] = aligned_real_alloc (constrain_buffer_size);
+  rstpart = aligned_int_alloc (restrain_buffer_size);
+  rstlin[0] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[1] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[2] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[3] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[4] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[5] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[6] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[7] = aligned_real_alloc (restrain_buffer_size);
+  rstlin[8] = aligned_real_alloc (restrain_buffer_size);
+  rstang[0] = aligned_real_alloc (restrain_buffer_size);
+  rstang[1] = aligned_real_alloc (restrain_buffer_size);
+  rstang[2] = aligned_real_alloc (restrain_buffer_size);
+  rstang[3] = aligned_real_alloc (restrain_buffer_size);
+  rstang[4] = aligned_real_alloc (restrain_buffer_size);
+  rstang[5] = aligned_real_alloc (restrain_buffer_size);
+  rstang[6] = aligned_real_alloc (restrain_buffer_size);
+  rstang[7] = aligned_real_alloc (restrain_buffer_size);
+  rstang[8] = aligned_real_alloc (restrain_buffer_size);
 
-  cnsnum = 0;
+  rstnum = 0;
 }
 
-/* grow constrained particles buffer */
-int constrain_buffer_grow ()
+/* grow restrained particles buffer */
+int restrain_buffer_grow ()
 {
-  constrain_buffer_size *= 2;
+  restrain_buffer_size *= 2;
 
-  integer_buffer_grow (cnspart, cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[0], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[1], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[2], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[3], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[4], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[5], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[6], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[7], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnslin[8], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[0], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[1], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[2], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[3], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[4], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[5], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[6], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[7], cnsnum, constrain_buffer_size);
-  real_buffer_grow (cnsang[8], cnsnum, constrain_buffer_size);
+  integer_buffer_grow (rstpart, rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[0], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[1], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[2], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[3], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[4], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[5], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[6], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[7], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstlin[8], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[0], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[1], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[2], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[3], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[4], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[5], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[6], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[7], rstnum, restrain_buffer_size);
+  real_buffer_grow (rstang[8], rstnum, restrain_buffer_size);
 
-  return constrain_buffer_size;
+  return restrain_buffer_size;
 }
 
 /* init time series buffer */
@@ -2198,7 +2198,7 @@ void init()
   spring_buffer_init ();
   trqspr_buffer_init ();
   unspring_buffer_init ();
-  constrain_buffer_init ();
+  restrain_buffer_init ();
   time_series_buffer_init ();
   lcurve_buffer_init ();
   prescribe_buffer_init ();
@@ -2235,7 +2235,7 @@ void reset ()
   obsnum = 0;
   sprnum = 0;
   trqsprnum = 0;
-  cnsnum = 0;
+  rstnum = 0;
   tmsnum = 0;
   prsnum = 0;
   hisnum = 0;
@@ -2363,7 +2363,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
   invert_inertia (ntasks, parnum, inertia, inverse, mass, invm);
 
-  constrain_velocities (ntasks, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+  restrain_velocities (ntasks, rstnum, rstpart, rstlin, rstang, linear, angular, rotation);
 
   partitioning *tree = partitioning_create (ntasks, ellnum-ellcon, icenter);
 
@@ -2394,7 +2394,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
-    constrain_forces (ntasks, cnsnum, cnspart, cnslin, cnsang, force, torque);
+    restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
 
     prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
                             tmsang, angkind, curtime, mass, inertia, force, torque);

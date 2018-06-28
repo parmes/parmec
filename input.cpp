@@ -46,7 +46,7 @@ SOFTWARE.
 #include "dynamics_ispc.h"
 #include "shapes_ispc.h"
 #include "obstacles_ispc.h"
-#include "constrain_ispc.h"
+#include "restrain_ispc.h"
 
 using namespace parmec;
 
@@ -2433,11 +2433,11 @@ static PyObject* RESTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (lin || ang)
   {
-    if (cnsnum >= constrain_buffer_size) constrain_buffer_grow ();
+    if (rstnum >= restrain_buffer_size) restrain_buffer_grow ();
 
-    i = cnsnum ++;
+    i = rstnum ++;
 
-    cnspart[i] = j;
+    rstpart[i] = j;
   }
 
   if (lin)
@@ -2498,27 +2498,27 @@ static PyObject* RESTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
-    cnslin[0][i] = dir[0][0];
-    cnslin[1][i] = dir[0][1];
-    cnslin[2][i] = dir[0][2];
-    cnslin[3][i] = dir[1][0];
-    cnslin[4][i] = dir[1][1];
-    cnslin[5][i] = dir[1][2];
-    cnslin[6][i] = dir[2][0];
-    cnslin[7][i] = dir[2][1];
-    cnslin[8][i] = dir[2][2];
+    rstlin[0][i] = dir[0][0];
+    rstlin[1][i] = dir[0][1];
+    rstlin[2][i] = dir[0][2];
+    rstlin[3][i] = dir[1][0];
+    rstlin[4][i] = dir[1][1];
+    rstlin[5][i] = dir[1][2];
+    rstlin[6][i] = dir[2][0];
+    rstlin[7][i] = dir[2][1];
+    rstlin[8][i] = dir[2][2];
   }
   else if (ang)
   {
-    cnslin[0][i] = 0;
-    cnslin[1][i] = 0;
-    cnslin[2][i] = 0;
-    cnslin[3][i] = 0;
-    cnslin[4][i] = 0;
-    cnslin[5][i] = 0;
-    cnslin[6][i] = 0;
-    cnslin[7][i] = 0;
-    cnslin[8][i] = 0;
+    rstlin[0][i] = 0;
+    rstlin[1][i] = 0;
+    rstlin[2][i] = 0;
+    rstlin[3][i] = 0;
+    rstlin[4][i] = 0;
+    rstlin[5][i] = 0;
+    rstlin[6][i] = 0;
+    rstlin[7][i] = 0;
+    rstlin[8][i] = 0;
   }
 
   if (ang)
@@ -2579,27 +2579,27 @@ static PyObject* RESTRAIN (PyObject *self, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
-    cnsang[0][i] = dir[0][0];
-    cnsang[1][i] = dir[0][1];
-    cnsang[2][i] = dir[0][2];
-    cnsang[3][i] = dir[1][0];
-    cnsang[4][i] = dir[1][1];
-    cnsang[5][i] = dir[1][2];
-    cnsang[6][i] = dir[2][0];
-    cnsang[7][i] = dir[2][1];
-    cnsang[8][i] = dir[2][2];
+    rstang[0][i] = dir[0][0];
+    rstang[1][i] = dir[0][1];
+    rstang[2][i] = dir[0][2];
+    rstang[3][i] = dir[1][0];
+    rstang[4][i] = dir[1][1];
+    rstang[5][i] = dir[1][2];
+    rstang[6][i] = dir[2][0];
+    rstang[7][i] = dir[2][1];
+    rstang[8][i] = dir[2][2];
   }
   else if (lin)
   {
-    cnsang[0][i] = 0;
-    cnsang[1][i] = 0;
-    cnsang[2][i] = 0;
-    cnsang[3][i] = 0;
-    cnsang[4][i] = 0;
-    cnsang[5][i] = 0;
-    cnsang[6][i] = 0;
-    cnsang[7][i] = 0;
-    cnsang[8][i] = 0;
+    rstang[0][i] = 0;
+    rstang[1][i] = 0;
+    rstang[2][i] = 0;
+    rstang[3][i] = 0;
+    rstang[4][i] = 0;
+    rstang[5][i] = 0;
+    rstang[6][i] = 0;
+    rstang[7][i] = 0;
+    rstang[8][i] = 0;
   }
 
   Py_RETURN_NONE;

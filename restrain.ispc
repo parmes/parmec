@@ -26,29 +26,29 @@ SOFTWARE.
 
 #include "macros.h"
 
-/* constrain particle motion via velocities task */
-task void constrain_velocities_task (uniform int span, uniform int cnsnum, uniform int cnspart[],
-  uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
+/* restrain particle motion via velocities task */
+task void restrain_velocities_task (uniform int span, uniform int rstnum, uniform int rstpart[],
+  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
   uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
 {
   uniform int start = taskIndex*span;
-  uniform int end = taskIndex == taskCount-1 ? cnsnum: start+span;
+  uniform int end = taskIndex == taskCount-1 ? rstnum: start+span;
 
   foreach (i = start ... end)
   {
-    int j = cnspart[i];
+    int j = rstpart[i];
     REAL v[3] = {linear[0][j], linear[1][j], linear[2][j]};
     REAL O[3] = {angular[0][j], angular[1][j], angular[2][j]};
     REAL o[3] = {angular[3][j], angular[4][j], angular[5][j]};
     REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
                  rotation[3][j], rotation[4][j], rotation[5][j],
                  rotation[6][j], rotation[7][j], rotation[8][j]};
-    REAL l0[3] = {cnslin[0][i], cnslin[1][i], cnslin[2][i]};
-    REAL l1[3] = {cnslin[3][i], cnslin[4][i], cnslin[5][i]};
-    REAL l2[3] = {cnslin[6][i], cnslin[7][i], cnslin[8][i]};
-    REAL a0[3] = {cnsang[0][i], cnsang[1][i], cnsang[2][i]};
-    REAL a1[3] = {cnsang[3][i], cnsang[4][i], cnsang[5][i]};
-    REAL a2[3] = {cnsang[6][i], cnsang[7][i], cnsang[8][i]};
+    REAL l0[3] = {rstlin[0][i], rstlin[1][i], rstlin[2][i]};
+    REAL l1[3] = {rstlin[3][i], rstlin[4][i], rstlin[5][i]};
+    REAL l2[3] = {rstlin[6][i], rstlin[7][i], rstlin[8][i]};
+    REAL a0[3] = {rstang[0][i], rstang[1][i], rstang[2][i]};
+    REAL a1[3] = {rstang[3][i], rstang[4][i], rstang[5][i]};
+    REAL a2[3] = {rstang[6][i], rstang[7][i], rstang[8][i]};
     REAL A0[3], A1[3], A2[3];
     REAL dot;
 
@@ -89,25 +89,25 @@ task void constrain_velocities_task (uniform int span, uniform int cnsnum, unifo
   }
 }
 
-/* constrain particle motion via forces task */
-task void constrain_forces_task (uniform int span, uniform int cnsnum, uniform int cnspart[],
-  uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
+/* restrain particle motion via forces task */
+task void restrain_forces_task (uniform int span, uniform int rstnum, uniform int rstpart[],
+  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   uniform int start = taskIndex*span;
-  uniform int end = taskIndex == taskCount-1 ? cnsnum: start+span;
+  uniform int end = taskIndex == taskCount-1 ? rstnum: start+span;
 
   foreach (i = start ... end)
   {
-    int j = cnspart[i];
+    int j = rstpart[i];
     REAL f[3] = {force[0][j], force[1][j], force[2][j]};
     REAL t[3] = {torque[0][j], torque[1][j], torque[2][j]};
-    REAL l0[3] = {cnslin[0][i], cnslin[1][i], cnslin[2][i]};
-    REAL l1[3] = {cnslin[3][i], cnslin[4][i], cnslin[5][i]};
-    REAL l2[3] = {cnslin[6][i], cnslin[7][i], cnslin[8][i]};
-    REAL a0[3] = {cnsang[0][i], cnsang[1][i], cnsang[2][i]};
-    REAL a1[3] = {cnsang[3][i], cnsang[4][i], cnsang[5][i]};
-    REAL a2[3] = {cnsang[6][i], cnsang[7][i], cnsang[8][i]};
+    REAL l0[3] = {rstlin[0][i], rstlin[1][i], rstlin[2][i]};
+    REAL l1[3] = {rstlin[3][i], rstlin[4][i], rstlin[5][i]};
+    REAL l2[3] = {rstlin[6][i], rstlin[7][i], rstlin[8][i]};
+    REAL a0[3] = {rstang[0][i], rstang[1][i], rstang[2][i]};
+    REAL a1[3] = {rstang[3][i], rstang[4][i], rstang[5][i]};
+    REAL a2[3] = {rstang[6][i], rstang[7][i], rstang[8][i]};
     REAL dot;
 
     dot = DOT(f,l0);
@@ -133,22 +133,22 @@ task void constrain_forces_task (uniform int span, uniform int cnsnum, uniform i
   }
 }
 
-/* constrain particle motion by adjusting velocities */
-export void constrain_velocities (uniform int ntasks, uniform int cnsnum, uniform int cnspart[],
-  uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
+/* restrain particle motion by adjusting velocities */
+export void restrain_velocities (uniform int ntasks, uniform int rstnum, uniform int rstpart[],
+  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
   uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
 {
-  launch [ntasks] constrain_velocities_task (cnsnum/ntasks, cnsnum, cnspart, cnslin, cnsang, linear, angular, rotation);
+  launch [ntasks] restrain_velocities_task (rstnum/ntasks, rstnum, rstpart, rstlin, rstang, linear, angular, rotation);
 
   sync;
 }
 
-/* constrain particle motion by adjusting forces */
-export void constrain_forces (uniform int ntasks, uniform int cnsnum, uniform int cnspart[],
-  uniform REAL * uniform cnslin[9], uniform REAL * uniform cnsang[9],
+/* restrain particle motion by adjusting forces */
+export void restrain_forces (uniform int ntasks, uniform int rstnum, uniform int rstpart[],
+  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
   uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
-  launch [ntasks] constrain_forces_task (cnsnum/ntasks, cnsnum, cnspart, cnslin, cnsang, force, torque);
+  launch [ntasks] restrain_forces_task (rstnum/ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
 
   sync;
 }
