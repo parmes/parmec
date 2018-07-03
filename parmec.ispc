@@ -425,6 +425,8 @@ export uniform REAL eqm (uniform int part1, uniform REAL * uniform point1, unifo
 {
   uniform REAL Jiv[9], im, A[3], Ask[9], tmp[9], Miv[9], mass;
 
+  /* XXX: include rotation multiplication like in joints.cpp */
+
   Jiv[0] = inverse[0][part1];
   Jiv[1] = inverse[1][part1];
   Jiv[2] = inverse[2][part1];
