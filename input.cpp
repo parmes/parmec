@@ -2325,6 +2325,8 @@ static PyObject* BALL_JOINT (PyObject *self, PyObject *args, PyObject *kwds)
   jpoint[1][i] = PyFloat_AsDouble(PyTuple_GetItem (point, 1));
   jpoint[2][i] = PyFloat_AsDouble(PyTuple_GetItem (point, 2));
 
+  joints_changed = 1;
+
   return PyInt_FromLong (i);
 }
 

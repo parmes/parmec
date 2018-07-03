@@ -2369,12 +2369,14 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     trqspr_changed = 0;
   }
 
-#if 0
+#define ENABLE_JOINTS 0 /* XXX */
+
+#if ENABLE_JOINTS
   if (joints_changed)
   {
-    reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm);
+    reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm); /* XXX: remove from here? */
 
-    joints_changed = 0;
+    joints_changed = 0; /* XXX: no need for this flag if updated every time */
   }
 #endif
 
@@ -2436,7 +2438,9 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
-#if 0
+#if ENABLE_JOINTS
+    reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm); /* XXX: update every time? (due to rotation dependence) */
+
     solve_joints (jnum, jpart, jpoint, position, rotation, inverse, invm, linear, angular, force, torque, step0);
 #endif
 

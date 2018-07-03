@@ -53,7 +53,6 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   /* matrix in CRS format */
   std::vector<int> ptr;
   std::vector<int> col;
-  std::vector<REAL> val;
 
   /* adjacency map of genralized inverse inertia */
   std::map<int,std::set<int>> partadj; /* particle to joint mapping */
@@ -88,7 +87,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   /* next create 'ptr' and 'col' structures and set up value mapping */
   int j = 0;
   ptr.push_back(0);
-  for (int i = 0; i < 3*jnum; j ++)
+  for (int i = 0; i < 3*jnum; i ++)
   {
     std::map<int,int> &adj = matadj[i];
 
@@ -98,10 +97,21 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
       it->second = j ++;
     }
 
-    ptr.push_back(adj.size());
+    ptr.push_back(ptr.back()+adj.size());
   }
-  val.reserve(j);
-  std::fill(val.begin(), val.end(), 0);
+  std::vector<REAL> val(j, 0.); /* create zeroed matrix values */
+
+#if 0
+  for (int i = 0; i < 3*jnum; i ++)
+  {
+    std::map<int,int> &adj = matadj[i];
+
+    for (std::map<int,int>::iterator it = adj.begin(); it != adj.end(); it ++)
+    {
+      printf ("it->first = %d, it->second = %d\n", it->first, it->second);
+    }
+  }
+#endif
 	
   /* TODO: use OMP pragma to parallelise this loop */
 
@@ -110,7 +120,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   {
     REAL Jiv[9], Rot[9], im, A[3], Ask[9], Hi[9], Hj[9], tmp0[9], tmp1[9], Wii[9], Wij[9];
 
-    SET9(Wii, 0.0); 
+    SET9(Wii, 0.); 
 
     for (int k = 0; k < 2; k ++)
     {
@@ -191,7 +201,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
     {
       for (int j0 = 0; j0 < 3; j0 ++)
       {
-        int k0 = matadj[i*3+i0][j*3+j0];
+        int k0 = matadj[i*3+i0][i*3+j0];
         val[k0] += Wii[i0*3+j0];
       }
     }
@@ -217,8 +227,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
   REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step)
 {
   /* assemble joints-free local velocity vector */
-  std::vector<REAL> rhs(3*jnum);
-  std::fill(rhs.begin(), rhs.end(), 0);
+  std::vector<REAL> rhs(3*jnum, 0.);
   REAL *B = &rhs[0];
 
   for (int i = 0; i < jnum; i ++, B += 3)
@@ -263,7 +272,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
 	NVMUL (Jiv, tmp0, tmp1);
 	tmp1[0] += angular[0][part];
 	tmp1[1] += angular[1][part];
-	tmp1[2] += angular[1][part];
+	tmp1[2] += angular[2][part];
 
 	NVMUL (Hi, tmp1, tmp0);
 
@@ -287,7 +296,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
 	SCALE (tmp0, im);
 	tmp0[0] += linear[0][part];
 	tmp0[1] += linear[1][part];
-	tmp0[2] += linear[1][part];
+	tmp0[2] += linear[2][part];
 
 	if (part == jpart[0][i])
 	{
@@ -306,16 +315,19 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
   }
 
   /* solve for joint forces */
-  std::vector<REAL> x;
+  std::vector<REAL> x(rhs.size(), 0.);
   int iters;
   REAL error;
   std::tie(iters, error) = (*solve)(rhs, x);
 
   /* accumulate joint forces into body force and torque vectors */
   REAL *R = &x[0];
+  REAL invstep = 1./step;
   for (int i = 0; i < jnum; i ++, R += 3)
   {
     REAL Rot[9], A[3], Ask[9], Hi[9], tmp0[3];
+
+    SCALE (R, invstep); /* 0 = B + W hR --> x = hR --> R = x/h */
 
     for (int k = 0; k < 2; k ++)
     {
