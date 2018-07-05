@@ -35,6 +35,11 @@ namespace parmec {
 
 typedef amgcl::backend::builtin<REAL> Backend;
 
+#define DIRECT_SOLVE 1
+
+#if DIRECT_SOLVE
+typedef amgcl::solver::skyline_lu<REAL> linear_solver;
+#else
 typedef amgcl::make_solver<
     amgcl::amg<
 	Backend,
@@ -42,17 +47,18 @@ typedef amgcl::make_solver<
 	amgcl::relaxation::spai0
 	>,
     amgcl::solver::bicgstab<Backend>
-    > joints_solver;
+    > linear_solver;
+#endif
 
-joints_solver *solve = NULL;
+linear_solver *solve = NULL;
 
 /* reset joints matrix after change */
 void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[])
 {
   /* matrix in CRS format */
-  std::vector<int> ptr;
-  std::vector<int> col;
+  std::vector<ptrdiff_t> ptr;
+  std::vector<ptrdiff_t> col;
 
   /* adjacency map of genralized inverse inertia */
   std::map<int,std::set<int>> partadj; /* particle to joint mapping */
@@ -208,9 +214,12 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   }
 
   /* solver parameters */
-  joints_solver::params prm;
+#if DIRECT_SOLVE==0
+  linear_solver::params prm;
+  prm.precond.coarsening.aggr.block_size = 3;
   prm.solver.tol = REAL_EPS;
   prm.solver.maxiter = 100;
+#endif
 
   /* problem size */
   int n = ptr.size() - 1;
@@ -218,11 +227,16 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   /* set up solver */
   if (solve) delete solve;
 
-  solve = new joints_solver(std::tie(n, ptr, col, val), prm);
+#if DIRECT_SOLVE
+  auto A = amgcl::adapter::zero_copy(n, ptr.data(), col.data(), val.data());
+  solve = new linear_solver(*A);
+#else
+  solve = new linear_solver(std::tie(n, ptr, col, val), prm);
+#endif
 }
 
 /* solve joints and update forces */
-void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
+void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[],
   REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step)
 {
@@ -265,14 +279,18 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
 	VECSKEW (A, Ask);
 	NNMUL (Rot, Ask, Hi);
 
+	/* we are using a simplified discretisation: (o1 - o0)/h = R J^(-1) R' torque */
+
         tmp0[0] = torque[0][part];
         tmp0[1] = torque[1][part];
         tmp0[2] = torque[2][part];
 	SCALE (tmp0, step);
-	NVMUL (Jiv, tmp0, tmp1);
-	tmp1[0] += angular[0][part];
-	tmp1[1] += angular[1][part];
-	tmp1[2] += angular[2][part];
+	TVMUL (Rot, tmp0, tmp1);
+	NVMUL (Jiv, tmp1, tmp0);
+	NVMUL (Rot, tmp0, tmp1);
+	tmp1[0] += angular[3][part];
+	tmp1[1] += angular[4][part];
+	tmp1[2] += angular[5][part]; /* spatial angular velocity -- conjugate to spatial torque */
 
 	NVMUL (Hi, tmp1, tmp0);
 
@@ -315,10 +333,21 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
   }
 
   /* solve for joint forces */
-  std::vector<REAL> x(rhs.size(), 0.);
+  std::vector<REAL> x(rhs.size());
+#if DIRECT_SOLVE
+  (*solve)(rhs, x);
+#else
   int iters;
   REAL error;
+  REAL *R0 = &x[0];
+  for (int i = 0; i < jnum; i ++, R0 += 3)
+  {
+    R0[0] = step*jreac[0][i];
+    R0[1] = step*jreac[1][i];
+    R0[2] = step*jreac[2][i];
+  }
   std::tie(iters, error) = (*solve)(rhs, x);
+#endif
 
   /* accumulate joint forces into body force and torque vectors */
   REAL *R = &x[0];
@@ -328,6 +357,10 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3],
     REAL Rot[9], A[3], Ask[9], Hi[9], tmp0[3];
 
     SCALE (R, invstep); /* 0 = B + W hR --> x = hR --> R = x/h */
+
+    jreac[0][i] = R[0]; /* save solution */
+    jreac[1][i] = R[1];
+    jreac[2][i] = R[2];
 
     for (int k = 0; k < 2; k ++)
     {

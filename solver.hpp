@@ -25,11 +25,20 @@ SOFTWARE.
 #include <vector>
 #include <tuple>
 
+#include <amgcl/adapter/zero_copy.hpp>
+#include <amgcl/solver/skyline_lu.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/profiler.hpp>
 #include <amgcl/make_solver.hpp>
 #include <amgcl/amg.hpp>
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
 #include <amgcl/relaxation/spai0.hpp>
+#include <amgcl/solver/cg.hpp>
 #include <amgcl/solver/bicgstab.hpp>
+#include <amgcl/solver/bicgstabl.hpp>
+#include <amgcl/solver/gmres.hpp>
+#include <amgcl/solver/lgmres.hpp>
+#include <amgcl/solver/fgmres.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 
 /* FYI: use "-std=c++11 -I." when compiling files that include amgcl */

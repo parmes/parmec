@@ -216,6 +216,7 @@ extern int restrain_buffer_grow (); /* grow buffer */
 extern int jnum; /* number of joints */
 extern int *jpart[2]; /* joint particles */
 extern REAL *jpoint[3]; /* joint points */
+extern REAL *jreac[3]; /* joint reactions */
 extern int joints_changed; /* joints changed flag */
 extern int joints_buffer_size; /* size of joints buffer */
 extern int joints_buffer_grow (); /* grow buffer */

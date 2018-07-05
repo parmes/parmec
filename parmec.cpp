@@ -227,6 +227,7 @@ int restrain_buffer_size; /* size of restrained particles buffer */
 int jnum; /* number of joints */
 int *jpart[2]; /* joint particles */
 REAL *jpoint[3]; /* joint points */
+REAL *jreac[3]; /* joint reactions */
 int joints_changed; /* joints changed flag */
 int joints_buffer_size; /* size of joints buffer */
 
@@ -1157,6 +1158,9 @@ int joints_buffer_init ()
   jpoint[0] = aligned_real_alloc (joints_buffer_size);
   jpoint[1] = aligned_real_alloc (joints_buffer_size);
   jpoint[2] = aligned_real_alloc (joints_buffer_size);
+  jreac[0] = aligned_real_alloc (joints_buffer_size);
+  jreac[1] = aligned_real_alloc (joints_buffer_size);
+  jreac[2] = aligned_real_alloc (joints_buffer_size);
 
   jnum = 0;
   joints_changed = 0;
@@ -1172,6 +1176,9 @@ int joints_buffer_grow ()
   real_buffer_grow (jpoint[0], jnum, restrain_buffer_size);
   real_buffer_grow (jpoint[1], jnum, restrain_buffer_size);
   real_buffer_grow (jpoint[2], jnum, restrain_buffer_size);
+  real_buffer_grow (jreac[0], jnum, restrain_buffer_size);
+  real_buffer_grow (jreac[1], jnum, restrain_buffer_size);
+  real_buffer_grow (jreac[2], jnum, restrain_buffer_size);
 
   return joints_buffer_size;
 }
@@ -2441,7 +2448,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 #if ENABLE_JOINTS
     reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm); /* XXX: update every time? (due to rotation dependence) */
 
-    solve_joints (jnum, jpart, jpoint, position, rotation, inverse, invm, linear, angular, force, torque, step0);
+    solve_joints (jnum, jpart, jpoint, jreac, position, rotation, inverse, invm, linear, angular, force, torque, step0);
 #endif
 
     restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);

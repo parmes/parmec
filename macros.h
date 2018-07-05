@@ -1431,6 +1431,10 @@ if (((DET) =\
 #else
 #define SINCOS(x, s, c) s = sin(x), c = cos(x)
 #endif
+#else
+#define SINCOS(x, s, c) s = sin(x), c = cos(x)
+#endif
+
 /* vectorizable exponential map */
 #define DEFINE_EXPMAP(TYPE)\
 static inline void expmap (TYPE Omega1, TYPE Omega2, TYPE Omega3,\
@@ -1510,9 +1514,10 @@ static inline void expmap (TYPE Omega1, TYPE Omega2, TYPE Omega3,\
   Lambda9 += 1.0;\
 }
 
+#if ISPC
 DEFINE_EXPMAP (uniform REAL);
-DEFINE_EXPMAP (REAL);
 #endif
+DEFINE_EXPMAP (REAL);
 
 /* Given a real symmetric 3x3 matrix A, compute the extremum eigenvalue;
  * Adopted from: https://en.wikipedia.org/wiki/Eigenvalue_algorithm */
