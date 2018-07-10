@@ -4,7 +4,7 @@ matnum = MATERIAL (1E3, 1E9, 0.25)
 
 prevpar = -1
 
-for i in range (0, 1):
+for i in range (0, 2):
   nodes = [i, i, i,
 	   i+1, i, i,
 	   i+1, i+1, i,

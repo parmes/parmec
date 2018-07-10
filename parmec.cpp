@@ -2448,7 +2448,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 #if ENABLE_JOINTS
     reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm); /* XXX: update every time? (due to rotation dependence) */
 
-    solve_joints (jnum, jpart, jpoint, jreac, position, rotation, inverse, invm, linear, angular, force, torque, step0);
+    solve_joints (jnum, jpart, jpoint, jreac, position, rotation, inertia, inverse, invm, linear, angular, force, torque, step0);
 #endif
 
     restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);

@@ -37,7 +37,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 
 /* solve joints and update forces */
 void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
-  REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[],
+  REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL invm[],
   REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step);
 
 #ifdef __cplusplus

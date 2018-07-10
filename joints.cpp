@@ -177,7 +177,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 	    VECSKEW (A, Ask);
 	    NNMUL (Rot, Ask, Hj);
 	    NTMUL (Jiv, Hj, tmp0);
-	    NNMUL (Hj, tmp0, Wij);
+	    NNMUL (Hi, tmp0, Wij);
 	    Wij[0] += im;
 	    Wij[4] += im;
 	    Wij[8] += im;
@@ -237,7 +237,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 
 /* solve joints and update forces */
 void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
-  REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[],
+  REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL invm[],
   REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step)
 {
   /* assemble joints-free local velocity vector */
@@ -280,7 +280,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 	NNMUL (Rot, Ask, Hi);
 
 	/* we are using a simplified discretisation: (o1 - o0)/h = R J^(-1) R' torque */
-
+#if 0
         tmp0[0] = torque[0][part];
         tmp0[1] = torque[1][part];
         tmp0[2] = torque[2][part];
@@ -291,7 +291,45 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 	tmp1[0] += angular[3][part];
 	tmp1[1] += angular[4][part];
 	tmp1[2] += angular[5][part]; /* spatial angular velocity -- conjugate to spatial torque */
+	COPY (tmp1, tmp0);
+	TVMUL (Rot, tmp0, tmp1);
+#else
+	REAL O[3], J[9], t[3], T[3], DL[9], A1[3], B1[3];
+	REAL half = 0.5*step;
 
+	J[0] = inertia[0][part];
+	J[1] = inertia[1][part];
+	J[2] = inertia[2][part];
+	J[3] = inertia[3][part];
+	J[4] = inertia[4][part];
+	J[5] = inertia[5][part];
+	J[6] = inertia[6][part];
+	J[7] = inertia[7][part];
+	J[8] = inertia[8][part];
+
+	O[0] = angular[0][part];
+	O[1] = angular[1][part];
+	O[2] = angular[2][part];
+
+	t[0] = torque[0][part];
+	t[1] = torque[1][part];
+	t[2] = torque[2][part];
+      
+	TVMUL (Rot, t, T);
+
+	expmap (-half*O[0], -half*O[1], -half*O[2], DL[0], DL[1], DL[2], DL[3], DL[4], DL[5], DL[6], DL[7], DL[8]);
+
+	NVMUL (J, O, A1);
+	NVMUL (DL, A1, B1);
+	ADDMUL (B1, half, T, B1);
+	NVMUL (Jiv, B1, A1); /* O(t+h/2) */
+
+	NVMUL (J, A1, B1);
+	PRODUCTSUB (A1, B1, T); /* T - O(t+h/2) x J O(t+h/2) */
+
+	SCALE (T, step);
+	NVADDMUL (O, Jiv, T, tmp1); /* O(t+h) */
+#endif
 	NVMUL (Hi, tmp1, tmp0);
 
 	if (part == jpart[0][i])
@@ -354,7 +392,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   REAL invstep = 1./step;
   for (int i = 0; i < jnum; i ++, R += 3)
   {
-    REAL Rot[9], A[3], Ask[9], Hi[9], tmp0[3];
+    REAL Rot[9], A[3], Ask[9], Hi[9], tmp0[3], tmp1[3];
 
     SCALE (R, invstep); /* 0 = B + W hR --> x = hR --> R = x/h */
 
@@ -380,9 +418,15 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 	A[0] = position[3][part] - jpoint[0][i];
 	A[1] = position[4][part] - jpoint[1][i];
 	A[2] = position[5][part] - jpoint[2][i];
+#if 0
 	VECSKEW (A, Ask);
 	NNMUL (Rot, Ask, Hi);
 	TVMUL (Hi, R, tmp0);
+#else
+	NVMUL (Rot, A, tmp1);
+	SCALE (tmp1, -1.0);
+	PRODUCT (tmp1, R, tmp0);
+#endif
 
 	if (part == jpart[0][i])
 	{
