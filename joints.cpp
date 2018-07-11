@@ -124,7 +124,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   /* assemble joints matrix */
   for (int i = 0; i < jnum; i ++)
   {
-    REAL Jiv[9], Rot[9], im, A[3], Ask[9], Hi[9], Hj[9], tmp0[9], tmp1[9], Wii[9], Wij[9];
+    REAL Jiv[9], Rot[9], im, A[3], Ask[9], Hi[9], Hj[9], C[9], D[9], Wii[9], Wij[9];
 
     SET9(Wii, 0.); 
 
@@ -158,9 +158,9 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 	A[2] = position[5][part] - jpoint[2][i];
 	VECSKEW (A, Ask);
 	NNMUL (Rot, Ask, Hi);
-	NTMUL (Jiv, Hi, tmp0);
-	NNMUL (Hi, tmp0, tmp1);
-	NNADD (Wii, tmp1, Wii);
+	NTMUL (Jiv, Hi, C);
+	NNMUL (Hi, C, D);
+	NNADD (Wii, D, Wii);
 	Wii[0] += im;
 	Wii[4] += im;
 	Wii[8] += im;
@@ -176,8 +176,8 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 	    A[2] = position[5][part] - jpoint[2][j];
 	    VECSKEW (A, Ask);
 	    NNMUL (Rot, Ask, Hj);
-	    NTMUL (Jiv, Hj, tmp0);
-	    NNMUL (Hi, tmp0, Wij);
+	    NTMUL (Jiv, Hj, C);
+	    NNMUL (Hi, C, Wij);
 	    Wij[0] += im;
 	    Wij[4] += im;
 	    Wij[8] += im;
@@ -240,13 +240,15 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL invm[],
   REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step)
 {
+  REAL half = 0.5*step;
+
   /* assemble joints-free local velocity vector */
   std::vector<REAL> rhs(3*jnum, 0.);
   REAL *B = &rhs[0];
 
   for (int i = 0; i < jnum; i ++, B += 3)
   {
-    REAL Jiv[9], Rot[9], im, A[3], Ask[9], Hi[9], tmp0[3], tmp1[3];
+    REAL Rot[9], Jiv[9], J[9], O[3], t[3], A[3], C[9], T[3], dRot[9], Hi[9], im;
 
     for (int k = 0; k < 2; k ++)
     {
@@ -272,31 +274,6 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 	Jiv[6] = inverse[6][part];
 	Jiv[7] = inverse[7][part];
 	Jiv[8] = inverse[8][part];
-	im = invm[part];
-	A[0] = position[3][part] - jpoint[0][i];
-	A[1] = position[4][part] - jpoint[1][i];
-	A[2] = position[5][part] - jpoint[2][i];
-	VECSKEW (A, Ask);
-	NNMUL (Rot, Ask, Hi);
-
-	/* we are using a simplified discretisation: (o1 - o0)/h = R J^(-1) R' torque */
-#if 0
-        tmp0[0] = torque[0][part];
-        tmp0[1] = torque[1][part];
-        tmp0[2] = torque[2][part];
-	SCALE (tmp0, step);
-	TVMUL (Rot, tmp0, tmp1);
-	NVMUL (Jiv, tmp1, tmp0);
-	NVMUL (Rot, tmp0, tmp1);
-	tmp1[0] += angular[3][part];
-	tmp1[1] += angular[4][part];
-	tmp1[2] += angular[5][part]; /* spatial angular velocity -- conjugate to spatial torque */
-	COPY (tmp1, tmp0);
-	TVMUL (Rot, tmp0, tmp1);
-#else
-	REAL O[3], J[9], t[3], T[3], DL[9], A1[3], B1[3];
-	REAL half = 0.5*step;
-
 	J[0] = inertia[0][part];
 	J[1] = inertia[1][part];
 	J[2] = inertia[2][part];
@@ -306,65 +283,68 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 	J[6] = inertia[6][part];
 	J[7] = inertia[7][part];
 	J[8] = inertia[8][part];
-
 	O[0] = angular[0][part];
 	O[1] = angular[1][part];
 	O[2] = angular[2][part];
-
 	t[0] = torque[0][part];
 	t[1] = torque[1][part];
 	t[2] = torque[2][part];
+	im = invm[part];
       
+	A[0] = position[3][part] - jpoint[0][i];
+	A[1] = position[4][part] - jpoint[1][i];
+	A[2] = position[5][part] - jpoint[2][i];
+	VECSKEW (A, C);
+	NNMUL (Rot, C, Hi);
+
+	expmap (-half*O[0], -half*O[1], -half*O[2], dRot[0], dRot[1],
+	  dRot[2], dRot[3], dRot[4], dRot[5], dRot[6], dRot[7], dRot[8]);
+
 	TVMUL (Rot, t, T);
+	NVMUL (J, O, A);
+	NVMUL (dRot, A, C);
+	ADDMUL (C, half, T, C);
+	NVMUL (Jiv, C, A); /* O(t+h/2) */
 
-	expmap (-half*O[0], -half*O[1], -half*O[2], DL[0], DL[1], DL[2], DL[3], DL[4], DL[5], DL[6], DL[7], DL[8]);
-
-	NVMUL (J, O, A1);
-	NVMUL (DL, A1, B1);
-	ADDMUL (B1, half, T, B1);
-	NVMUL (Jiv, B1, A1); /* O(t+h/2) */
-
-	NVMUL (J, A1, B1);
-	PRODUCTSUB (A1, B1, T); /* T - O(t+h/2) x J O(t+h/2) */
+	NVMUL (J, A, C);
+	PRODUCTSUB (A, C, T); /* T - O(t+h/2) x J O(t+h/2) */
 
 	SCALE (T, step);
-	NVADDMUL (O, Jiv, T, tmp1); /* O(t+h) */
-#endif
-	NVMUL (Hi, tmp1, tmp0);
+	NVADDMUL (O, Jiv, T, A); /* O(t+h) */
+	NVMUL (Hi, A, C);
 
 	if (part == jpart[0][i])
 	{
-	  B[0] -= tmp0[0];
-	  B[1] -= tmp0[1];
-	  B[2] -= tmp0[2];
+	  B[0] -= C[0];
+	  B[1] -= C[1];
+	  B[2] -= C[2];
 	}
 	else
 	{
-	  B[0] += tmp0[0];
-	  B[1] += tmp0[1];
-	  B[2] += tmp0[2];
+	  B[0] += C[0];
+	  B[1] += C[1];
+	  B[2] += C[2];
 	}
 
-        tmp0[0] = force[0][part];
-        tmp0[1] = force[1][part];
-        tmp0[2] = force[2][part];
-	SCALE (tmp0, step);
-	SCALE (tmp0, im);
-	tmp0[0] += linear[0][part];
-	tmp0[1] += linear[1][part];
-	tmp0[2] += linear[2][part];
+        C[0] = force[0][part];
+        C[1] = force[1][part];
+        C[2] = force[2][part];
+	SCALE (C, step*im);
+	C[0] += linear[0][part];
+	C[1] += linear[1][part];
+	C[2] += linear[2][part];
 
 	if (part == jpart[0][i])
 	{
-	  B[0] -= tmp0[0];
-	  B[1] -= tmp0[1];
-	  B[2] -= tmp0[2];
+	  B[0] -= C[0];
+	  B[1] -= C[1];
+	  B[2] -= C[2];
 	}
 	else
 	{
-	  B[0] += tmp0[0];
-	  B[1] += tmp0[1];
-	  B[2] += tmp0[2];
+	  B[0] += C[0];
+	  B[1] += C[1];
+	  B[2] += C[2];
 	}
       }
     }
@@ -392,7 +372,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   REAL invstep = 1./step;
   for (int i = 0; i < jnum; i ++, R += 3)
   {
-    REAL Rot[9], A[3], Ask[9], Hi[9], tmp0[3], tmp1[3];
+    REAL Rot[9], A[3], a[3], t[3];
 
     SCALE (R, invstep); /* 0 = B + W hR --> x = hR --> R = x/h */
 
@@ -418,30 +398,23 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 	A[0] = position[3][part] - jpoint[0][i];
 	A[1] = position[4][part] - jpoint[1][i];
 	A[2] = position[5][part] - jpoint[2][i];
-#if 0
-	VECSKEW (A, Ask);
-	NNMUL (Rot, Ask, Hi);
-	TVMUL (Hi, R, tmp0);
-#else
-	NVMUL (Rot, A, tmp1);
-	SCALE (tmp1, -1.0);
-	PRODUCT (tmp1, R, tmp0);
-#endif
+	NVMUL (Rot, A, a);
+	PRODUCT (R, a, t);
 
 	if (part == jpart[0][i])
 	{
-	  torque[0][part] += tmp0[0];
-	  torque[1][part] += tmp0[1];
-	  torque[2][part] += tmp0[2];
+	  torque[0][part] += t[0];
+	  torque[1][part] += t[1];
+	  torque[2][part] += t[2];
 	  force[0][part] += R[0];
 	  force[1][part] += R[1];
 	  force[2][part] += R[2];
 	}
 	else
 	{
-	  torque[0][part] -= tmp0[0];
-	  torque[1][part] -= tmp0[1];
-	  torque[2][part] -= tmp0[2];
+	  torque[0][part] -= t[0];
+	  torque[1][part] -= t[1];
+	  torque[2][part] -= t[2];
 	  force[0][part] -= R[0];
 	  force[1][part] -= R[1];
 	  force[2][part] -= R[2];

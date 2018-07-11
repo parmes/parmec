@@ -1453,9 +1453,7 @@ The
 
 \begin_layout Subsection*
 sprnum = SPRING (part1, point1, part2, geom2, spring | dashpot, direction,
- planar, unload, ylim, inactive, offset, friction, kskn) 
-\color red
-(experimental)
+ planar, unload, ylim, inactive, offset, friction, kskn)
 \end_layout
 
 \begin_layout Itemize
@@ -2396,7 +2394,7 @@ name "sec:BALL_JOINT"
 
 BALL_JOINT 
 \color red
-(under development)
+(experimental)
 \end_layout
 
 \begin_layout Standard
@@ -2408,9 +2406,7 @@ Create a ball joint between two particles at a coincident point.
 \end_layout
 
 \begin_layout Subsection*
-jnum = BALL_JOINT (part1, point | point2) 
-\color red
-(under development)
+jnum = BALL_JOINT (part1, point | point2)
 \end_layout
 
 \begin_layout Itemize
@@ -2499,9 +2495,7 @@ s for spring based constraints, e.g.
 \end_layout
 
 \begin_layout Subsection*
-mass = EQM (part1, point1 | part2, point2, direction) 
-\color red
-(experimental)
+mass = EQM (part1, point1 | part2, point2, direction)
 \end_layout
 
 \begin_layout Itemize
@@ -2561,7 +2555,7 @@ name "subsec:GRANULAR"
 
 GRANULAR
 \color red
-(under development)
+ (experimental/under development)
 \end_layout
 
 \begin_layout Standard
