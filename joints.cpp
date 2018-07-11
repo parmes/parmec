@@ -38,23 +38,30 @@ typedef amgcl::backend::builtin<REAL> Backend;
 #define DIRECT_SOLVE 1
 
 #if DIRECT_SOLVE
-typedef amgcl::solver::skyline_lu<REAL> linear_solver;
+typedef amgcl::solver::skyline_lu<REAL> Solver;
 #else
-typedef amgcl::make_solver<
-    amgcl::amg<
-	Backend,
-	amgcl::coarsening::smoothed_aggregation,
-	amgcl::relaxation::spai0
-	>,
-    amgcl::solver::bicgstab<Backend>
-    > linear_solver;
+typedef amgcl::solver::bicgstab<Backend> Solver;
+
+typedef amgcl::amg<Backend,
+  amgcl::coarsening::smoothed_aggregation,
+  amgcl::relaxation::spai0> Precond;
+
+typedef std::tuple<ptrdiff_t,
+  std::vector<ptrdiff_t>,
+  std::vector<ptrdiff_t>,
+  std::vector<REAL>> System;
+
+Precond *precond = NULL;
+
+System *system = NULL;
 #endif
 
-linear_solver *solve = NULL;
+Solver *solve = NULL;
 
 /* reset joints matrix after change */
 void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
-  REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[])
+  REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[],
+  bool update_precond)
 {
   /* matrix in CRS format */
   std::vector<ptrdiff_t> ptr;
@@ -213,25 +220,34 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
     }
   }
 
-  /* solver parameters */
-#if DIRECT_SOLVE==0
-  linear_solver::params prm;
-  prm.precond.coarsening.aggr.block_size = 3;
-  prm.solver.tol = REAL_EPS;
-  prm.solver.maxiter = 100;
-#endif
-
   /* problem size */
   int n = ptr.size() - 1;
 
   /* set up solver */
-  if (solve) delete solve;
-
 #if DIRECT_SOLVE
   auto A = amgcl::adapter::zero_copy(n, ptr.data(), col.data(), val.data());
-  solve = new linear_solver(*A);
+  solve = new Solver(*A);
 #else
-  solve = new linear_solver(std::tie(n, ptr, col, val), prm);
+  Precond::params pprm;
+  Solver::params sprm;
+  pprm.coarsening.aggr.block_size = 3;
+  sprm.tol = REAL_EPS;
+  sprm.maxiter = 100;
+
+  if (system) delete system;
+
+  system = new System(n, ptr, col, val);
+
+  if (precond == NULL || update_precond)
+  {
+    if (precond) delete precond;
+
+    precond = new Precond(*system, pprm);
+  }
+
+  if (solve) delete solve;
+
+  solve = new Solver(n, sprm);
 #endif
 }
 
@@ -364,7 +380,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
     R0[1] = step*jreac[1][i];
     R0[2] = step*jreac[2][i];
   }
-  std::tie(iters, error) = (*solve)(rhs, x);
+  std::tie(iters, error) = (*solve)(*system, *precond, rhs, x);
 #endif
 
   /* accumulate joint forces into body force and torque vectors */
