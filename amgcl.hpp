@@ -46,7 +46,7 @@ SOFTWARE.
 #ifndef __solver__
 #define __solver__
 
-void simple_solve (
+inline void simple_solve (
         /* matrix in CRS format */
         const std::vector<int> &ptr,
         const std::vector<int> &col,

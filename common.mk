@@ -2,9 +2,11 @@ ifeq ($(DEBUG),yes)
   CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG # += could be used for an existing variable
   ISPC=ispc -g -O0 --arch=x86-64 -DDEBUG
 else
-  CFLAGS=-O2 -m64 -fopenmp
+  CFLAGS=-O2
   ISPC=ispc -O2 --arch=x86-64 --woff
 endif
+
+CFLAGS +=-Wno-narrowing # avoid assignment narrowing warnings
 
 ifeq ($(OS),Windows_NT) # operating system detection in case it is needed
   TASKSYS=-DISPC_USE_OMP
@@ -24,6 +26,13 @@ else
   MEDFLG=
 endif
 
+ifdef STRUMINC
+  STRUMFLG=-DSTRUMPACK
+  CPP_SRC += strumpack.cpp
+else
+  STRUMFLG=
+endif
+
 ISPC_OBJS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
 ISPC_OBJS8=$(addprefix objs8/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
 ISPC_HEADERS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.h))
@@ -32,7 +41,13 @@ CPP_OBJS4=$(addprefix objs4/, $(CPP_SRC:.cpp=.o))
 CPP_OBJS8=$(addprefix objs8/, $(CPP_SRC:.cpp=.o))
 C_OBJS4=$(addprefix objs4/, $(C_SRC:.c=.o))
 C_OBJS8=$(addprefix objs8/, $(C_SRC:.c=.o))
-LIBS=-lm $(PYTHONLIB) $(HDF5LIB) $(MEDLIB)
+LIBS=-lm $(PYTHONLIB) $(HDF5LIB)
+ifdef MEDINC
+  LIBS+=$(MEDLIB)
+endif
+ifdef STRUMINC
+  LIBS+=$(METISLIB) $(STRUMLIB) $(MPILIB) $(LAPACK) $(SCALAPACK)
+endif
 
 default: dirs $(ISPC_HEADERS4) $(ISPC_HEADERS8) $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) $(LIB)4.a $(LIB)8.a $(EXE)4 $(EXE)8 headers
 
@@ -99,10 +114,16 @@ objs8/output.o: output.cpp
 	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $(MEDFLG) $(MEDINC) $< -c -o $@
 
 objs4/joints.o: joints.cpp
-	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) -I. -std=c++11 $< -c -o $@
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(STRUMFLG) -I. -std=c++11 $< -c -o $@
 
 objs8/joints.o: joints.cpp
-	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) -I. -std=c++11 $< -c -o $@
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(STRUMFLG) -I. -std=c++11 $< -c -o $@
+
+objs4/strumpack.o: strumpack.cpp
+	$(CXX) $(CFLAGS) $(STRUMINC) $(METISINC) $(MPIINC) -I. -std=c++11 $< -c -o $@
+
+objs8/strumpack.o: strumpack.cpp
+	$(CXX) $(CFLAGS) $(STRUMINC) $(METISINC) $(MPIINC) -I. -std=c++11 $< -c -o $@
 
 objs4/%_ispc.h objs4/%_ispc.o objs4/%_ispc_sse2.o objs4/%_ispc_sse4.o objs4/%_ispc_avx.o: %.ispc
 	$(ISPC) -DREAL=4 -Iobjs4 --target=$(ISPC_TARGETS) $< -o objs4/$*_ispc.o -h objs4/$*_ispc.h

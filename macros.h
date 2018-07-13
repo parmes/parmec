@@ -29,8 +29,24 @@ SOFTWARE.
 #ifndef __macros__
 #define __macros__
 
-#if defined MPI_REAL /* prevent warnings */
+#if defined REAL /* prevent warnings */
+#undef REAL
+#endif
+
+#if defined REAL_SIZE
+#undef REAL_SIZE
+#endif
+
+#if defined MPI_REAL
 #undef MPI_REAL
+#endif
+
+#if defined REAL_MAX
+#undef REAL_MAX
+#endif
+
+#if defined REAL_EPS
+#undef REAL_EPS
 #endif
 
 /* real type */

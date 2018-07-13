@@ -17,3 +17,4 @@ condet8.h
 *.png
 *.med
 *.lyx#
+*.dSYM

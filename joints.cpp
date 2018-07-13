@@ -24,22 +24,28 @@ SOFTWARE.
 
 /* Contributors: Tomasz Koziara */
 
+#include <vector>
+#include <tuple>
 #include <map>
 #include <set>
 
 #include "macros.h"
 #include "joints.h"
-#include "solver.hpp"
 
+#if STRUMPACK
+#include "strumpack.h"
+#else
+#include "amgcl.hpp"
+#endif
 namespace parmec {
 
+#if !STRUMPACK /* AMGCL */
+#define SKYLINE_LU 1 /* more effective for problems of size < 3000 */
 typedef amgcl::backend::builtin<REAL> Backend;
 
-#define DIRECT_SOLVE 1
-
-#if DIRECT_SOLVE
+#if SKYLINE_LU 
 typedef amgcl::solver::skyline_lu<REAL> Solver;
-#else
+#else /* AMG */
 typedef amgcl::solver::bicgstab<Backend> Solver;
 
 typedef amgcl::amg<Backend,
@@ -54,9 +60,10 @@ typedef std::tuple<ptrdiff_t,
 Precond *precond = NULL;
 
 System *system = NULL;
-#endif
+#endif /* AMG */
 
 Solver *solve = NULL;
+#endif /* AMGCL */
 
 /* reset joints matrix after change */
 void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
@@ -224,7 +231,11 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   int n = ptr.size() - 1;
 
   /* set up solver */
-#if DIRECT_SOLVE
+#if STRUMPACK
+  StrumpackCreate (n, ptr.data(), col.data(), val.data());
+
+#else /* AMGCL */
+#if SKYLINE_LU
   auto A = amgcl::adapter::zero_copy(n, ptr.data(), col.data(), val.data());
   solve = new Solver(*A);
 #else
@@ -248,7 +259,8 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   if (solve) delete solve;
 
   solve = new Solver(n, sprm);
-#endif
+#endif /* AMGCL */
+#endif /* STRUMPACK */
 }
 
 /* solve joints and update forces */
@@ -368,7 +380,11 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 
   /* solve for joint forces */
   std::vector<REAL> x(rhs.size());
-#if DIRECT_SOLVE
+#if STRUMPACK
+  StrumpackSolve (rhs.data(), x.data());
+
+#else /* AMGCL */
+#if SKYLINE_LU
   (*solve)(rhs, x);
 #else
   int iters;
@@ -381,7 +397,8 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
     R0[2] = step*jreac[2][i];
   }
   std::tie(iters, error) = (*solve)(*system, *precond, rhs, x);
-#endif
+#endif /* AMGCL */
+#endif /* STRUMPACK */
 
   /* accumulate joint forces into body force and torque vectors */
   REAL *R = &x[0];
