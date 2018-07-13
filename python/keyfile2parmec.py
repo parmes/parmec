@@ -114,7 +114,7 @@ for pi in keyfile['PART_INERTIA']:
 
   parmec.write ('num = ANALYTICAL (' +\
                 'inertia = [%g, %g, %g, %g, %g, %g], ' %\
-		(I_glo[0], I_glo[4], I_glo[8], I_glo[1], I_glo[2], I_glo[3]) +\
+		(I_glo[0], I_glo[4], I_glo[8], I_glo[1], I_glo[2], I_glo[5]) +\
 		'mass = %g, ' % pi['TM'] +\
 		'position = (%g, %g, %g)' % (center[0], center[1], center[2])+\
 		')\n')
