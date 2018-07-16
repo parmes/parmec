@@ -42,6 +42,9 @@ void StrumpackCreate (ptrdiff_t n, ptrdiff_t *ptr, ptrdiff_t *col, float *val)
   //float_solver->options().set_gmres_restart(10);
   //float_solver->options().enable_HSS();
   //float_solver->options().set_Krylov_solver(KrylovSolver::DIRECT);
+  //float_solver->options().enable_MUMPS_SYMQAMD();
+  //float_solver->options().enable_agg_amalg();
+  //float_solver->options().enable_METIS_NodeNDP();
   float_solver->options().set_matching(MatchingJob::NONE);
   float_solver->set_csr_matrix(n, ptr, col, val);
   float_solver->reorder();
@@ -63,6 +66,9 @@ void StrumpackCreate (ptrdiff_t n, ptrdiff_t *ptr, ptrdiff_t *col, double *val)
   //double_solver->options().set_gmres_restart(10);
   //double_solver->options().enable_HSS();
   //double_solver->options().set_Krylov_solver(KrylovSolver::DIRECT);
+  //double_solver->options().enable_MUMPS_SYMQAMD();
+  //double_solver->options().enable_agg_amalg();
+  //double_solver->options().enable_METIS_NodeNDP();
   double_solver->options().set_matching(MatchingJob::NONE);
   double_solver->set_csr_matrix(n, ptr, col, val);
   double_solver->reorder();

@@ -23,6 +23,9 @@ HDF5LIB=-L/opt/local/lib/hdf5-18/lib -lhdf5 -lhdf5_hl
 MEDINC=-I/Users/tomek/Devel/med-3.2.0/build/include
 MEDLIB=-L/Users/tomek/Devel/med-3.2.0/build/lib -lmed
 
+# SuiteSparse path
+SUITESPARSE=/Users/tomek/Devel/SuiteSparse
+
 # STRUMPACK paths (used by joints to efficiently solve linear systems)
 #STRUMINC=-I/Users/tomek/Devel/STRUMPACK/local/include
 STRUMLIB=-L/Users/tomek/Devel/STRUMPACK/local/lib -lstrumpack 

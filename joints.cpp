@@ -34,12 +34,18 @@ SOFTWARE.
 
 #if STRUMPACK
 #include "strumpack.h"
+#elif SUITESPARSE
+#include "SuiteSparseQR.hpp"
 #else
 #include "amgcl.hpp"
 #endif
 namespace parmec {
 
-#if !STRUMPACK /* AMGCL */
+#if SUITESPARSE
+SuiteSparseQR_factorization <REAL> *QR = NULL; /* QR factorization data */
+#endif
+
+#if !STRUMPACK && !SUITESPARSE /* AMGCL */
 #define SKYLINE_LU 1 /* more effective for problems of size < 3000 */
 typedef amgcl::backend::builtin<REAL> Backend;
 
@@ -71,8 +77,13 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   bool update_precond)
 {
   /* matrix in CRS format */
+#if SUITESPARSE
+  std::vector<SuiteSparse_long> ptr;
+  std::vector<SuiteSparse_long> col;
+#else
   std::vector<ptrdiff_t> ptr;
   std::vector<ptrdiff_t> col;
+#endif
 
   /* adjacency map of genralized inverse inertia */
   std::map<int,std::set<int>> partadj; /* particle to joint mapping */
@@ -234,6 +245,34 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 #if STRUMPACK
   StrumpackCreate (n, ptr.data(), col.data(), val.data());
 
+#elif SUITESPARSE
+  cholmod_common cc;
+  cholmod_sparse A;
+
+  A.nrow = n;
+  A.ncol = n;
+  A.p = ptr.data();
+  A.i = col.data();
+  A.nz = NULL;
+  A.x = val.data();
+  A.z = NULL;
+  A.stype = 0;
+  A.itype = CHOLMOD_LONG;
+  A.xtype = CHOLMOD_REAL;
+#if REAL_SIZE == 4
+  A.dtype = CHOLMOD_SINGLE;
+#else
+  A.dtype = CHOLMOD_DOUBLE;
+#endif
+  A.sorted = 1;
+  A.packed = 1;
+
+  cholmod_l_start (&cc);
+
+  if (QR) SuiteSparseQR_free (&QR, &cc);
+
+  QR = SuiteSparseQR_factorize <REAL> (SPQR_ORDERING_DEFAULT, SPQR_DEFAULT_TOL, &A, &cc) ;
+
 #else /* AMGCL */
 #if SKYLINE_LU
   auto A = amgcl::adapter::zero_copy(n, ptr.data(), col.data(), val.data());
@@ -242,6 +281,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   Precond::params pprm;
   Solver::params sprm;
   pprm.coarsening.aggr.block_size = 3;
+  //pprm.coarse_enough = 500; /* use skyline_lu below this problem size; default is 3000 */
   sprm.tol = REAL_EPS;
   sprm.maxiter = 100;
 
@@ -382,6 +422,34 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   std::vector<REAL> x(rhs.size());
 #if STRUMPACK
   StrumpackSolve (rhs.data(), x.data());
+
+#elif SUITESPARSE
+  cholmod_dense *X, *Y, Z;
+  cholmod_common cc;
+
+  cholmod_l_start (&cc);
+
+  Z.nrow = rhs.size();
+  Z.ncol = 1;
+  Z.nzmax = Z.nrow;
+  Z.d = Z.nrow;
+  Z.x = rhs.data();
+  Z.z = NULL;
+  Z.xtype = CHOLMOD_REAL;
+#if REAL_SIZE == 4
+  Z.dtype = CHOLMOD_SINGLE;
+#else
+  Z.dtype = CHOLMOD_DOUBLE;
+#endif
+
+  Y = SuiteSparseQR_qmult (SPQR_QTX, QR, &Z, &cc);
+  X = SuiteSparseQR_solve (SPQR_RETX_EQUALS_B, QR, Y, &cc);
+  
+  Z.x = x.data();
+  cholmod_copy_dense2 (X, &Z, &cc);
+
+  cholmod_l_free_dense (&Y, &cc);
+  cholmod_l_free_dense (&X, &cc);
 
 #else /* AMGCL */
 #if SKYLINE_LU
