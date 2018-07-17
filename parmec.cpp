@@ -2376,7 +2376,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     trqspr_changed = 0;
   }
 
-#define ENABLE_JOINTS 1 /* XXX */
+#define ENABLE_JOINTS 0 /* XXX */
 
 #if ENABLE_JOINTS
   if (joints_changed)
