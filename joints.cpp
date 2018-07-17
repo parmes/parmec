@@ -281,7 +281,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 #endif
   id->job = -1;
   id->par =  1;
-  id->sym =  1;
+  id->sym =  0;
 #if REAL_SIZE==4
   smumps_c (id);
 #else
@@ -307,6 +307,8 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   id->ICNTL(2) = -1;
   id->ICNTL(3) = -1;
   id->ICNTL(4) =  0;
+  //id->ICNTL(7) = 5; /* use METIS */
+  //id->ICNTL(35) = 1; /* activate BLR approximation */
 
   /* analysis and factorization */
   id->job = 4;
