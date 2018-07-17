@@ -31,8 +31,15 @@ SOFTWARE.
 
 #include "macros.h"
 #include "joints.h"
+#include "mem.h"
 
-#if STRUMPACK
+#if MUMPS
+#if REAL_SIZE==4
+#include "smumps_c.h"
+#else
+#include "dmumps_c.h"
+#endif
+#elif STRUMPACK
 #include "strumpack.h"
 #elif SUITESPARSE
 #include "SuiteSparseQR.hpp"
@@ -41,11 +48,18 @@ SOFTWARE.
 #endif
 namespace parmec {
 
-#if SUITESPARSE
-SuiteSparseQR_factorization <REAL> *QR = NULL; /* QR factorization data */
+#if MUMPS
+#define ICNTL(I) icntl[(I)-1] /* MUMPS macro s.t. indices match documentation */
+#define INFO(I) info[(I)-1] /* MUMPS */
+#if REAL_SIZE==4
+SMUMPS_STRUC_C *id = NULL;
+#else
+DMUMPS_STRUC_C *id = NULL;
 #endif
-
-#if !STRUMPACK && !SUITESPARSE /* AMGCL */
+#elif STRUMPACK
+#elif SUITESPARSE
+SuiteSparseQR_factorization <REAL> *QR = NULL; /* QR factorization data */
+#else /* AMGCL */
 #define SKYLINE_LU 1 /* more effective for problems of size < 3000 */
 typedef amgcl::backend::builtin<REAL> Backend;
 
@@ -130,7 +144,11 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 
     ptr.push_back(ptr.back()+adj.size());
   }
+#if MUMPS
+  std::vector<REAL> val(j+3*jnum, 0.); /* create zeroed matrix values + MUMPS workspace */
+#else
   std::vector<REAL> val(j, 0.); /* create zeroed matrix values */
+#endif
 
 #if 0
   for (int i = 0; i < 3*jnum; i ++)
@@ -242,7 +260,64 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   int n = ptr.size() - 1;
 
   /* set up solver */
-#if STRUMPACK
+#if MUMPS
+  if (id)
+  {
+    id->job = -2;
+#if REAL_SIZE==4
+    smumps_c (id);
+#else
+    dmumps_c (id);
+#endif
+    free (id->irn);
+    free (id->jcn);
+    free (id);
+  }
+
+#if REAL_SIZE==4
+  ERRMEM (id = (SMUMPS_STRUC_C*) MEM_CALLOC (sizeof (SMUMPS_STRUC_C)));
+#else
+  ERRMEM (id = (DMUMPS_STRUC_C*) MEM_CALLOC (sizeof (DMUMPS_STRUC_C)));
+#endif
+  id->job = -1;
+  id->par =  1;
+  id->sym =  1;
+#if REAL_SIZE==4
+  smumps_c (id);
+#else
+  dmumps_c (id);
+#endif
+
+  id->n = n;
+  id->nz = ptr.back();
+  ERRMEM (id->irn = (int*)malloc (sizeof (int [id->nz])));
+  ERRMEM (id->jcn = (int*)malloc (sizeof (int [id->nz])));
+  for (int i = 0; i < n; i ++)
+  {
+    for (int j = ptr[i]; j < ptr[i+1]; j ++)
+    {
+      id->irn [j] = i+1;
+      id->jcn [j] = col[j]+1;
+    }
+  }
+  id->a = val.data();
+
+  /* no outputs */
+  id->ICNTL(1) = -1;
+  id->ICNTL(2) = -1;
+  id->ICNTL(3) = -1;
+  id->ICNTL(4) =  0;
+
+  /* analysis and factorization */
+  id->job = 4;
+#if REAL_SIZE==4
+  smumps_c (id);
+#else
+  dmumps_c (id);
+#endif
+  ASSERT (id->INFO(1) >= 0, "MUMPS factorisation has failed");
+
+#elif STRUMPACK
   StrumpackCreate (n, ptr.data(), col.data(), val.data());
 
 #elif SUITESPARSE
@@ -259,7 +334,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   A.stype = 0;
   A.itype = CHOLMOD_LONG;
   A.xtype = CHOLMOD_REAL;
-#if REAL_SIZE == 4
+#if REAL_SIZE==4
   A.dtype = CHOLMOD_SINGLE;
 #else
   A.dtype = CHOLMOD_DOUBLE;
@@ -300,7 +375,7 @@ void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
 
   solve = new Solver(n, sprm);
 #endif /* AMGCL */
-#endif /* STRUMPACK */
+#endif /* MUMPS */
 }
 
 /* solve joints and update forces */
@@ -420,7 +495,17 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 
   /* solve for joint forces */
   std::vector<REAL> x(rhs.size());
-#if STRUMPACK
+#if MUMPS
+  x.assign(rhs.begin(), rhs.end());
+  id->rhs = x.data(); 
+  id->job = 3;
+#if REAL_SIZE==4
+  smumps_c (id);
+#else
+  dmumps_c (id);
+#endif
+
+#elif STRUMPACK
   StrumpackSolve (rhs.data(), x.data());
 
 #elif SUITESPARSE
@@ -436,7 +521,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   Z.x = rhs.data();
   Z.z = NULL;
   Z.xtype = CHOLMOD_REAL;
-#if REAL_SIZE == 4
+#if REAL_SIZE==4
   Z.dtype = CHOLMOD_SINGLE;
 #else
   Z.dtype = CHOLMOD_DOUBLE;
@@ -444,10 +529,9 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
 
   Y = SuiteSparseQR_qmult (SPQR_QTX, QR, &Z, &cc);
   X = SuiteSparseQR_solve (SPQR_RETX_EQUALS_B, QR, Y, &cc);
-  
-  Z.x = x.data();
-  cholmod_copy_dense2 (X, &Z, &cc);
 
+  x.assign((REAL*)X->x, (REAL*)X->x + X->nrow);
+ 
   cholmod_l_free_dense (&Y, &cc);
   cholmod_l_free_dense (&X, &cc);
 
@@ -466,7 +550,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3],
   }
   std::tie(iters, error) = (*solve)(*system, *precond, rhs, x);
 #endif /* AMGCL */
-#endif /* STRUMPACK */
+#endif /* MUMPS */
 
   /* accumulate joint forces into body force and torque vectors */
   REAL *R = &x[0];

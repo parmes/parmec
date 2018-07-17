@@ -2316,6 +2316,8 @@ static PyObject* BALL_JOINT (PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
+  if (jnum >= joints_buffer_size) joints_buffer_grow ();
+
   int i = jnum ++;
 
   jpart[0][i] = part1;

@@ -51,14 +51,12 @@ SOFTWARE.
 
 /* real type */
 #if REAL==4
-#undef REAL
 #define REAL float
 #define REAL_SIZE 4
 #define MPI_REAL MPI_FLOAT
 #define REAL_MAX 3.40282347E+38F
 #define REAL_EPS 1E-4
 #else
-#undef REAL
 #define REAL double
 #define REAL_SIZE 8
 #define MPI_REAL MPI_DOUBLE

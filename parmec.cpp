@@ -1173,12 +1173,12 @@ int joints_buffer_grow ()
 
   integer_buffer_grow (jpart[0], jnum, joints_buffer_size);
   integer_buffer_grow (jpart[1], jnum, joints_buffer_size);
-  real_buffer_grow (jpoint[0], jnum, restrain_buffer_size);
-  real_buffer_grow (jpoint[1], jnum, restrain_buffer_size);
-  real_buffer_grow (jpoint[2], jnum, restrain_buffer_size);
-  real_buffer_grow (jreac[0], jnum, restrain_buffer_size);
-  real_buffer_grow (jreac[1], jnum, restrain_buffer_size);
-  real_buffer_grow (jreac[2], jnum, restrain_buffer_size);
+  real_buffer_grow (jpoint[0], jnum, joints_buffer_size);
+  real_buffer_grow (jpoint[1], jnum, joints_buffer_size);
+  real_buffer_grow (jpoint[2], jnum, joints_buffer_size);
+  real_buffer_grow (jreac[0], jnum, joints_buffer_size);
+  real_buffer_grow (jreac[1], jnum, joints_buffer_size);
+  real_buffer_grow (jreac[2], jnum, joints_buffer_size);
 
   return joints_buffer_size;
 }
@@ -2376,7 +2376,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     trqspr_changed = 0;
   }
 
-#define ENABLE_JOINTS 0 /* XXX */
+#define ENABLE_JOINTS 1 /* XXX */
 
 #if ENABLE_JOINTS
   if (joints_changed)

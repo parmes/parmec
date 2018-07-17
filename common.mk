@@ -39,6 +39,12 @@ else
   SUITESPFLG=
 endif
 
+ifdef MUMPS
+  MUMPSFLG=-DMUMPS -I$(MUMPS)/include
+else
+  MUMPSFLG=
+endif
+
 ISPC_OBJS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
 ISPC_OBJS8=$(addprefix objs8/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
 ISPC_HEADERS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.h))
@@ -56,6 +62,9 @@ ifdef STRUMINC
 endif
 ifdef SUITESPARSE
   LIBS+= -L$(SUITESPARSE)/lib -lspqr -lcholmod
+endif
+ifdef MUMPS
+  LIBS+= $(MUMPSLIB) $(BLASLIB)
 endif
 
 default: dirs $(ISPC_HEADERS4) $(ISPC_HEADERS8) $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) $(LIB)4.a $(LIB)8.a $(EXE)4 $(EXE)8 headers
@@ -123,10 +132,10 @@ objs8/output.o: output.cpp
 	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(PYTHONINC) $(HDF5INC) $(MEDFLG) $(MEDINC) $< -c -o $@
 
 objs4/joints.o: joints.cpp
-	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(STRUMFLG) $(SUITESPFLG) -I. -std=c++11 $< -c -o $@
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(STRUMFLG) $(SUITESPFLG) $(MUMPSFLG) -I. -std=c++11 $< -c -o $@
 
 objs8/joints.o: joints.cpp
-	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(STRUMFLG) $(SUITESPFLG) -I. -std=c++11 $< -c -o $@
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(STRUMFLG) $(SUITESPFLG) $(MUMPSFLG) -I. -std=c++11 $< -c -o $@
 
 objs4/strumpack.o: strumpack.cpp
 	$(CXX) $(CFLAGS) $(STRUMINC) $(METISINC) $(MPIINC) -I. -std=c++11 $< -c -o $@

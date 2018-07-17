@@ -1,15 +1,15 @@
 # PARMEC test --> BALL_JOINT command test with many indepedent chains
 #                 testing parallel performance of the linear system solve
 
-nedge  = 3
-nchain = 100
+nedge  = 10
+nchain = 10
 
 matnum = MATERIAL (1E3, 1E9, 0.25)
 
 prevpar = -1
 
 for x in range (0, nchain*nedge, nchain):
-  for y in range (0, 1): #nchain*nedge, nchain):
+  for y in range (0, nchain*nedge, nchain):
     for i in range (0, nchain):
       nodes = [x+i, y+i, i,
 	       x+i+1, y+i, i,
@@ -35,4 +35,4 @@ for x in range (0, nchain*nedge, nchain):
 GRAVITY (0., 0., -10.)
 
 h = 0.001
-DEM (1.0, h, (0.05, h))
+DEM (5.0, h, (0.05, h))
