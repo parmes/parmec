@@ -31,6 +31,9 @@ SOFTWARE.
 namespace parmec { /* namespace */
 #endif
 
+/* reset joints symbolic information after change */
+void reset_joints_symbolic (int jnum, int *jpart[2]);
+
 /* reset joints matrix after change */
 void reset_joints_matrix (int jnum, int *jpart[2], REAL *jpoint[3],
   REAL *position[6], REAL *rotation[9], REAL *inverse[9], REAL invm[],

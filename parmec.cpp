@@ -2381,7 +2381,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 #if ENABLE_JOINTS
   if (joints_changed)
   {
-    reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm, true); /* update preconditioner */
+    reset_joints_symbolic (jnum, jpart);
 
     joints_changed = 0;
   }

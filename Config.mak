@@ -24,7 +24,7 @@ MEDINC=-I/Users/tomek/Devel/med-3.2.0/build/include
 MEDLIB=-L/Users/tomek/Devel/med-3.2.0/build/lib -lmed
 
 # MUMPS path
-MUMPS=/Users/tomek/Devel/MUMPS_5.1.2
+#MUMPS=/Users/tomek/Devel/MUMPS_5.1.2
 MUMPSLIB= -L$(MUMPS)/libseq -lmpiseq -L$(MUMPS)/lib -ldmumps -lmumps_common -lpord -lgfortran
 BLASLIB=-L/Users/tomek/Devel/OpenBLAS -lopenblas
 
