@@ -82,9 +82,50 @@ inline void simple_solve (
   Solver solve(std::tie(n, ptr, col, val), prm);
 
   /* solve the problem */
-  int    iters;
+  int iters;
   REAL error;
   std::tie(iters, error) = solve(rhs, x);
+}
+
+/* example application with separated preconditioner and solver;
+ * this allows to update the preconditioner less frequently then
+ * the system matrix */
+
+typedef amgcl::backend::builtin<REAL> Backend;
+
+typedef amgcl::solver::bicgstab<Backend> Solver;
+
+typedef amgcl::amg<Backend,
+  amgcl::coarsening::smoothed_aggregation,
+  amgcl::relaxation::spai0> Precond;
+
+typedef std::tuple<ptrdiff_t, /* matrix size */
+  std::vector<ptrdiff_t>, /* row pointers */
+  std::vector<ptrdiff_t>, /* column indices */
+  std::vector<REAL>> Matrix; /* values of a matrix in CRS format */
+
+inline Precond* update_precond (Matrix *matrix, int block_size = 3, int coarse_enough = 3000)
+{
+  Precond::params pprm;
+
+  pprm.coarsening.aggr.block_size = block_size; /* dense block size */
+  pprm.coarse_enough = coarse_enough; /* use direct solve below this size */
+
+  return new Precond(*matrix, pprm);
+}
+
+inline std::tuple<int,REAL> solve_system (Matrix *matrix, Precond *precond,
+        std::vector<REAL> &b, std::vector<REAL> &x, int maxiter, REAL tol)
+{
+  Solver::params sprm;
+  REAL error;
+  int iters;
+
+  sprm.maxiter = maxiter;
+  sprm.tol = tol;
+  Solver solver(std::get<0>(*matrix), sprm);
+
+  return std::tie(iters, error) = solver(*matrix, *precond, b, x);
 }
 
 #endif

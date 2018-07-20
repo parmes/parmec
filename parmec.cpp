@@ -2376,16 +2376,12 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     trqspr_changed = 0;
   }
 
-#define ENABLE_JOINTS 0 /* XXX */
-
-#if ENABLE_JOINTS
   if (joints_changed)
   {
     reset_joints_symbolic (jnum, jpart);
 
     joints_changed = 0;
   }
-#endif
 
   if (curtime == 0.0)
   {
@@ -2445,11 +2441,7 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
-#if ENABLE_JOINTS
-    reset_joints_matrix (jnum, jpart, jpoint, position, rotation, inverse, invm, stepnum % 10 == 0); /* XXX: preconditioner update freq. */
-
-    solve_joints (jnum, jpart, jpoint, jreac, position, rotation, inertia, inverse, invm, linear, angular, force, torque, step0);
-#endif
+    solve_joints (jnum, jpart, jpoint, jreac, parnum, position, rotation, inertia, inverse, invm, linear, angular, force, torque, step0);
 
     restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
 
