@@ -3160,7 +3160,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   PyObject *entity, *source, *point, *h5file, *h5last;
   REAL s[6] = {0., 0., 0., 0., 0., 0.};
   int list_size, *list, kind, hisent;
-  int srckind = 0; /* 0: partilce, 1: spring */
+  int srckind = 0; /* 0: partilce, 1: linear spring, 2: torsion spring, 3: joint */
 
   point = NULL;
   source = NULL;
@@ -3335,47 +3335,67 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   ELIF (entity, "ROLL")
   {
     hisent = HIS_ROLL;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "PITCH")
   {
     hisent = HIS_PITCH;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "YAW")
   {
     hisent = HIS_YAW;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "TRQTOT_R")
   {
     hisent = HIS_TRQTOT_R;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "TRQTOT_P")
   {
     hisent = HIS_TRQTOT_P;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "TRQTOT_Y")
   {
     hisent = HIS_TRQTOT_Y;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "TRQSPR_R")
   {
     hisent = HIS_TRQSPR_R;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "TRQSPR_P")
   {
     hisent = HIS_TRQSPR_P;
-    srckind = 1;
+    srckind = 2;
   }
   ELIF (entity, "TRQSPR_Y")
   {
     hisent = HIS_TRQSPR_Y;
-    srckind = 1;
+    srckind = 2;
+  }
+  ELIF (entity, "JREAC_X")
+  {
+    hisent = HIS_JREAC_X;
+    srckind = 3;
+  }
+  ELIF (entity, "JREAC_Y")
+  {
+    hisent = HIS_JREAC_Y;
+    srckind = 3;
+  }
+  ELIF (entity, "JREAC_Z")
+  {
+    hisent = HIS_JREAC_Z;
+    srckind = 3;
+  }
+  ELIF (entity, "|JREAC|")
+  {
+    hisent = HIS_JREAC_L;
+    srckind = 3;
   }
   ELSE
   {
@@ -3410,6 +3430,16 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
       PyErr_SetString (PyExc_ValueError, "Spring index out of range");
       return NULL;
     }
+    if (!h5file && srckind == 2 && (list[0] < 0 || list[0] >= trqsprnum))
+    {
+      PyErr_SetString (PyExc_ValueError, "Spring index out of range");
+      return NULL;
+    }
+    if (!h5file && srckind == 3 && (list[0] < 0 || list[0] >= jnum))
+    {
+      PyErr_SetString (PyExc_ValueError, "Joint index out of range");
+      return NULL;
+    }
     kind = HIS_LIST;
   }
   else if (PyList_Check (source))
@@ -3429,14 +3459,24 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 	PyErr_SetString (PyExc_ValueError, "Spring index out of range");
 	return NULL;
       }
+      if (!h5file && srckind == 2 && (list[j] < 0 || list[j] >= trqsprnum))
+      {
+	PyErr_SetString (PyExc_ValueError, "Spring index out of range");
+	return NULL;
+      }
+      if (!h5file && srckind == 3 && (list[j] < 0 || list[j] >= jnum))
+      {
+	PyErr_SetString (PyExc_ValueError, "Joint index out of range");
+	return NULL;
+      }
     }
     kind = HIS_LIST;
   }
   else if (PyTuple_Check (source))
   {
-    if (srckind == 1)
+    if (srckind == 1 || srckind == 2 || srckind == 3)
     {
-      PyErr_SetString (PyExc_ValueError, "Invalid source kind for a spring entity");
+      PyErr_SetString (PyExc_ValueError, "Invalid source kind for a spring/joint entity");
       return NULL;
     }
 
@@ -3675,6 +3715,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 	    if (subset) outmode[i] |= OUT_MODE_ST;
 	    else outmode[i] |= OUT_MODE_ST;
 	  }
+	  ELIF (item, "JT")
+	  {
+	    if (subset) outmode[i] |= OUT_MODE_JT;
+	    else outmode[i] |= OUT_MODE_JT;
+	  }
 	  ELSE
 	  {
 	    PyErr_SetString (PyExc_ValueError, "Invalid mode");
@@ -3691,8 +3736,8 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
   }
   else
   {
-    if (subset) outmode[i] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST;
-    else outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST; 
+    if (subset) outmode[i] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST|OUT_MODE_JT;
+    else outrest[1] = OUT_MODE_SPH|OUT_MODE_MESH|OUT_MODE_RB|OUT_MODE_CD|OUT_MODE_SL|OUT_MODE_ST|OUT_MODE_JT; 
   }
 
   if (entities)
@@ -3828,6 +3873,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	if (subset) outent[i] |= OUT_TRQSPR;
 	else outrest[0] |= OUT_TRQSPR;
+      }
+      ELIF (item, "JREAC")
+      {
+	if (subset) outent[i] |= OUT_JREAC;
+	else outrest[0] |= OUT_JREAC;
       }
       ELSE
       {

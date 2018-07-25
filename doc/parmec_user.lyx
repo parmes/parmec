@@ -3383,7 +3383,8 @@ reference "subsec:OUTPUT"
  - pitch) 'ZDIR_X', 'ZDIR_Y', 'ZDIR_Z', 'XDIR_X', 'XDIR_Y', 'XDIR_Z', (spring
  rotation angles) 'ROLL', 'PITCH', 'YAW', (spring total moment components:
  r - roll, p - pitch, y - yaw) 'TRQTOT_R', 'TRQTOT_P', 'TRQTOT_Y', (spring
- undamped moment components) 'TRQSPR_R', 'TRQSPR_P', 'TRQSPR_Y';
+ undamped moment components) 'TRQSPR_R', 'TRQSPR_P', 'TRQSPR_Y'; joint entities:
+ '(joint reaction) 'JREAC_X', 'JREAC_Y', 'JREAC_Z', '|JREAC|'
 \end_layout
 
 \begin_layout Itemize
@@ -3421,8 +3422,8 @@ i, j, ...
 \color red
 (under development)
 \color inherit
-; default: 0 (useful when entity is 'TIME'); spring number or a list of
- numbers can be used as a source in case of spring entities
+; default: 0 (useful when entity is 'TIME'); spring/joint number or a list
+ of numbers can be used as a source in case of spring/joint entities
 \end_layout
 
 \begin_layout Itemize
@@ -3697,6 +3698,72 @@ and/or
  match consecutive OUTPUT calls
 \end_layout
 
+\begin_layout Itemize
+*0st.vtk.* 
+\series bold
+and/or
+\series default
+ (*0st.h5, *0st.xmf) 
+\series bold
+and/or
+\series default
+ (*0st.med) files for torsional spring data including particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1st.vtk.*, *2st.vtk.*, … 
+\series bold
+and/or
+\series default
+ (*1st.h5, *1st.xmf, *2st.h5, *2st.xmf, …) 
+\series bold
+and/or
+\series default
+ (*1st.med, *2st.med, …) files for torsional spring data including particles
+ specified as subsets, where numbers 1, 2, … match consecutive OUTPUT calls
+\end_layout
+
+\begin_layout Itemize
+*0jt.vtk.* 
+\series bold
+and/or
+\series default
+ (*0jt.h5, *0jt.xmf) 
+\series bold
+and/or
+\series default
+ (*0jt.med) files for joints data including particles 
+\series bold
+not
+\series default
+ specified as 
+\series bold
+a subset
+\series default
+ in the OUTPUT command
+\end_layout
+
+\begin_layout Itemize
+*1jt.vtk.*, *2jt.vtk.*, … 
+\series bold
+and/or
+\series default
+ (*1jt.h5, *1jt.xmf, *2jt.h5, *2jt.xmf, …) 
+\series bold
+and/or
+\series default
+ (*1jt.med, *2jt.med, …) files for joints data including particles specified
+ as subsets, where numbers 1, 2, … match consecutive OUTPUT calls
+\end_layout
+
 \begin_layout Subsection*
 OUTPUT ( | entities, subset, mode, format)
 \end_layout
@@ -3860,6 +3927,10 @@ reference "sec:TSERIES"
  will give the yaw-conjugate component, etc.
 \end_layout
 
+\begin_layout Itemize
+'JREAC' - 3-component vector field of joint reactions (modes: 'JT')
+\end_layout
+
 \end_deeper
 \begin_layout Itemize
 
@@ -3894,7 +3965,8 @@ and ellipsoid
 
  output, 'MESH' for mesh output, 'RB' for rigid body output, 'CD' for contact
  data output, 'SL' for linear spring data output, 'TS' for torsional spring
- data output; default: ['SPH', 'MESH', 'RB', 'CD', 'SL', 'TS']
+ data output, 'JT' for joints data output; default: ['SPH', 'MESH', 'RB',
+ 'CD', 'SL', 'TS', 'JT']
 \end_layout
 
 \begin_layout Itemize
