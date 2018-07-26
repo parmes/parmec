@@ -183,10 +183,11 @@ void reset_joints_symbolic (int jnum, int *jpart[2])
 
 /* solve joints and update forces */
 void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int parnum,
-  REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL invm[],
-  REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step)
+  REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL mass[], REAL invm[],
+  REAL damping[6], REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step0, REAL step1)
 {
-  REAL half = 0.5*step;
+  REAL half = 0.5*step0;
+  REAL step = 0.5*(step0+step1);
 
 #if OMP
   std::vector<omp_lock_t> lock(parnum);
@@ -341,7 +342,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 
     for (std::vector<int>::iterator it = iset.begin(); it != iset.end(); it++, B += 3)
     {
-      REAL Rot[9], Jiv[9], J[9], O[3], t[3], A[3], C[9], T[3], dRot[9], Hi[9], im;
+      REAL Rot[9], Jiv[9], J[9], O[3], o[3], v[3], f[3], t[3], A[3], C[9], T[3], dRot[9], Hi[9], im;
 
       int i = *it;
 
@@ -381,9 +382,15 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	  O[0] = angular[0][part];
 	  O[1] = angular[1][part];
 	  O[2] = angular[2][part];
+	  f[0] = force[0][part];
+	  f[1] = force[1][part];
+	  f[2] = force[2][part];
 	  t[0] = torque[0][part];
 	  t[1] = torque[1][part];
 	  t[2] = torque[2][part];
+	  v[0] = linear[0][part];
+	  v[1] = linear[1][part];
+	  v[2] = linear[2][part];
 	  im = invm[part];
 	
 	  A[0] = position[3][part] - jpoint[0][i];
@@ -391,6 +398,29 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	  A[2] = position[5][part] - jpoint[2][i];
 	  VECSKEW (A, C);
 	  NNMUL (Rot, C, Hi);
+
+	  if (damping[0] != 0.0 || damping[1] != 0.0 || damping[2] != 0.0)
+	  {
+	    REAL ma = mass[i];
+
+	    f[0] -= ma * damping[0] * v[0];
+	    f[1] -= ma * damping[1] * v[1];
+	    f[2] -= ma * damping[2] * v[2];
+	  }
+	  if (damping[3] != 0.0 || damping[4] != 0.0 || damping[5] != 0.0)
+	  {
+	    o[0] = damping[3]*angular[3][part];
+	    o[1] = damping[4]*angular[4][part];
+	    o[2] = damping[5]*angular[5][part];
+
+	    TVMUL (Rot, o, C);
+	    NVMUL (J, C, T);
+	    NVMUL (Rot, T, C);
+
+	    t[0] -= C[0];
+	    t[1] -= C[1];
+	    t[2] -= C[2];
+	  }
 
 	  expmap (-half*O[0], -half*O[1], -half*O[2], dRot[0], dRot[1],
 	    dRot[2], dRot[3], dRot[4], dRot[5], dRot[6], dRot[7], dRot[8]);
@@ -421,13 +451,13 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	    B[2] += C[2];
 	  }
 
-	  C[0] = force[0][part];
-	  C[1] = force[1][part];
-	  C[2] = force[2][part];
+	  C[0] = f[0];
+	  C[1] = f[1];
+	  C[2] = f[2];
 	  SCALE (C, step*im);
-	  C[0] += linear[0][part];
-	  C[1] += linear[1][part];
-	  C[2] += linear[2][part];
+	  C[0] += v[0];
+	  C[1] += v[1];
+	  C[2] += v[2];
 
 	  if (part == jpart[0][i])
 	  {

@@ -36,8 +36,8 @@ void reset_joints_symbolic (int jnum, int *jpart[2]);
 
 /* solve joints and update forces */
 void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int parnum,
-  REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL invm[],
-  REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step);
+  REAL *position[6], REAL *rotation[9], REAL *inertia[9], REAL *inverse[9], REAL mass[], REAL invm[],
+  REAL damping[6], REAL *linear[3], REAL *angular[6], REAL *force[6], REAL *torque[6], REAL step0, REAL step1);
 
 #ifdef __cplusplus
 } /* namespace */

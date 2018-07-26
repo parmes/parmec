@@ -2441,8 +2441,6 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
-    solve_joints (jnum, jpart, jpoint, jreac, parnum, position, rotation, inertia, inverse, invm, linear, angular, force, torque, step0);
-
     restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
 
     prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
@@ -2456,6 +2454,9 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
     {
       step1 = step0;
     }
+
+    solve_joints (jnum, jpart, jpoint, jreac, parnum, position, rotation, inertia,
+      inverse, mass, invm, damping, linear, angular, force, torque, step0, step1);
 
     dynamics (ntasks, master, slave, parnum, angular, linear, rotation, position,
       inertia, inverse, mass, invm, damping, force, torque, flags, step0, step1);

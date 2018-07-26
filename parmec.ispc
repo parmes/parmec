@@ -266,8 +266,8 @@ task void euler_task (uniform int span, uniform int parnum, uniform REAL * unifo
     angular[5][i] = o[2];
 
     position[0][i] += step * linear[0][i];
-    position[1][i] += step * linear[0][i];
-    position[2][i] += step * linear[0][i];
+    position[1][i] += step * linear[1][i];
+    position[2][i] += step * linear[2][i];
   }
 }
 

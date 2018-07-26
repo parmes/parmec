@@ -1,7 +1,7 @@
 # PARMEC example --> articulated pendulum
 # using BALL_JOINT and TORSION_SPRING commands
 
-nele=3 # number of elements
+nele=2 # number of elements
 itwt=False # enable initial twist
 tspr=False # enable torsion springs
 ktrq=10 # flex stiffness
