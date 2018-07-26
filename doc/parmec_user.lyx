@@ -3782,7 +3782,7 @@ entities
 \begin_deeper
 \begin_layout Itemize
 'NUMBER' - scalar field of particle numbers (modes: 'SPH', 'MESH', 'RB'),
- or scalar field of spring numbers (modes: 'SL', 'ST')
+ or scalar field of spring/joint numbers (modes: 'SL', 'ST', 'JT')
 \end_layout
 
 \begin_layout Itemize

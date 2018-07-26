@@ -1563,6 +1563,146 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     }
   }
 }
+
+/* output MED dataset of joints data */
+static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
+{
+  int i, j;
+
+  /* mesh name */
+  char meshName[MED_NAME_SIZE + 1] = "PARMEC mesh";
+
+  if (output_frame == 0)
+  {
+    /* create 3d unstructured mesh */
+    char dtUnit[MED_SNAME_SIZE + 1] = "";
+    char axisName[3 * MED_SNAME_SIZE + 1] = "";
+    char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
+    ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
+	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+
+    /* create family 0 : by default, all mesh entities family number is 0 */
+    ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
+  }
+
+  /* write nodes */
+  {
+    std::vector<med_float> coord;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      REAL refpnt[3] = {jpoint[0][j], jpoint[1][j], jpoint[2][j]};
+      int k = trqsprpart[0][j];
+      REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
+      REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
+      REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
+			rotation[3][k], rotation[4][k], rotation[5][k],
+			rotation[6][k], rotation[7][k], rotation[8][k]};
+      REAL diff[3];
+
+      SUB (refpnt, refpos, diff);
+      NVADDMUL (curpos, rotate, diff, refpnt);
+
+      coord.push_back(refpnt[0]);
+      coord.push_back(refpnt[1]);
+      coord.push_back(refpnt[2]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
+	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+    }
+    else
+    {
+      ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
+	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+    }
+  }
+
+  /* write elements */
+  if (output_frame == 0)
+  {
+    std::vector<med_int> conn;
+    for (i = 0; i < num; i ++)
+    {
+      conn.push_back(i+1);
+    }
+
+    ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
+	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
+  }
+
+  if (ent & OUT_NUMBER)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "NUMBER";
+    const med_int ncomponent = 1;
+    const char componentName[MED_SNAME_SIZE+1] = "number";
+    const char componentUnit[MED_SNAME_SIZE+1] = "1";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      values.push_back(j);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+
+  if (ent & OUT_JREAC)
+  {
+    const char fieldName[MED_NAME_SIZE+1] = "JREAC";
+    const med_int ncomponent = 3;
+    const char componentName[3*MED_SNAME_SIZE+1] = "x               y               z";
+    const char componentUnit[3*MED_SNAME_SIZE+1] = "1.0             1.0             1.0";
+    const char dtUnit[MED_SNAME_SIZE+1] = "s";
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
+        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+    }
+
+    std::vector<med_float> values;
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+
+      values.push_back (jreac[0][j]);
+      values.push_back (jreac[1][j]);
+      values.push_back (jreac[2][j]);
+    }
+
+    if (output_frame == 0)
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+    else
+    {
+      ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+    }
+  }
+}
 #endif
 
 /* output vtk dataset of triangles */
@@ -3001,6 +3141,62 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
   }
 }
 
+/* output vtk dataset of joints data */
+static void vtk_joints_dataset (int num, int *set, int ent, ofstream &out)
+{
+  int i, j;
+
+  out << "DATASET UNSTRUCTURED_GRID\n";
+
+  out << "POINTS " << num << " float\n";
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+
+    REAL refpnt[3] = {jpoint[0][j], jpoint[1][j], jpoint[2][j]};
+    int k = trqsprpart[0][j];
+    REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
+    REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
+    REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
+		      rotation[3][k], rotation[4][k], rotation[5][k],
+		      rotation[6][k], rotation[7][k], rotation[8][k]};
+    REAL diff[3];
+
+    SUB (refpnt, refpos, diff);
+    NVADDMUL (curpos, rotate, diff, refpnt);
+
+    out << refpnt[0] << " " << refpnt[1] << " " << refpnt[2] << "\n";
+  }
+
+  if (ent & (OUT_NUMBER|OUT_JREAC))
+  {
+    out << "POINT_DATA " << num << "\n";
+  }
+
+  if (ent & OUT_NUMBER)
+  {
+    out << "SCALARS number int\n";
+    out << "LOOKUP_TABLE default\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << j << "\n";
+    }
+  }
+
+  if (ent & OUT_JREAC)
+  {
+    out << "VECTORS JREAC float\n";
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      out << jreac[0][j] << " "
+	  << jreac[1][j] << " "
+	  << jreac[2][j] << "\n";
+    }
+  }
+}
+
 /* output hdf5 dataset of linear spring data */
 static void h5_linear_spring_dataset (int num, int *set, int ent, hid_t h5_step)
 {
@@ -3307,6 +3503,68 @@ static void h5_torsional_spring_dataset (int num, int *set, int ent, hid_t h5_st
     }
 
     ASSERT (H5LTmake_dataset_double (h5_step, "TRQSPR", 2, dims, data) >= 0, "HDF5 file write error");
+  }
+
+  delete [] data;
+}
+
+/* output hdf5 dataset of joints data */
+static void h5_joints_dataset (int num, int *set, int ent, hid_t h5_step)
+{
+  double *data, *pdata;
+  int i, j, *numb;
+
+  ERRMEM (data = new double [3*num]);
+  for (i = 0; i < num; i ++)
+  {
+    j = set[i];
+
+    REAL refpnt[3] = {jpoint[0][j], jpoint[1][j], jpoint[2][j]};
+    int k = trqsprpart[0][j];
+    REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
+    REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
+    REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
+		      rotation[3][k], rotation[4][k], rotation[5][k],
+		      rotation[6][k], rotation[7][k], rotation[8][k]};
+    REAL diff[3];
+
+    SUB (refpnt, refpos, diff);
+    NVADDMUL (curpos, rotate, diff, refpnt);
+
+    data[3*i+0] = refpnt[0];
+    data[3*i+1] = refpnt[1];
+    data[3*i+2] = refpnt[2];
+  }
+  hsize_t dims[2] = {num, 3};
+  ASSERT (H5LTmake_dataset_double (h5_step, "GEOM", 2, dims, data) >= 0, "HDF5 file write error");
+
+  if (ent & OUT_NUMBER)
+  {
+    ERRMEM (numb = new int[num]);
+
+    for (i = 0; i < num; i ++)
+    {
+      j = set[i];
+      numb[i] = j;
+    }
+
+    hsize_t length = num;
+    ASSERT (H5LTmake_dataset_int (h5_step, "NUMBER", 1, &length, numb) >= 0, "HDF5 file write error");
+
+    delete [] numb;
+  }
+
+  if (ent & OUT_JREAC)
+  {
+    for (pdata = data, i = 0; i < num; i ++, pdata += 3)
+    {
+      j = set[i];
+      pdata[0] = jreac[0][j];
+      pdata[1] = jreac[1][j];
+      pdata[2] = jreac[2][j];
+    }
+
+    ASSERT (H5LTmake_dataset_double (h5_step, "JREAC", 2, dims, data) >= 0, "HDF5 file write error");
   }
 
   delete [] data;
@@ -3675,6 +3933,27 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
       fprintf (xmf_file, "</Attribute>\n");
     }
     break;
+
+  case OUT_MODE_JT:
+
+    if (ent & OUT_NUMBER)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+
+    if (ent & OUT_JREAC)
+    {
+      fprintf (xmf_file, "<Attribute Name=\"JREAC\" Center=\"Node\" AttributeType=\"Vector\">\n");
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+      fprintf (xmf_file, "%s:/%d/JREAC\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Attribute>\n");
+    }
+    break;
   }
 
   fprintf (xmf_file, "</Grid>\n");
@@ -4029,6 +4308,98 @@ static void output_xdmf_files ()
     free (map);
     MEM_Release (&mem);
   }
+
+  if (jnum)
+  {
+    int i, j, ent, num, *set; /* number of and the set of joints */
+    MAP **map, *item; /* map of joints attached to particles, and iterator */
+    MEM mem;
+
+    MEM_Init (&mem, sizeof (MAP), 1024);
+    ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
+    ERRMEM (set = new int[jnum]);
+
+    for (i = 0; i < jnum; i ++)
+    {
+      MAP_Insert (&mem, &map[jpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+      if (jpart[1][i] >= 0) MAP_Insert (&mem, &map[jpart[1][i]], (void*)(long)i, NULL, NULL);
+    }
+
+    for (j = -1; j < outnum; j ++)
+    {
+      num = 0;
+
+      if (j < 0 && (outrest[1] & OUT_MODE_JT)) /* output springs attached to unselected particles */
+      {
+	for (i = 0; i < jnum; i ++)
+	{
+	  if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
+	  (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+        ent = outrest[0];
+      }
+      else if (outmode[j] & OUT_MODE_JT) /* output springs attached to selected particles */
+      {
+	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+	{
+	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+	  {
+	    set[num ++] = (int)(long)item->key;
+	  }
+	}
+
+	ent = outent[j];
+      }
+
+      if (num) 
+      {
+	h5_path.str("");
+	h5_path.clear();
+	h5_path << output_path << j+1 << "jt.h5";
+
+	if (curtime == 0.0)
+	{
+	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+	else
+	{
+	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+	}
+
+	h5_text.str("");
+	h5_text.clear();
+	h5_text << output_frame;
+	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+	double time = curtime;
+        ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
+ 
+	h5_joints_dataset (num, set, ent, h5_step); /* append h5 dataset */
+
+        xmf_path.str("");
+	xmf_path.clear();
+	xmf_path << output_path << j+1 << "jt.xmf"; /* append xmf file */
+
+	int elements = 0;
+	int nodes = num;
+	int topo_size = 0;
+	const char *label = "PARMEC joints";
+	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+
+        append_xmf_file (xmf_path.str().c_str(), OUT_MODE_JT, elements, nodes, topo_size, label, h5file.c_str(), ent);
+
+	H5Gclose (h5_step);
+	H5Fclose (h5_file);
+      }
+    }
+
+    delete [] set;
+    free (map);
+    MEM_Release (&mem);
+  }
 };
 
 /* output VTK files */
@@ -4291,6 +4662,78 @@ static void output_vtk_files ()
     free (map);
     MEM_Release (&mem);
   }
+
+  if (jnum)
+  {
+    int num, *set; /* number of and the set of joints */
+    MAP **map, *item; /* map of joints attached to particles, and iterator */
+    MEM mem;
+
+    MEM_Init (&mem, sizeof (MAP), 1024);
+    ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
+    ERRMEM (set = new int[jnum]);
+
+    for (num = i = 0; i < jnum; i ++)
+    {
+      MAP_Insert (&mem, &map[jpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+      if (jpart[1][i] >= 0) MAP_Insert (&mem, &map[jpart[1][i]], (void*)(long)i, NULL, NULL);
+    }
+
+    for (j = -1; j < outnum; j ++)
+    {
+      if (j < 0 && (outrest[1] & OUT_MODE_JT)) /* output springs attached to unselected particles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << output_path << j+1 << "jt.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC joints output at time " << curtime << "\n";
+	out << "ASCII\n";
+
+	for (num = i = 0; i < jnum; i ++)
+	{
+	  if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
+	  (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+	vtk_joints_dataset (num, set, outrest[0], out);
+
+        out.close();
+      }
+      else if (outmode[j] & OUT_MODE_JT) /* output springs attached to selected particles */
+      {
+	oss.str("");
+	oss.clear();
+	oss << output_path << j+1 << "jt.vtk." << output_frame;
+	out.open (oss.str().c_str());
+
+	out << "# vtk DataFile Version 2.0\n";
+	out << "PARMEC joints output at time " << curtime << "\n";
+	out << "ASCII\n";
+
+	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+	{
+	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+	  {
+	    set[num ++] = (int)(long)item->key;
+	  }
+	}
+
+	if (num) vtk_joints_dataset (num, set, outent[j], out);
+
+        out.close();
+      }
+    }
+
+    delete [] set;
+    free (map);
+    MEM_Release (&mem);
+  }
 }
 
 #if MED
@@ -4543,6 +4986,77 @@ static void output_med_files ()
 	}
  
 	med_st_dataset (num, set, ent, med_fid_st);
+      }
+    }
+
+    delete [] set;
+    free (map);
+    MEM_Release (&mem);
+  }
+
+  if (jnum)
+  {
+    int i, j, ent, num, *set; /* number of and the set of joints */
+    MAP **map, *item; /* map of joints attached to particles, and iterator */
+    MEM mem;
+
+    MEM_Init (&mem, sizeof (MAP), 1024);
+    ERRMEM (map = static_cast<MAP**>(MEM_CALLOC(parnum * sizeof(MAP*))));
+    ERRMEM (set = new int[jnum]);
+
+    for (i = 0; i < jnum; i ++)
+    {
+      MAP_Insert (&mem, &map[jpart[0][i]], (void*)(long)i, NULL, NULL); /* map springs to particles */
+      if (jpart[1][i] >= 0) MAP_Insert (&mem, &map[jpart[1][i]], (void*)(long)i, NULL, NULL);
+    }
+
+    for (j = -1; j < outnum; j ++)
+    {
+      num = 0;
+
+      if (j < 0 && (outrest[1] & OUT_MODE_JT)) /* output springs attached to unselected particles */
+      {
+	for (i = 0; i < jnum; i ++)
+	{
+	  if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
+	  (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
+	  {
+	    set[num ++] = i;
+	  }
+	}
+
+        ent = outrest[0];
+      }
+      else if (outmode[j] & OUT_MODE_JT) /* output springs attached to selected particles */
+      {
+	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+	{
+	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+	  {
+	    set[num ++] = (int)(long)item->key;
+	  }
+	}
+
+	ent = outent[j];
+      }
+
+      if (num) 
+      {
+	if (med_fid_st < 0)
+	{
+	  oss.str("");
+	  oss.clear();
+	  oss << output_path << j+1 << "jt.med";
+	  med_fid_st = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+	  ASSERT (med_fid_st >= 0, "Unable to open file '%s'", oss.str().c_str());
+
+	  oss.str("");
+	  oss.clear();
+	  oss << "PARMEC joints output";
+	  ASSERT(MEDfileCommentWr(med_fid_st, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+	}
+ 
+	med_jt_dataset (num, set, ent, med_fid_st);
       }
     }
 
@@ -4979,6 +5493,21 @@ void output_history ()
 	    value += (REAL)trqrpyspr[2][l];
 	  }
 	  break;
+          case HIS_JREAC_X:
+	    value += jreac[0][k];
+	  break;
+	  case HIS_JREAC_Y:
+	    value += jreac[1][k];
+	  break;
+	  case HIS_JREAC_Z:
+	    value += jreac[2][k];
+	  break;
+	  case HIS_JREAC_L:
+	  {
+	    REAL q[3] = {jreac[0][k], jreac[1][k], jreac[2][k]};
+	    value += LEN(q);
+	  }
+	  break;
 	  }
 	}
 
@@ -5111,6 +5640,7 @@ void output_h5history ()
       double *TRQROT = h5read (h5_step, "TRQROT", &NUM);
       double *TRQTOT = h5read (h5_step, "TRQTOT", &NUM);
       double *TRQSPR = h5read (h5_step, "TRQSPR", &NUM);
+      double *JREAC = h5read (h5_step, "JREAC", &NUM);
 
       for (MAP *item = MAP_First (ent2data); item; item = MAP_Next (item))
       {
@@ -5619,6 +6149,25 @@ void output_h5history ()
 		double *gspr = &TRQSPR[3*l];
 		double *zdir = &ZDIR[3*l];
 		value += DOT(zdir, gspr);
+	      }
+	      break;
+	      case HIS_JREAC_X:
+	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+		value += JREAC[3*k];
+	      break;
+	      case HIS_JREAC_Y:
+	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+		value += JREAC[3*k+1];
+	      break;
+	      case HIS_JREAC_Z:
+	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+		value += JREAC[3*k+2];
+	      break;
+	      case HIS_JREAC_L:
+	      {
+	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+		REAL q[3] = {JREAC[3*k], JREAC[3*k+1], JREAC[3*k+2]};
+		value += LEN(q);
 	      }
 	      break;
 	      }
