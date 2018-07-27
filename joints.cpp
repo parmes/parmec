@@ -436,28 +436,10 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 
 	  SCALE (T, step);
 	  NVADDMUL (O, Jiv, T, A); /* O(t+h) */
-	  NVMUL (Hi, A, C);
 
-	  if (part == jpart[0][i])
-	  {
-	    B[0] -= C[0];
-	    B[1] -= C[1];
-	    B[2] -= C[2];
-	  }
-	  else
-	  {
-	    B[0] += C[0];
-	    B[1] += C[1];
-	    B[2] += C[2];
-	  }
-
-	  C[0] = f[0];
-	  C[1] = f[1];
-	  C[2] = f[2];
-	  SCALE (C, step*im);
-	  C[0] += v[0];
-	  C[1] += v[1];
-	  C[2] += v[2];
+	  NVMUL (Hi, A, C); /* rel. joint vel. U = H O(t+h) + ... */
+          ACC (v, C);
+	  ADDMUL (C, step*im, f, C) /* ... U += v(t+h) {== v(t) + step*force/mass} */
 
 	  if (part == jpart[0][i])
 	  {
