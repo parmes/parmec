@@ -29,7 +29,7 @@ SOFTWARE.
 #include <map>
 #include <set>
 
-#if OMP
+#if defined(_OPENMP)
 #include <omp.h>
 #endif
 
@@ -189,12 +189,12 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
   REAL half = 0.5*step0;
   REAL step = 0.5*(step0+step1);
 
-#if OMP
+#if defined(_OPENMP)
   std::vector<omp_lock_t> lock(parnum);
   for (int i = 0; i < parnum; i ++) omp_init_lock (&lock[i]);
-#endif
 
   #pragma omp parallel for
+#endif
   for (int is = 0; is < isets.size(); is ++)
   {
     int n = std::get<0>(*systems[is]); /* system size */
@@ -342,7 +342,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 
     for (std::vector<int>::iterator it = iset.begin(); it != iset.end(); it++, B += 3)
     {
-      REAL Rot[9], Jiv[9], J[9], O[3], o[3], v[3], f[3], t[3], A[3], C[9], T[3], dRot[9], Hi[9], im;
+      REAL Rot[9], Jiv[9], J[9], O[3], o[3], v[3], f[3], t[3], A[3], V[3], C[9], T[3], dRot[9], Hi[9], im;
 
       int i = *it;
 
@@ -399,6 +399,9 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	  VECSKEW (A, C);
 	  NNMUL (Rot, C, Hi);
 
+	  NVMUL (Hi, O, V);
+	  ACC (v, V); /* U(t) */
+
 	  if (damping[0] != 0.0 || damping[1] != 0.0 || damping[2] != 0.0)
 	  {
 	    REAL ma = mass[i];
@@ -437,21 +440,21 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	  SCALE (T, step);
 	  NVADDMUL (O, Jiv, T, A); /* O(t+h) */
 
-	  NVMUL (Hi, A, C); /* rel. joint vel. U = H O(t+h) + ... */
+	  NVMUL (Hi, A, C); /* rel. joint vel. U(t+h) = H O(t+h) + ... */
           ACC (v, C);
-	  ADDMUL (C, step*im, f, C) /* ... U += v(t+h) {== v(t) + step*force/mass} */
+	  ADDMUL (C, step*im, f, C) /* ... U(t+h) += v(t+h) {== v(t) + step*force/mass} */
 
 	  if (part == jpart[0][i])
 	  {
-	    B[0] -= C[0];
-	    B[1] -= C[1];
-	    B[2] -= C[2];
+	    B[0] -= V[0]+C[0]; /* U(t) + U(t+h) = 0 = V + C + W*step*R */
+	    B[1] -= V[1]+C[1];
+	    B[2] -= V[2]+C[2];
 	  }
 	  else
 	  {
-	    B[0] += C[0];
-	    B[1] += C[1];
-	    B[2] += C[2];
+	    B[0] += V[0]+C[0];
+	    B[1] += V[1]+C[1];
+	    B[2] += V[2]+C[2];
 	  }
 	}
       }
@@ -528,7 +531,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	  NVMUL (Rot, A, a);
 	  PRODUCT (R, a, t);
 
-#if OMP
+#if defined(_OPENMP)
 	  omp_set_lock (&lock[part]);
 #endif
 
@@ -550,7 +553,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
 	    force[1][part] -= R[1];
 	    force[2][part] -= R[2];
 	  }
-#if OMP
+#if defined(_OPENMP)
 	  omp_unset_lock (&lock[part]);
 #endif
 	}
@@ -558,7 +561,7 @@ void solve_joints (int jnum, int *jpart[2], REAL *jpoint[3], REAL *jreac[3], int
     }
   }
 
-#if OMP
+#if defined(_OPENMP)
   for (int i = 0; i < parnum; i ++) omp_destroy_lock (&lock[i]);
 #endif
 }

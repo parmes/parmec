@@ -59,9 +59,10 @@ t = HISTORY ('TIME')
 px0 = HISTORY ('PX', 0, (1, 0.05, 0.05))
 py0 = HISTORY ('PY', 0, (1, 0.05, 0.05))
 pz0 = HISTORY ('PZ', 0, (1, 0.05, 0.05))
-px1 = HISTORY ('PX', 1, (1, 0.05, 0.05))
-py1 = HISTORY ('PY', 1, (1, 0.05, 0.05))
-pz1 = HISTORY ('PZ', 1, (1, 0.05, 0.05))
+if nele > 1:
+  px1 = HISTORY ('PX', 1, (1, 0.05, 0.05))
+  py1 = HISTORY ('PY', 1, (1, 0.05, 0.05))
+  pz1 = HISTORY ('PZ', 1, (1, 0.05, 0.05))
 if tspr:
   global tqr, tqp, tqy
   tqr = HISTORY ('TRQTOT_R', 0)
@@ -79,13 +80,18 @@ try:
   import matplotlib.pyplot as plt
 
   dp = []
-  for (x0,y0,z0,x1,y1,z1) in zip(px0,py0,pz0,px1,py1,pz1):
-    dp.append (((x0-x1)**2+(y0-y1)**2+(z0-z1)**2)**0.5)
+  if nele > 1:
+    for (x0,y0,z0,x1,y1,z1) in zip(px0,py0,pz0,px1,py1,pz1):
+      dp.append (((x0-x1)**2+(y0-y1)**2+(z0-z1)**2)**0.5)
+  else:
+    for (x0,y0,z0) in zip(px0,py0,pz0):
+      dp.append (((x0-1.0)**2+(y0-0.05)**2+(z0-0.05)**2)**0.5)
   plt.clf ()
   plt.plot (t, dp)
   plt.xlim ((0, t[-1]))
   plt.xlabel ('time (s)')
   plt.ylabel ('|p(body 0) - p(body 1)| (m)')
+  plt.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
   plt.title ('Joint point p motion difference (bodies: 0,1)')
   plt.savefig ('examples/articulated_pendulum_dp.png')
 
