@@ -2,12 +2,10 @@
 # using BALL_JOINT and TORSION_SPRING commands
 
 nele=2 # number of elements
-itwt=False # enable initial twist
-tspr=False # enable torsion springs
+tspr=True # enable torsion springs
 ktrq=10 # flex stiffness
 dtrq=2 # flex damping ratio
-ktwt=.1 # twist stiffness
-dtwt=.1 # twist damping ratio
+step=.0005 # time step
 
 matnum = MATERIAL (1E3, 1E9, 0.25)
 
@@ -37,7 +35,7 @@ for i in range (0, nele):
         # (roll, pitch) cone spring and damper curves restrain
         # freedom of rotationally invariant bending at joints
         kroll=[-1, ktrq, -0.5, 0, 0.5, 0, 1, -ktrq], droll=dtrq,
-        kyaw=[-1, ktwt, 1, -ktwt], dyaw=dtwt, # springy twist
+        kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq, # blocked twist
         cone = ('roll', 'pitch'),
         refpnt = (i, 0.05, 0.05))
 
@@ -49,9 +47,6 @@ if tspr:
   TORSION_SPRING (parnum, -1, (1, 0, 0), (0, 0, 1),
     kyaw=[-1, ktrq, 1, -ktrq], dyaw=dtrq, # blocked twist 
     refpnt = (i+1, 0.05, 0.05))
-
-if itwt:
-  VELOCITY (0, angular=(5, 0, 0)) # initial twist impulse
 
 GRAVITY (0., 0., -10.)
 
@@ -69,8 +64,7 @@ if tspr:
   tqp = HISTORY ('TRQTOT_P', 0)
   tqy = HISTORY ('TRQTOT_Y', 0)
 
-h = 0.0005
-DEM (10., h, (0.05, h))
+DEM (10., step, (0.05, step))
 
 print 'Generating plots ...',
 import sys
@@ -93,7 +87,7 @@ try:
   plt.ylabel ('|p(body 0) - p(body 1)| (m)')
   plt.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
   plt.title ('Joint point p motion difference (bodies: 0,1)')
-  plt.savefig ('examples/articulated_pendulum_dp.png')
+  plt.savefig ('examples/articulated_pendulum_dp_n%d_t%d.png' % (nele, int(tspr)))
 
   if tspr:
     trp = []
