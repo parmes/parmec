@@ -2406,7 +2406,7 @@ Create a ball joint between two particles at a coincident point.
 \end_layout
 
 \begin_layout Subsection*
-jnum = BALL_JOINT (part1, point | point2)
+jnum = BALL_JOINT (part1, point | part2)
 \end_layout
 
 \begin_layout Itemize
