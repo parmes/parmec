@@ -52,7 +52,7 @@ extern REAL curtime_history; /* current history time */
 extern int matnum; /* number of materials */
 extern REAL *mparam[NMAT]; /* material parameters */
 extern int material_buffer_size; /* size of the buffer */
-extern int material_buffer_grow (); /* grow buffer */
+extern void material_buffer_grow (); /* grow buffer */
 
 extern int pairnum; /* number of pairings */
 extern int *pairs; /* color pairs */

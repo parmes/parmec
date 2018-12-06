@@ -331,7 +331,7 @@ void material_buffer_init ()
 }
 
 /* grow material buffer */
-int material_buffer_grow ()
+void material_buffer_grow ()
 {
   material_buffer_size *= 2;
 
@@ -342,7 +342,7 @@ int material_buffer_grow ()
 }
 
 /* initialize pairing buffer */
-int pair_buffer_init ()
+void pair_buffer_init ()
 {
   pair_buffer_size = 64;
 
@@ -388,7 +388,7 @@ void pair_reset ()
 }
 
 /* initialize ellipsoid buffer */
-int ellipsoid_buffer_init ()
+void ellipsoid_buffer_init ()
 {
   ellipsoid_buffer_size = 256;
 
@@ -610,7 +610,7 @@ int particle_buffer_grow ()
 }
 
 /* init triangle buffer */
-int triangle_buffer_init ()
+void triangle_buffer_init ()
 {
   triangle_buffer_size = 256;
 
@@ -651,7 +651,7 @@ int triangle_buffer_grow ()
 }
 
 /* init element buffer */
-int element_buffer_init ()
+void element_buffer_init ()
 {
   node_buffer_size = 256;
   element_node_buffer_size = 1024;
@@ -725,7 +725,7 @@ void element_buffer_grow (int node_count, int element_node_count, int element_co
 }
 
 /* init obstacle buffer */
-int obstacle_buffer_init ()
+void obstacle_buffer_init ()
 {
   obstacle_buffer_size = 256;
 
@@ -755,7 +755,7 @@ int obstacle_buffer_grow ()
 }
 
 /* init spring buffer */
-int spring_buffer_init ()
+void spring_buffer_init ()
 {
   spring_buffer_size = 256;
   spring_lookup_size = 1024;
@@ -820,7 +820,7 @@ int spring_buffer_init ()
 }
 
 /* init torsion spring buffer */
-int trqspr_buffer_init ()
+void trqspr_buffer_init ()
 {
   trqspr_buffer_size = 256;
   krpy_lookup_size[0] = 1024;
@@ -1025,7 +1025,7 @@ void spring_buffer_grow (int spring_lookup, int dashpot_lookup, int unload_looku
 }
 
 /* init unspring buffer */
-int unspring_buffer_init ()
+void unspring_buffer_init ()
 {
   unspring_buffer_size = 256;
   tsprings_buffer_size = 1024;
@@ -1093,7 +1093,7 @@ void unspring_buffer_grow (int tsprings_increment, int msprings_increment, int a
 }
 
 /* init restrained particles buffer */
-int restrain_buffer_init ()
+void restrain_buffer_init ()
 {
   restrain_buffer_size = 256;
 
@@ -1149,7 +1149,7 @@ int restrain_buffer_grow ()
 }
 
 /* init joints buffer */
-int joints_buffer_init ()
+void joints_buffer_init ()
 {
   joints_buffer_size = 256;
 
@@ -1184,7 +1184,7 @@ int joints_buffer_grow ()
 }
 
 /* init time series buffer */
-int time_series_buffer_init ()
+void time_series_buffer_init ()
 {
   time_series_buffer_size = 256;
 
@@ -1269,7 +1269,7 @@ int lcurve_from_time_series (int ts)
 }
 
 /* init prescribed particles motion buffer */
-int prescribe_buffer_init ()
+void prescribe_buffer_init ()
 {
   prescribe_buffer_size = 256;
 
@@ -1309,7 +1309,7 @@ int prescribe_buffer_grow ()
 }
 
 /* init history buffer */
-int history_buffer_init ()
+void history_buffer_init ()
 {
   history_buffer_size = 256;
   history_list_size = 1024;
@@ -1359,7 +1359,7 @@ void history_buffer_grow (int list_size)
 }
 
 /* init output buffer */
-int output_buffer_init ()
+void output_buffer_init ()
 {
   output_buffer_size = 256;
   output_list_size = 1024;
@@ -2441,11 +2441,6 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     prescribe_body_forces (prescribed_body_forces, force, torque);
 
-    restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
-
-    prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
-                            tmsang, angkind, curtime, mass, inertia, force, torque);
-
     if (adaptive > 0.0 && adaptive <= 1.0)
     {
       step1 = adaptive_timestep (ntasks, parnum, mass, inertia, kact, kmax, emax, krot, step0, adaptive);
@@ -2457,6 +2452,11 @@ REAL dem (REAL duration, REAL step, REAL *interval, pointer_t *interval_func, in
 
     solve_joints (jnum, jpart, jpoint, jreac, parnum, position, rotation, inertia,
       inverse, mass, invm, damping, linear, angular, force, torque, step0, step1);
+
+    restrain_forces (ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
+
+    prescribe_acceleration (prsnum, tms, prspart, prslin, tmslin, linkind, prsang,
+                            tmsang, angkind, curtime, mass, inertia, force, torque);
 
     dynamics (ntasks, master, slave, parnum, angular, linear, rotation, position,
       inertia, inverse, mass, invm, damping, force, torque, flags, step0, step1);
