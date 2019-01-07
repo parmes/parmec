@@ -1,3 +1,8 @@
 * tests/spring_contact.py got unstable after local accumulation spring optimization
 
 * tests/spring_chain.py seems to behave too differently in single and double precision
+
+* hopper run bug introduced by commit: 
+  914d571d8e4b096adb8e48093ba46f7c0e61d9d1
+  June 12, 2018
+  'min per-particle critical step now default'

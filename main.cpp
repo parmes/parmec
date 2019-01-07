@@ -29,6 +29,7 @@ SOFTWARE.
 #include "parmec.h"
 #include "output.h"
 #include "parmec_ispc.h"
+#include "version.h"
 
 using namespace parmec;
 using namespace ispc; /* ispc_num_cores */
@@ -37,6 +38,7 @@ int main (int argc, char *argv[])
 {
   if (argc == 1)
   {
+    printf ("VERSION: %s %s\n", VERSION_DATE, VERSION_HASH);
     printf ("SYNOPSIS: parmec [-ntasks n] path/to/file.py\n");
     printf ("         -ntasks n: number of tasks (default: hardware supported maximum)\n");
     return 1;

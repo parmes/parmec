@@ -48,7 +48,7 @@ ifdef SUITESPARSE
   LIBS+= -L$(SUITESPARSE)/lib -lspqr -lcholmod
 endif
 
-default: dirs $(ISPC_HEADERS4) $(ISPC_HEADERS8) $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) $(LIB)4.a $(LIB)8.a $(EXE)4 $(EXE)8 headers
+default: dirs version $(ISPC_HEADERS4) $(ISPC_HEADERS8) $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) $(LIB)4.a $(LIB)8.a $(EXE)4 $(EXE)8 headers
 
 .PHONY: dirs clean print
 
@@ -86,6 +86,9 @@ clean:  del
 qlean:	del
 	/bin/rm -fr $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) *~ $(EXE)4 $(EXE)8 *.dSYM $(LIB)4.a $(LIB)8.a parmec4.h parmec8.h condet4.h condet8.h
 
+version:
+	python version.py
+
 $(LIB)4.a: $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)
 	ar rcv $@ $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)
 	ranlib $@ 
@@ -99,6 +102,12 @@ $(EXE)4: objs4/main.o $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)
 
 $(EXE)8: objs8/main.o $(CPP_OBJS8) $(C_OBJS8) $(ISPC_OBJS8)
 	$(CXX) $(CFLAGS) -fopenmp -o $@ $^ $(LIBS)
+
+objs4/main.o: main.cpp version.h
+	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $< -c -o $@
+
+objs8/main.o: main.cpp version.h
+	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $< -c -o $@
 
 objs4/input.o: input.cpp
 	$(CXX) -DREAL=4 -Iobjs4 $(CFLAGS) $(PYTHONINC) $(MEDFLG) $< -c -o $@
