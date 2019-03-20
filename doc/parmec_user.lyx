@@ -1625,7 +1625,17 @@ unload
 \begin_inset Formula $\left[\text{stroke}_{1},\text{force}_{1},\text{stroke}_{2},\text{force}_{2},...,\text{stroke}_{n},\text{force}_{n}\right]$
 \end_inset
 
-; must be monotonically increasing; default: unspecified
+; must be monotonically increasing; see also Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:spring-nonlin-cycles"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+; default: unspecified
 \end_layout
 
 \begin_layout Itemize
@@ -1638,11 +1648,11 @@ ylim
 \end_inset
 
  defining the compression, 
-\begin_inset Formula $f_{yc}<0$
+\begin_inset Formula $f_{yc}\le0$
 \end_inset
 
 , and tension, 
-\begin_inset Formula $f_{yt}>0$
+\begin_inset Formula $f_{yt}\ge0$
 \end_inset
 
 , yield limits; the unloading curve begins to be used once either of these
@@ -1749,8 +1759,8 @@ status open
 \align center
 \begin_inset Graphics
 	filename figures/nonlinear-spring-cycles.png
-	lyxscale 10
-	width 60text%
+	lyxscale 50
+	width 90text%
 
 \end_inset
 
@@ -1767,7 +1777,15 @@ name "fig:spring-nonlin-cycles"
 
 \end_inset
 
-The type of nonlinear cycles that can be realized using the spring model.
+The nonlinear cycles that can be realized using the spring model.
+ Note, that the yield limits do not determine the post-yield behavior: crossing
+ them only activates the unloading curve.
+ Prior to their crossing unloading happens along the original loading curve.
+ Unloading continues until the latest point on the tension or compression
+ path has been reached.
+ Then, this path is continued until the next unloading.
+ During unloading, any path reversals within the latest compression-tension
+ bounds remain on the unloading curve.
 \end_layout
 
 \end_inset
