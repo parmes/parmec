@@ -1,5 +1,5 @@
-#LyX 2.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 544
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -21,8 +21,6 @@
 \font_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
-\use_microtype false
-\use_dash_ligatures true
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -62,7 +60,6 @@
 \suppress_date false
 \justification true
 \use_refstyle 0
-\use_minted 0
 \index Index
 \shortcut idx
 \color #008000
@@ -78,10 +75,7 @@
 \tocdepth 2
 \paragraph_separation indent
 \paragraph_indentation default
-\is_math_indent 0
-\math_numbering_side default
-\quotes_style english
-\dynamic_quotes 0
+\quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
@@ -121,7 +115,6 @@ Clone parmec sources from
 LatexCommand href
 name "GitHub"
 target "https://github.com/tkoziara/parmec"
-literal "false"
 
 \end_inset
 
@@ -149,7 +142,6 @@ Edit Config.mak file variables:
 \begin_inset CommandInset href
 LatexCommand href
 target "http://ispc.github.io"
-literal "false"
 
 \end_inset
 
@@ -291,7 +283,6 @@ Edit your
 LatexCommand href
 name "Python"
 target "http://www.python.org/"
-literal "false"
 
 \end_inset
 
@@ -364,7 +355,6 @@ The output files can be viewed with
 LatexCommand href
 name "OVITO"
 target "http://www.ovito.org"
-literal "false"
 
 \end_inset
 
@@ -373,7 +363,6 @@ literal "false"
 LatexCommand href
 name "ParaView"
 target "http://www.paraview.org"
-literal "false"
 
 \end_inset
 
@@ -382,7 +371,6 @@ literal "false"
 LatexCommand href
 name "VisIt"
 target "https://wci.llnl.gov/simulation/computer-codes/visit"
-literal "false"
 
 \end_inset
 
@@ -655,7 +643,6 @@ PARMEC input language extends
 LatexCommand href
 name "Python"
 target "http://www.python.org/"
-literal "false"
 
 \end_inset
 
@@ -1646,17 +1633,7 @@ ylim
 \end_inset
 
 , yield limits; the unloading curve begins to be used once either of these
- limits is crossed; see also Figure 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "fig:spring-nonlin-cycles"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-; default: (0, 0)
+ limits is crossed; default: (0, 0)
 \end_layout
 
 \begin_layout Itemize
@@ -1748,47 +1725,6 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename figures/nonlinear-spring-cycles.png
-	lyxscale 10
-	width 60text%
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "fig:spring-nonlin-cycles"
-
-\end_inset
-
-The type of nonlinear cycles that can be realized using the spring model.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
-\align center
-\begin_inset Graphics
 	filename figures/spring-stroke-offset.png
 	lyxscale 40
 	width 60text%
@@ -1813,6 +1749,10 @@ The concept of time dependent spring stroke offset.
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -3276,7 +3216,6 @@ Estimate critical time step.
 LatexCommand href
 name "See also"
 target "https://www.dynasupport.com/tutorial/ls-dyna-users-guide/time-integration"
-literal "false"
 
 \end_inset
 
@@ -4050,7 +3989,6 @@ format
 LatexCommand href
 name "LAMMPS format"
 target "http://lammps.sandia.gov/doc/dump.html"
-literal "false"
 
 \end_inset
 
@@ -4063,7 +4001,6 @@ literal "false"
 LatexCommand href
 name "VTK format"
 target "http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf"
-literal "false"
 
 \end_inset
 
@@ -4072,7 +4009,6 @@ literal "false"
 LatexCommand href
 name "XDMF format"
 target "http://www.xdmf.org/index.php/XDMF_Model_and_Format"
-literal "false"
 
 \end_inset
 
@@ -4081,7 +4017,6 @@ literal "false"
 LatexCommand href
 name "MED format"
 target "http://www.salome-platform.org/user-section/about/med"
-literal "false"
 
 \end_inset
 
@@ -4245,7 +4180,6 @@ and ellipsoidal
 LatexCommand href
 name "LAMMPS"
 target "http://lammps.sandia.gov/doc/dump.html"
-literal "false"
 
 \end_inset
 
@@ -4258,7 +4192,6 @@ literal "false"
 LatexCommand href
 name "OVITO"
 target "https://ovito.org/"
-literal "false"
 
 \end_inset
 
@@ -4276,7 +4209,6 @@ For mesh based particles, for rigid bodies, for contact points, and for
 LatexCommand href
 name "*.vtk"
 target "http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf"
-literal "false"
 
 \end_inset
 
@@ -4285,7 +4217,6 @@ literal "false"
 LatexCommand href
 name "ParaView"
 target "https://www.paraview.org/"
-literal "false"
 
 \end_inset
 
@@ -4294,7 +4225,6 @@ literal "false"
 LatexCommand href
 name "OVITO"
 target "https://ovito.org/"
-literal "false"
 
 \end_inset
 
@@ -4306,7 +4236,6 @@ literal "false"
 LatexCommand href
 name "*.xmf"
 target "http://www.xdmf.org/index.php/XDMF_Model_and_Format"
-literal "false"
 
 \end_inset
 
@@ -4315,7 +4244,6 @@ literal "false"
 LatexCommand href
 name "ParaView"
 target "https://www.paraview.org/"
-literal "false"
 
 \end_inset
 
@@ -4327,7 +4255,6 @@ literal "false"
 LatexCommand href
 name "*.med"
 target "http://www.salome-platform.org/user-section/about/med"
-literal "false"
 
 \end_inset
 
@@ -4340,7 +4267,6 @@ literal "false"
 LatexCommand href
 name "Gmsh"
 target "http://gmsh.info/"
-literal "false"
 
 \end_inset
 
@@ -4349,7 +4275,6 @@ literal "false"
 LatexCommand href
 name "SALOME"
 target "http://www.salome-platform.org/"
-literal "false"
 
 \end_inset
 
@@ -4403,7 +4328,6 @@ Status (as of commit
 LatexCommand href
 name "5ab402d"
 target "https://github.com/tkoziara/parmec/tree/5ab402de99d7970abdb53c27b07d8c0bb4bd56d1"
-literal "false"
 
 \end_inset
 
