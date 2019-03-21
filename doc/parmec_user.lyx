@@ -1777,7 +1777,7 @@ name "fig:spring-nonlin-cycles"
 
 \end_inset
 
-The nonlinear cycles that can be realized using the spring model.
+The type of nonlinear cycles that can be realized using the spring model.
  Note, that the yield limits do not determine the post-yield behavior: crossing
  them only activates the unloading curve.
  Prior to their crossing unloading happens along the original loading curve.

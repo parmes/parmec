@@ -76,7 +76,7 @@ del:
 	find ./ -iname "*.h5" -exec rm '{}' ';'
 	find ./ -iname "*.xmf" -exec rm '{}' ';'
 	find ./ -iname "*.med" -exec rm '{}' ';'
-	find ./ -type d -name doc -prune -o -iname "*.png" -exec rm '{}' ';'
+	find ./tests -type d -name doc -prune -o -iname "*.png" -exec rm '{}' ';'
 
 clean:  del
 	/bin/rm -rf objs* *~ $(EXE)4 $(EXE)8 *.dSYM $(LIB)4.a $(LIB)8.a parmec4.h parmec8.h condet4.h condet8.h

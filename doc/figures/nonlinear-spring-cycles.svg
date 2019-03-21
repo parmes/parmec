@@ -129,8 +129,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.2954392"
-     inkscape:cx="181.7616"
-     inkscape:cy="146.65119"
+     inkscape:cx="194.17752"
+     inkscape:cy="129.22533"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -284,7 +284,7 @@
          style="stroke-width:0.26458332px;font-size:2.11666667px;" /></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.11666667px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       style="font-style:normal;font-weight:normal;font-size:2.11666667px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;-inkscape-font-specification:'Sans, Normal';font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
        x="92.604164"
        y="261.28125"
        id="text5486"><tspan
@@ -292,7 +292,7 @@
          id="tspan5484"
          x="92.604164"
          y="261.28125"
-         style="stroke-width:0.26458332px;font-size:2.11666667px;">stroke</tspan></text>
+         style="stroke-width:0.26458332px;font-size:2.11666667px;-inkscape-font-specification:'Sans, Normal';font-family:Sans;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-anchor:start;text-align:start;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;">stroke</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:2.11666667px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
@@ -306,50 +306,50 @@
          style="stroke-width:0.26458332px;font-size:2.11666667px;">force</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:1.41111112px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;opacity:0.83999999;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="-226.71414"
-       y="142.98587"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;opacity:0.83999999;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="-223.11688"
+       y="151.14972"
        id="text5494"
-       transform="rotate(-75)"><tspan
+       transform="rotate(-73)"><tspan
          sodipodi:role="line"
          id="tspan5492"
-         x="-226.71414"
-         y="142.98587"
-         style="font-size:1.41111112px;stroke-width:0.26458332px">unloading  path</tspan></text>
+         x="-223.11688"
+         y="151.14972"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px">unloading  path</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:1.41111112px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#008400;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="7.0747666"
-       y="247.07028"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#008400;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="29.468292"
+       y="244.59943"
        id="text5498"
-       transform="rotate(-13)"><tspan
+       transform="rotate(-8)"><tspan
          sodipodi:role="line"
          id="tspan5496"
-         x="7.0747666"
-         y="247.07028"
-         style="font-size:1.41111112px;fill:#008400;fill-opacity:1;stroke-width:0.26458332px">input spring curve</tspan></text>
+         x="29.468292"
+         y="244.59943"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#008400;fill-opacity:1;stroke-width:0.26458332px">input spring curve</tspan></text>
     <text
        transform="rotate(-33)"
        id="text5502"
-       y="264.31992"
-       x="-102.95148"
-       style="font-style:normal;font-weight:normal;font-size:1.41111112px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       y="268.18054"
+       x="-102.29752"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
-         style="font-size:1.41111112px;stroke-width:0.26458332px"
-         y="264.31992"
-         x="-102.95148"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px"
+         y="268.18054"
+         x="-102.29752"
          id="tspan5500"
          sodipodi:role="line">compression path</tspan></text>
     <text
        transform="rotate(-75)"
        id="text5506"
-       y="100.14501"
-       x="-239.62529"
-       style="font-style:normal;font-weight:normal;font-size:1.41111112px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;opacity:0.83999999;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       y="99.815216"
+       x="-239.28516"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;opacity:0.83999999;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
-         style="font-size:1.41111112px;stroke-width:0.26458332px"
-         y="100.14501"
-         x="-239.62529"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px"
+         y="99.815216"
+         x="-239.28516"
          id="tspan5504"
          sodipodi:role="line">unloading path</tspan></text>
     <path
@@ -389,29 +389,29 @@
    id="tspan1005"
    style="font-size:64.99999762%;baseline-shift:super" /></tspan></text>
     <text
-       transform="rotate(-13)"
+       transform="rotate(-3)"
        id="text1009"
-       y="275.99924"
-       x="-41.835945"
-       style="font-style:normal;font-weight:normal;font-size:1.41111112px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#008400;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       y="277.72934"
+       x="3.0515709"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#008400;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
-         style="font-size:1.41111112px;fill:#008400;fill-opacity:1;stroke-width:0.26458332px"
-         y="275.99924"
-         x="-41.835945"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#008400;fill-opacity:1;stroke-width:0.26458332px"
+         y="277.72934"
+         x="3.0515709"
          id="tspan1007"
          sodipodi:role="line">input spring curve</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:1.41111112px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;opacity:0.83999999;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="-164.27876"
-       y="194.9946"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;opacity:0.83999999;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="-164.74464"
+       y="195.44502"
        id="text1013"
        transform="rotate(-52)"><tspan
          sodipodi:role="line"
          id="tspan1011"
-         x="-164.27876"
-         y="194.9946"
-         style="font-size:1.41111112px;stroke-width:0.26458332px">tension path</tspan></text>
+         x="-164.74464"
+         y="195.44502"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px">tension path</tspan></text>
     <text
        transform="rotate(53)"
        id="text1017"
