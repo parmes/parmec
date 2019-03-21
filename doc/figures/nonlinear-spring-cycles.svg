@@ -128,9 +128,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.2954392"
+     inkscape:zoom="4.5908784"
      inkscape:cx="194.17752"
-     inkscape:cy="129.22533"
+     inkscape:cy="145.7755"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -361,13 +361,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:2.11666656px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="49.463978"
-       y="238.50613"
+       x="49.809772"
+       y="244.38464"
        id="text977"><tspan
          sodipodi:role="line"
          id="tspan975"
-         x="49.463978"
-         y="238.50613"
+         x="49.809772"
+         y="244.38464"
          style="font-size:2.11666656px;stroke-width:0.26458332px">f<tspan
    style="font-size:2.11666656px;baseline-shift:sub"
    id="tspan979">yt</tspan><tspan
@@ -376,13 +376,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:2.11666656px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="49.579243"
-       y="268.98822"
+       x="50.386097"
+       y="273.82935"
        id="text983"><tspan
          sodipodi:role="line"
          id="tspan981"
-         x="49.579243"
-         y="268.98822"
+         x="50.386097"
+         y="273.82935"
          style="font-size:2.11666656px;stroke-width:0.26458332px">f<tspan
    style="font-size:2.11666656px;baseline-shift:sub"
    id="tspan985">yc</tspan><tspan
@@ -424,5 +424,19 @@
          x="218.8694"
          id="tspan1015"
          sodipodi:role="line">tension path</tspan></text>
+    <circle
+       style="fill:#000000;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:0.26458333, 0.26458333;stroke-dashoffset:0"
+       id="path80"
+       cx="48.917786"
+       cy="243.36687"
+       r="0.66145831" />
+    <circle
+       r="0.66145831"
+       cy="272.58649"
+       cx="48.975418"
+       id="circle82"
+       style="fill:#000000;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:0.26458333, 0.26458333;stroke-dashoffset:0"
+       inkscape:transform-center-x="1.3831776"
+       inkscape:transform-center-y="-20.228972" />
   </g>
 </svg>
