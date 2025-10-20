@@ -1,6 +1,6 @@
-print '---------------------------------'
-print 'Parmec acceleration sweep example'
-print '---------------------------------'
+print('---------------------------------')
+print('Parmec acceleration sweep example')
+print('---------------------------------')
 
 # input parameters
 N = 10 # number of bodies along one direction
@@ -21,10 +21,10 @@ def where(program):
   return None
 path = where('parmec4')
 if path == None:
-  print 'ERROR: parmec4 not found in PATH!'
-  print '       Download and compile parmec; add parmec directory to PATH variable;'
+  print('ERROR: parmec4 not found in PATH!')
+  print('       Download and compile parmec; add parmec directory to PATH variable;')
   sys.exit(1)
-print '(Found parmec4 at:', path + ')'
+print('(Found parmec4 at:', path + ')')
 sys.path.append(os.path.join (path, 'python'))
 
 # prepare acceleration sweep based input motion
@@ -114,21 +114,21 @@ dyh = HISTORY ('DY', ijkmap[(N/2,N/2,N/2)])
 dzh = HISTORY ('DZ', ijkmap[(N/2,N/2,N/2)])
 
 # print statistics
-print parnum, 'bodies'
-print sprnum, 'springs'
+print(parnum, 'bodies')
+print(sprnum, 'springs')
 
 # estimate critical time step
 hcrit = CRITICAL()
 step = ratio * hcrit
-print 'Critical time step: %.2e' % hcrit
+print('Critical time step: %.2e' % hcrit)
 
 # run simulation
-print 'Running', int(stop/step), 'DEM steps of size %.2e' % step, '...'
+print('Running', int(stop/step), 'DEM steps of size %.2e' % step, '...')
 t = DEM (stop, step, (0.1, 0.01))
-print 'Finished after %f seconds' % t
+print('Finished after %f seconds' % t)
 
 # generate plots
-print 'Generating time history plots...'
+print('Generating time history plots...')
 vhs = []
 dhs = []
 for i in range(0, len(ths)):
@@ -152,6 +152,6 @@ try:
   plt.savefig ('examples/asweep_disp.png')
 
 except:
-  print 'time = ', ths
-  print 'velo = ', vhs
-  print 'disp = ', dhs
+  print('time = ', ths)
+  print('velo = ', vhs)
+  print('disp = ', dhs)

@@ -4156,6 +4156,10 @@ int input (const char *path, char **argv, int argc)
 
   PyObject* m = PyModule_Create(&parmecmodule);
   if (!m) return -1;
+  
+  // Add the module to sys.modules so it can be imported
+  PyDict_SetItemString(PyImport_GetModuleDict(), "parmec", m);
+  Py_DECREF(m); // Decrement reference since PyDict_SetItemString increments it
 
   PyRun_SimpleString ("from parmec import ARGV\n"
                       "from parmec import RESET\n"

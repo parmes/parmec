@@ -7,11 +7,11 @@ def where(program):
   return None
 path = where('parmec4')
 if path == None:
-  print 'ERROR: parmec4 not found in PATH!'
-  print '       Download and compile parmec;',
-  print 'add parmec directory to PATH variable;'
+  print('ERROR: parmec4 not found in PATH!')
+  print('       Download and compile parmec;')
+  print('add parmec directory to PATH variable;')
   sys.exit(1)
-print '(Found parmec4 at:', path + ')'
+print('(Found parmec4 at:', path + ')')
 sys.path.append(os.path.join (path, 'python'))
 from progress_bar import * # and import progress bar
 from scipy import spatial  # import scipy
@@ -20,18 +20,18 @@ import numpy as np # and numpy
 # command line arguments
 av = ARGV()
 if '-h' in av or '--help' in av:
-  print 'Beam-like spring-system example:',
-  print 'cantilever beam fixed at x-far-end'
-  print 'Unit cubes interact via springs',
-  print 'connected within a radius of influence'
-  print 'Available arguments:'
-  print '  -nx int --> x resolution (or 10)'
-  print '  -ny int --> y resolution (or 5)'
-  print '  -nz int --> z resolution (or 5)'
-  print '  -du float --> duration (or 5.)'
-  print '  -st float --> time step (or auto)'
-  print '  -ra float --> spring influence radius (or 2.)'
-  print '  -h or --help --> print this help'
+  print('Beam-like spring-system example:', end=' ')
+  print('cantilever beam fixed at x-far-end')
+  print('Unit cubes interact via springs')
+  print('connected within a radius of influence')
+  print('Available arguments:')
+  print('  -nx int --> x resolution (or 10)')
+  print('  -ny int --> y resolution (or 5)')
+  print('  -nz int --> z resolution (or 5)')
+  print('  -du float --> duration (or 5.)')
+  print('  -st float --> time step (or auto)')
+  print('  -ra float --> spring influence radius (or 2.)')
+  print('  -h or --help --> print this help')
   sys.exit(0)
 
 # input parameters
@@ -93,10 +93,10 @@ hc = CRITICAL(perparticle=10)
 if st < 0: st = 0.5 * hc[0][0]
 
 # print out statistics
-print '%dx%dx%d=%d particles and %d springs' % (nx,ny,nz,parnum,sprnum)
-print '10 lowest-step per-particle tuples (critical step, particle index, circular frequency, damping ratio):'
-print hc
-print 'Running %d steps of size %g:' % (int(du/st),st)
+print('%dx%dx%d=%d particles and %d springs' % (nx,ny,nz,parnum,sprnum))
+print('10 lowest-step per-particle tuples (critical step, particle index, circular frequency, damping ratio):')
+print(hc)
+print('Running %d steps of size %g:' % (int(du/st),st))
 
 # run simulation
 DEM (du, st, (0.05, 0.01))

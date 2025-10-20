@@ -1,6 +1,6 @@
-print '--------------------------'
-print 'Parmec hopper flow example'
-print '--------------------------'
+print('--------------------------')
+print('Parmec hopper flow example')
+print('--------------------------')
 from math import pi
 
 # material data
@@ -25,14 +25,14 @@ ratio = 0.2
 mat = MATERIAL (rho, E, nu)
 
 # define spheres
-print 'Generating ', num**3, ' spheres'
+print('Generating ', num**3, ' spheres')
 for i in range (0,num):
   for j in range (0,num):
     for k in range (0,num):
       SPHERE ((2*i*rad+rad,2*j*rad+rad,2*k*rad+rad), rad, mat, 1)
 
 # define obstacles
-print 'Generating hopper geometry'
+print('Generating hopper geometry')
 triangles = [(0.0,0.0,0.0, 1.0,0.0,0.0, 0.0,0.0,1.0), (0.0,0.0,1.0, 1.0,0.0,0.0, 1.0,0.0,1.0),
              (0.0,1.0,0.0, 1.0,1.0,0.0, 0.0,1.0,1.0), (0.0,1.0,1.0, 1.0,1.0,0.0, 1.0,1.0,1.0),
 	     (0.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0), (0.0,0.0,1.0, 0.0,1.0,0.0, 0.0,1.0,1.0),
@@ -57,12 +57,12 @@ GRAVITY (0., 0., -10.)
 # estimate critical time step
 hcrit = CRITICAL()
 step = ratio * hcrit
-print 'Critical time step: %.2e' % hcrit
+print('Critical time step: %.2e' % hcrit)
 
 # output format
 OUTPUT (format = ['DUMP', 'VTK'])
 
 # run simulation
-print 'Running', int(stop/step), 'DEM steps of size %.2e' % step, '...'
+print('Running', int(stop/step), 'DEM steps of size %.2e' % step, '...')
 t = DEM (stop, step, 0.02)
-print 'Finished after %f seconds' % t
+print('Finished after %f seconds' % t)
