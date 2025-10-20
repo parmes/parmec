@@ -6,8 +6,8 @@ CPP_SRC=parmec.cpp input.cpp output.cpp tasksys.cpp mem.cpp map.cpp mesh.cpp tim
 # ISPC files
 ISPC_SRC=parmec.ispc partition.ispc condet.ispc forces.ispc dynamics.ispc shapes.ispc obstacles.ispc restrain.ispc
 
-# ISPC targets
-ISPC_TARGETS=sse2,sse4,avx
+# ISPC target
+ISPC_TARGET=avx2-i32x8
 
 # Library name
 LIB=libparmec

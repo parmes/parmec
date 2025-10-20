@@ -1,8 +1,8 @@
 ifeq ($(DEBUG),yes)
-  CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG # += could be used for an existing variable
+  CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG -fPIC # += could be used for an existing variable
   ISPC=ispc -g -O0 --arch=x86-64 -DDEBUG --pic
 else
-  CFLAGS=-O2
+  CFLAGS=-O2 -m64 -fopenmp -fPIC
   ISPC=ispc -O2 --arch=x86-64 --woff --pic
 endif
 
@@ -32,8 +32,8 @@ else
   SUITEFLG=
 endif
 
-ISPC_OBJS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
-ISPC_OBJS8=$(addprefix objs8/, $(ISPC_SRC:.ispc=_ispc.o) $(ISPC_SRC:.ispc=_ispc_sse2.o) $(ISPC_SRC:.ispc=_ispc_sse4.o) $(ISPC_SRC:.ispc=_ispc_avx.o))
+ISPC_OBJS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.o))
+ISPC_OBJS8=$(addprefix objs8/, $(ISPC_SRC:.ispc=_ispc.o))
 ISPC_HEADERS4=$(addprefix objs4/, $(ISPC_SRC:.ispc=_ispc.h))
 ISPC_HEADERS8=$(addprefix objs8/, $(ISPC_SRC:.ispc=_ispc.h))
 CPP_OBJS4=$(addprefix objs4/, $(CPP_SRC:.cpp=.o))
@@ -127,11 +127,11 @@ objs4/joints.o: joints.cpp
 objs8/joints.o: joints.cpp
 	$(CXX) -DREAL=8 -Iobjs8 $(CFLAGS) $(SUITEFLG) -I. -std=c++11 $< -c -o $@
 
-objs4/%_ispc.h objs4/%_ispc.o objs4/%_ispc_sse2.o objs4/%_ispc_sse4.o objs4/%_ispc_avx.o: %.ispc
-	$(ISPC) -DREAL=4 -Iobjs4 --target=$(ISPC_TARGETS) $< -o objs4/$*_ispc.o -h objs4/$*_ispc.h
+objs4/%_ispc.h objs4/%_ispc.o: %.ispc
+	$(ISPC) -DREAL=4 -Iobjs4 --target=$(ISPC_TARGET) $< -o objs4/$*_ispc.o -h objs4/$*_ispc.h
 
-objs8/%_ispc.h objs8/%_ispc.o objs8/%_ispc_sse2.o objs8/%_ispc_sse4.o objs8/%_ispc_avx.o: %.ispc
-	$(ISPC) -DREAL=8 -Iobjs8 --target=$(ISPC_TARGETS) $< -o objs8/$*_ispc.o -h objs8/$*_ispc.h
+objs8/%_ispc.h objs8/%_ispc.o: %.ispc
+	$(ISPC) -DREAL=8 -Iobjs8 --target=$(ISPC_TARGET) $< -o objs8/$*_ispc.o -h objs8/$*_ispc.h
 
 objs4/tasksys.o: tasksys.cpp
 	$(CXX) $(CFLAGS) $(TASKSYS) $< -c -o $@
