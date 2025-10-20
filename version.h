@@ -1,2 +1,2 @@
-#define VERSION_HASH 'fe41cb3'
-#define VERSION_DATE ""
+#define VERSION_HASH "d1c2259"
+#define VERSION_DATE "2025-10-20"
