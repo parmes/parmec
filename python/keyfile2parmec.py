@@ -3,7 +3,6 @@ import sys
 import time
 sys.path.append('.')
 from keyfileparse import Keyfile
-from sets import Set
 
 # start timer
 tic = time.clock()
@@ -13,8 +12,8 @@ def ERROR(*args):
  from inspect import currentframe, getframeinfo
  cf = currentframe()
  info = getframeinfo(cf)
- print 'ERROR: ', args
- print 'signaled by:', info.filename, 'line ', cf.f_back.f_lineno
+ print('ERROR: ', args)
+ print('signaled by:', info.filename, 'line ', cf.f_back.f_lineno)
  sys.exit(1)
 
 # auxiliary vector/matrix operations
@@ -25,14 +24,14 @@ def cross(a, b):
   return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
 
 def matmat(a, b):
-  return (a[0]*b[0]+a[3]*b[1]+a[6]*b[2],\
-          a[1]*b[0]+a[4]*b[1]+a[7]*b[2],\
-          a[2]*b[0]+a[5]*b[1]+a[8]*b[2],\
-          a[0]*b[3]+a[3]*b[4]+a[6]*b[5],\
-          a[1]*b[3]+a[4]*b[4]+a[7]*b[5],\
-          a[2]*b[3]+a[5]*b[4]+a[8]*b[5],\
-          a[0]*b[6]+a[3]*b[7]+a[6]*b[8],\
-          a[1]*b[6]+a[4]*b[7]+a[7]*b[8],\
+  return (a[0]*b[0]+a[3]*b[1]+a[6]*b[2],\\
+          a[1]*b[0]+a[4]*b[1]+a[7]*b[2],\\
+          a[2]*b[0]+a[5]*b[1]+a[8]*b[2],\\
+          a[0]*b[3]+a[3]*b[4]+a[6]*b[5],\\
+          a[1]*b[3]+a[4]*b[4]+a[7]*b[5],\\
+          a[2]*b[3]+a[5]*b[4]+a[8]*b[5],\\
+          a[0]*b[6]+a[3]*b[7]+a[6]*b[8],\\
+          a[1]*b[6]+a[4]*b[7]+a[7]*b[8],\\
           a[2]*b[6]+a[5]*b[7]+a[8]*b[8])
 
 def trans(a):
@@ -57,37 +56,37 @@ for i in range (1,len(sys.argv)):
   elif sys.argv[i].endswith('.py'):
     out_path_index = i
   else:
-    print 'invalid command line argument:', sys.argv[i]
+    print('invalid command line argument:', sys.argv[i])
 
 # check input syntax
 if key_path_index == -1 or out_path_index == -1:
-  print 'SYNOPSIS: keyfile2parmec [--flip_gravity] [--skip_general_nonlinear_springs] path_to_keyfile path_to_parmec_file'
+  print('SYNOPSIS: keyfile2parmec [--flip_gravity] [--skip_general_nonlinear_springs] path_to_keyfile path_to_parmec_file')
   sys.exit(0)
 
 # print command line info
-print 'Input file:', sys.argv[key_path_index]
-print 'Output file:', sys.argv[out_path_index]
+print('Input file:', sys.argv[key_path_index])
+print('Output file:', sys.argv[out_path_index])
 if skip_general_nonlinear_springs:
-  print 'Skipping general nonlinear springs enabled'
+  print('Skipping general nonlinear springs enabled')
 if flip_gravity:
-  print 'Flipping gravity enabled'
+  print('Flipping gravity enabled')
 
 # begin processing files
-print 'Parsing keyfile...'
+print('Parsing keyfile...')
 keyfile = Keyfile(sys.argv[key_path_index])
 
-print 'Writing parmec file (rigid bodies)...'
+print('Writing parmec file (rigid bodies)...')
 parmec = open(sys.argv[out_path_index], 'w')
 
-parmec.write ('pid2num = {} # PART_INERTIA to particle number mapping\n')
-parmec.write ('eid2num = {} # ELEMENT_DISCRETE to spring number mapping\n')
+parmec.write ('pid2num = {} # PART_INERTIA to particle number mapping\\n')
+parmec.write ('eid2num = {} # ELEMENT_DISCRETE to spring number mapping\\n')
 mcnod2pid = {} # mass center node to part inertia mapping
 
 # define rigid bodies
-parmec.write ('\n')
-parmec.write ('#\n')
-parmec.write ('# rigid bodies\n')
-parmec.write ('#\n')
+parmec.write ('\\n')
+parmec.write ('#\\n')
+parmec.write ('# rigid bodies\\n')
+parmec.write ('#\\n')
 for pi in keyfile['PART_INERTIA']:
 
   if pi['IRCS'] == 1:
@@ -100,24 +99,24 @@ for pi in keyfile['PART_INERTIA']:
     vec_z = unit(cross(vec_x, vec_xy))
     vec_y = cross(vec_z, vec_x)
     T_mat = vec_x + vec_y + vec_z
-    I_loc = (pi['IXX'], pi['IXY'], pi['IXZ'],\
-	     pi['IXY'], pi['IYY'], pi['IYZ'],\
+    I_loc = (pi['IXX'], pi['IXY'], pi['IXZ'],\\
+	     pi['IXY'], pi['IYY'], pi['IYZ'],\\
 	     pi['IXZ'], pi['IYZ'], pi['IZZ'])
     I_glo = matmat(T_mat, matmat(I_loc, trans(T_mat)))
   else:
-    I_glo = (pi['IXX'], pi['IXY'], pi['IXZ'],\
-	     pi['IXY'], pi['IYY'], pi['IYZ'],\
+    I_glo = (pi['IXX'], pi['IXY'], pi['IXZ'],\\
+	     pi['IXY'], pi['IYY'], pi['IYZ'],\\
 	     pi['IXZ'], pi['IYZ'], pi['IZZ'])
 
   mcnode = pi['NODEID']
   center = keyfile.NODES[mcnode]
 
-  parmec.write ('num = ANALYTICAL (' +\
-                'inertia = [%g, %g, %g, %g, %g, %g], ' %\
-		(I_glo[0], I_glo[4], I_glo[8], I_glo[1], I_glo[2], I_glo[5]) +\
-		'mass = %g, ' % pi['TM'] +\
-		'position = (%g, %g, %g)' % (center[0], center[1], center[2])+\
-		')\n')
+  parmec.write ('num = ANALYTICAL (' +\\
+                'inertia = [%g, %g, %g, %g, %g, %g], ' %\\
+		(I_glo[0], I_glo[4], I_glo[8], I_glo[1], I_glo[2], I_glo[5]) +\\
+		'mass = %g, ' % pi['TM'] +\\
+		'position = (%g, %g, %g)' % (center[0], center[1], center[2])+\\
+		')\\n')
 
   mat = keyfile.getcard ('MAT_RIGID', MID=str(int(pi['MID']))) # int() due to '01' used sometimes
 
@@ -193,55 +192,55 @@ for pi in keyfile['PART_INERTIA']:
   else:
     ERROR ('MAT_RIGID card CMO paramter is invalid:', cmo, '; not one of: {-1, 0, 1}')
 
-  if con1 > 0 and con2 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ', ' + angcon + ')\n')
-  elif con1 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ')\n')
-  elif con2 > 0: parmec.write ('RESTRAIN (num, angular = ' + angcon + ')\n')
+  if con1 > 0 and con2 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ', ' + angcon + ')\\n')
+  elif con1 > 0: parmec.write ('RESTRAIN (num, ' + lincon + ')\\n')
+  elif con2 > 0: parmec.write ('RESTRAIN (num, angular = ' + angcon + ')\\n')
 
-  parmec.write ('pid2num[%d] = num\n' % pi['PID'])
+  parmec.write ('pid2num[%d] = num\\n' % pi['PID'])
   mcnod2pid[mcnode] = pi['PID']
 
-parmec.write ('\n')
-parmec.write ('#\n')
-parmec.write ('# prescribe acceleration\n')
-parmec.write ('#\n')
+parmec.write ('\\n')
+parmec.write ('#\\n')
+parmec.write ('# prescribe acceleration\\n')
+parmec.write ('#\\n')
 
 #DEFINE_CURVE
-print 'Writing parmec file (load curves)...'
-parmec.write ('\n')
-parmec.write ('#\n')
-parmec.write ('# spring curves\n')
-parmec.write ('#\n')
+print('Writing parmec file (load curves)...')
+parmec.write ('\\n')
+parmec.write ('#\\n')
+parmec.write ('# spring curves\\n')
+parmec.write ('#\\n')
 for lc in keyfile['DEFINE_CURVE']:
   curve = []
   for (t,v) in zip(lc['A1'], lc['O1']):
     curve.append (t)
     curve.append (v)
-  parmec.write ('curve%d = %s\n' % (lc['LCID'], str(curve)))
-  parmec.write ('tms%d = TSERIES(curve%d)\n' % (lc['LCID'], lc['LCID']))
-parmec.write ('curve0 = [-1.0, 0.0, 1.0, 0.0]\n')
-parmec.write ('tms0 = TSERIES(0.0)\n\n')
+  parmec.write ('curve%d = %s\\n' % (lc['LCID'], str(curve)))
+  parmec.write ('tms%d = TSERIES(curve%d)\\n' % (lc['LCID'], lc['LCID']))
+parmec.write ('curve0 = [-1.0, 0.0, 1.0, 0.0]\\n')
+parmec.write ('tms0 = TSERIES(0.0)\\n\\n')
 
 #BOUNDARY_PRESCRIBED_MOTION_NODE
-print 'Writing parmec file (boundary conditions)...'
+print('Writing parmec file (boundary conditions)...')
 if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
-  pidset = Set()
-  parmec.write ('# default zero signals\n')
+  pidset = set()
+  parmec.write ('# default zero signals\\n')
   for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_NODE']:
     pid = mcnod2pid[bc['NID']]
     if pid == None:
-      ERROR ('while prescribing nodal motion -->\n', \
+      ERROR ('while prescribing nodal motion -->\\n', \\
              '       node with ID =', bc['NID'], 'was not defined as a mass center in a PART_INERTIA card')
     if pid not in pidset:
-      parmec.write ('ACC%d_LIN_X = tms0\n' % pid)
-      parmec.write ('ACC%d_LIN_Y = tms0\n' % pid)
-      parmec.write ('ACC%d_LIN_Z = tms0\n' % pid)
-      parmec.write ('ACC%d_ANG_X = tms0\n' % pid)
-      parmec.write ('ACC%d_ANG_Y = tms0\n' % pid)
-      parmec.write ('ACC%d_ANG_Z = tms0\n' % pid)
+      parmec.write ('ACC%d_LIN_X = tms0\\n' % pid)
+      parmec.write ('ACC%d_LIN_Y = tms0\\n' % pid)
+      parmec.write ('ACC%d_LIN_Z = tms0\\n' % pid)
+      parmec.write ('ACC%d_ANG_X = tms0\\n' % pid)
+      parmec.write ('ACC%d_ANG_Y = tms0\\n' % pid)
+      parmec.write ('ACC%d_ANG_Z = tms0\\n' % pid)
     pidset.add (pid)
 
-  parmec.write ('\n')
-  parmec.write ('# perscribed signals\n')
+  parmec.write ('\\n')
+  parmec.write ('# perscribed signals\\n')
   for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_NODE']:
     pid = mcnod2pid[bc['NID']]
     dof = bc['DOF']
@@ -252,47 +251,47 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_NODE') != None:
     if vad != 1:
       ERROR ('prescribed node motion VAD != 1 (acceleration)')
     if dof == 1:
-      parmec.write ('ACC%d_LIN_X = tms%d\n' % (pid, lcid))
+      parmec.write ('ACC%d_LIN_X = tms%d\\n' % (pid, lcid))
     elif dof == 2:
-      parmec.write ('ACC%d_LIN_Y = tms%d\n' % (pid, lcid)) 
+      parmec.write ('ACC%d_LIN_Y = tms%d\\n' % (pid, lcid)) 
     elif dof == 3:
-      parmec.write ('ACC%d_LIN_Z = tms%d\n' % (pid, lcid))
+      parmec.write ('ACC%d_LIN_Z = tms%d\\n' % (pid, lcid))
     elif dof == 5:
-      parmec.write ('ACC%d_ANG_X = tms%d\n' % (pid, lcid))
+      parmec.write ('ACC%d_ANG_X = tms%d\\n' % (pid, lcid))
     elif dof == 6:
-      parmec.write ('ACC%d_ANG_Y = tms%d\n' % (pid, lcid))
+      parmec.write ('ACC%d_ANG_Y = tms%d\\n' % (pid, lcid))
     elif dof == 7:
-      parmec.write ('ACC%d_ANG_Z = tms%d\n' % (pid, lcid))
+      parmec.write ('ACC%d_ANG_Z = tms%d\\n' % (pid, lcid))
 
-  parmec.write ('\n')
-  parmec.write ('# prescribe acceleration\n')
+  parmec.write ('\\n')
+  parmec.write ('# prescribe acceleration\\n')
   for pid in pidset:
-    parmec.write ('ACC%d_LIN = (ACC%d_LIN_X, ACC%d_LIN_Y, ACC%d_LIN_Z)\n' % (pid, pid, pid, pid))
-    parmec.write ('ACC%d_ANG = (ACC%d_ANG_X, ACC%d_ANG_Y, ACC%d_ANG_Z)\n' % (pid, pid, pid, pid))
-    parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, "'"aa"'")\n' % (pid, pid, pid))
-    parmec.write ('\n')
+    parmec.write ('ACC%d_LIN = (ACC%d_LIN_X, ACC%d_LIN_Y, ACC%d_LIN_Z)\\n' % (pid, pid, pid, pid))
+    parmec.write ('ACC%d_ANG = (ACC%d_ANG_X, ACC%d_ANG_Y, ACC%d_ANG_Z)\\n' % (pid, pid, pid, pid))
+    parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, \"aa\")\\n' % (pid, pid, pid))
+    parmec.write ('\\n')
 
 #BOUNDARY_PRESCRIBED_MOTION_SET
 if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
-  pidset = Set()
-  parmec.write ('# default zero signals\n')
+  pidset = set()
+  parmec.write ('# default zero signals\\n')
   for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_SET']:
     for nid in keyfile.SET_NODE_LISTS[bc['SID']]:
       pid = mcnod2pid[nid]
       if pid == None:
-	ERROR ('while prescribing nodal motion -->\n', \
+	ERROR ('while prescribing nodal motion -->\\n', \\
 	       '       node with ID =', nid, 'was not defined as a mass center in a PART_INERTIA card')
       if pid not in pidset:
-	parmec.write ('ACC%d_LIN_X = tms0\n' % pid)
-	parmec.write ('ACC%d_LIN_Y = tms0\n' % pid)
-	parmec.write ('ACC%d_LIN_Z = tms0\n' % pid)
-	parmec.write ('ACC%d_ANG_X = tms0\n' % pid)
-	parmec.write ('ACC%d_ANG_Y = tms0\n' % pid)
-	parmec.write ('ACC%d_ANG_Z = tms0\n' % pid)
+	parmec.write ('ACC%d_LIN_X = tms0\\n' % pid)
+	parmec.write ('ACC%d_LIN_Y = tms0\\n' % pid)
+	parmec.write ('ACC%d_LIN_Z = tms0\\n' % pid)
+	parmec.write ('ACC%d_ANG_X = tms0\\n' % pid)
+	parmec.write ('ACC%d_ANG_Y = tms0\\n' % pid)
+	parmec.write ('ACC%d_ANG_Z = tms0\\n' % pid)
       pidset.add (pid)
 
-  parmec.write ('\n')
-  parmec.write ('# perscribed signals\n')
+  parmec.write ('\\n')
+  parmec.write ('# perscribed signals\\n')
   for bc in keyfile['BOUNDARY_PRESCRIBED_MOTION_SET']:
     dof = bc['DOF']
     vad = bc['VAD']
@@ -304,27 +303,27 @@ if keyfile.getcard('BOUNDARY_PRESCRIBED_MOTION_SET') != None:
       if vad != 1:
 	ERROR ('prescribed node motion VAD != 1 (acceleration)')
       if dof == 1:
-	parmec.write ('ACC%d_LIN_X = tms%d\n' % (pid, lcid))
+	parmec.write ('ACC%d_LIN_X = tms%d\\n' % (pid, lcid))
       elif dof == 2:
-	parmec.write ('ACC%d_LIN_Y = tms%d\n' % (pid, lcid))
+	parmec.write ('ACC%d_LIN_Y = tms%d\\n' % (pid, lcid))
       elif dof == 3:
-	parmec.write ('ACC%d_LIN_Z = tms%d\n' % (pid, lcid))
+	parmec.write ('ACC%d_LIN_Z = tms%d\\n' % (pid, lcid))
       elif dof == 5:
-	parmec.write ('ACC%d_ANG_X = tms%d\n' % (pid, lcid))
+	parmec.write ('ACC%d_ANG_X = tms%d\\n' % (pid, lcid))
       elif dof == 6:
-	parmec.write ('ACC%d_ANG_Y = tms%d\n' % (pid, lcid))
+	parmec.write ('ACC%d_ANG_Y = tms%d\\n' % (pid, lcid))
       elif dof == 7:
-	parmec.write ('ACC%d_ANG_Z = tms%d\n' % (pid, lcid))
+	parmec.write ('ACC%d_ANG_Z = tms%d\\n' % (pid, lcid))
 
-    parmec.write ('\n')
-    parmec.write ('# prescribe acceleration\n')
+    parmec.write ('\\n')
+    parmec.write ('# prescribe acceleration\\n')
     for pid in pidset:
-      parmec.write ('ACC%d_LIN = (ACC%d_LIN_X, ACC%d_LIN_Y, ACC%d_LIN_Z)\n' % (pid, pid, pid, pid))
-      parmec.write ('ACC%d_ANG = (ACC%d_ANG_X, ACC%d_ANG_Y, ACC%d_ANG_Z)\n' % (pid, pid, pid, pid))
-      parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, "'"aa"'")\n' % (pid, pid, pid))
-      parmec.write ('\n')
+      parmec.write ('ACC%d_LIN = (ACC%d_LIN_X, ACC%d_LIN_Y, ACC%d_LIN_Z)\\n' % (pid, pid, pid, pid))
+      parmec.write ('ACC%d_ANG = (ACC%d_ANG_X, ACC%d_ANG_Y, ACC%d_ANG_Z)\\n' % (pid, pid, pid, pid))
+      parmec.write ('PRESCRIBE (pid2num[%d], ACC%d_LIN, ACC%d_ANG, \"aa\")\\n' % (pid, pid, pid))
+      parmec.write ('\\n')
 
-print "Mapping keyfile nodes to part inertia cards..."
+print(\"Mapping keyfile nodes to part inertia cards...\")
 nod2pid = {} # node to part inertia mapping
 for cxns in keyfile['CONSTRAINED_EXTRA_NODES_SET']:
   pid = cxns['PID']
@@ -332,40 +331,40 @@ for cxns in keyfile['CONSTRAINED_EXTRA_NODES_SET']:
   for i in keyfile.SET_NODE_LISTS[sid]:
     nod2pid[i] = pid
 
-print "Mapping keyfile parts to material identifiesrs..."
+print(\"Mapping keyfile parts to material identifiesrs...\")
 pid2mid = {} # part to material mapping
 for part in keyfile['PART']:
   pid = part['PID']
   mid = part['MID']
   pid2mid[pid] = mid
 
-print "Mapping orientation vectors..."
+print(\"Mapping orientation vectors...\")
 vid2dso = {} # vector id to orientation card mapping
 for dso in keyfile['DEFINE_SD_ORIENTATION']:
   vid2dso[dso['VID']] = dso
 
-print "Mapping materials..."
+print(\"Mapping materials...\")
 mid2mat = {} # material id to material mapping
 for mat in keyfile['MAT_SPRING_NONLINEAR_ELASTIC']:
   mid2mat[mat['MID']] = mat
 
 #ELEMENT_DISCRETE
-print 'Writing parmec file (springs)...'
-parmec.write ('\n')
-parmec.write ('#\n')
-parmec.write ('# springs\n')
-parmec.write ('#\n')
+print('Writing parmec file (springs)...')
+parmec.write ('\\n')
+parmec.write ('#\\n')
+parmec.write ('# springs\\n')
+parmec.write ('#\\n')
 for ed in keyfile['ELEMENT_DISCRETE']:
   n1 = ed['N1']
   n2 = ed['N2']
   pid1 = nod2pid[n1]
   pid2 = nod2pid[n2]
   if pid1 == pid2:
-    print "WARNING: spring nodes (%d, %d) belong to the same part %d;\n" % (n1, n2, pid1)
-    print "         -> skipping this ELEMENT_DISCRETE card;\n"
+    print(\"WARNING: spring nodes (%d, %d) belong to the same part %d;\\n\" % (n1, n2, pid1))
+    print(\"         -> skipping this ELEMENT_DISCRETE card;\\n\")
     continue
   if n1 == None or n2 == None:
-    print 'ERROR: invalid node to part inertia cards mapping'
+    print('ERROR: invalid node to part inertia cards mapping')
     sys.exit(1)
   pnt1 = keyfile.NODES[n1]
   pnt2 = keyfile.NODES[n2]
@@ -393,15 +392,15 @@ for ed in keyfile['ELEMENT_DISCRETE']:
     spring = 'curve%d' % lcd
     damper = 'curve%d' % lcr
     if direct != None:
-      parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, "'"%s"'")\n' % \
+      parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s, %s, \"%s\")\\n' % \\
 		   (pid1, str(pnt1), pid2, str(pnt2), spring, damper, direct, planar))
     else:
-      parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s)\n' % \
+      parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, %s, %s)\\n' % \\
 		   (pid1, str(pnt1), pid2, str(pnt2), spring, damper))
-    parmec.write ('eid2num[%d] = num\n' % ed['EID'])
+    parmec.write ('eid2num[%d] = num\\n' % ed['EID'])
   except:
     if skip_general_nonlinear_springs:
-      print 'skipping general nonlinear spring element', ed['EID']
+      print('skipping general nonlinear spring element', ed['EID'])
     else:
       mat = keyfile.getcard('MAT_SPRING_GENERAL_NONLINEAR', MID=mid) # TODO: optimize out by mapping
       if mat != None:
@@ -410,73 +409,73 @@ for ed in keyfile['ELEMENT_DISCRETE']:
 	spring = 'curve%d' % lcdl
 	unload = 'curve%d' % lcdu
 	if direct != None:
-	  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, direction=%s, planar="'"%s"'", unload=%s)\n' % \
+	  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, direction=%s, planar=\"%s\", unload=%s)\\n' % \\
 		       (pid1, str(pnt1), pid2, str(pnt2), spring, direct, planar, unload))
 	else:
-	  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, unload=%s)\n' % \
+	  parmec.write ('num = SPRING (pid2num[%d], %s, pid2num[%d], %s, spring=%s, unload=%s)\\n' % \\
 		       (pid1, str(pnt1), pid2, str(pnt2), spring, unload))
-	parmec.write ('eid2num[%d] = num\n' % ed['EID'])
+	parmec.write ('eid2num[%d] = num\\n' % ed['EID'])
       else:
 	ERROR ('MAT_SPRING_GENERAL_NONLINEAR with MID', mid, 'has not been found')
 
 lbz = keyfile.getcard('LOAD_BODY_Z')
 if lbz != None:
-  print 'Writing parmec file (gravity)...'
-  parmec.write ('#\n')
-  parmec.write ('# gravity\n')
-  parmec.write ('#\n')
+  print('Writing parmec file (gravity)...')
+  parmec.write ('#\\n')
+  parmec.write ('# gravity\\n')
+  parmec.write ('#\\n')
   lcid = lbz['LCID']
   if flip_gravity:
-    parmec.write ('gz = TSERIES(zip(curve%d[::2], [-g for g in curve%d[1::2]]))\n' % (lcid, lcid))
-    parmec.write ('GRAVITY (0.0, 0.0, gz)\n')
+    parmec.write ('gz = TSERIES(zip(curve%d[::2], [-g for g in curve%d[1::2]]))\\n' % (lcid, lcid))
+    parmec.write ('GRAVITY (0.0, 0.0, gz)\\n')
   else:
-    parmec.write ('GRAVITY (0.0, 0.0, tms%d)\n' % lcid)
+    parmec.write ('GRAVITY (0.0, 0.0, tms%d)\\n' % lcid)
 
 gd = keyfile.getcard('DAMPING_GLOBAL')
 if gd != None:
-  print 'Writing parmec file (global damping)...'
-  parmec.write ('#\n')
-  parmec.write ('# global damping\n')
-  parmec.write ('#\n')
+  print('Writing parmec file (global damping)...')
+  parmec.write ('#\\n')
+  parmec.write ('# global damping\\n')
+  parmec.write ('#\\n')
   lcid = gd['LCID']
-  parmec.write ('DMP_LIN_X = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['STX'], lcid))
-  parmec.write ('DMP_LIN_Y = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['STY'], lcid))
-  parmec.write ('DMP_LIN_Z = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['STZ'], lcid))
-  parmec.write ('DMP_ANG_X = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['SRX'], lcid))
-  parmec.write ('DMP_ANG_Y = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['SRY'], lcid))
-  parmec.write ('DMP_ANG_Z = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\n' % (lcid, gd['SRZ'], lcid))
-  parmec.write ('dmplin = (DMP_LIN_X, DMP_LIN_Y, DMP_LIN_Z)\n');
-  parmec.write ('dmpang = (DMP_ANG_X, DMP_ANG_Y, DMP_ANG_Z)\n');
-  parmec.write ('DAMPING (dmplin, dmpang)\n')
+  parmec.write ('DMP_LIN_X = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\\n' % (lcid, gd['STX'], lcid))
+  parmec.write ('DMP_LIN_Y = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\\n' % (lcid, gd['STY'], lcid))
+  parmec.write ('DMP_LIN_Z = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\\n' % (lcid, gd['STZ'], lcid))
+  parmec.write ('DMP_ANG_X = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\\n' % (lcid, gd['SRX'], lcid))
+  parmec.write ('DMP_ANG_Y = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\\n' % (lcid, gd['SRY'], lcid))
+  parmec.write ('DMP_ANG_Z = TSERIES(zip(curve%d[::2], [%g*d for d in curve%d[1::2]]))\\n' % (lcid, gd['SRZ'], lcid))
+  parmec.write ('dmplin = (DMP_LIN_X, DMP_LIN_Y, DMP_LIN_Z)\\n');
+  parmec.write ('dmpang = (DMP_ANG_X, DMP_ANG_Y, DMP_ANG_Z)\\n');
+  parmec.write ('DAMPING (dmplin, dmpang)\\n')
 
-print 'Writing parmec file (output intervals)...'
-parmec.write ('#\n')
-parmec.write ('# output intervals\n')
-parmec.write ('#\n')
+print('Writing parmec file (output intervals)...')
+parmec.write ('#\\n')
+parmec.write ('# output intervals\\n')
+parmec.write ('#\\n')
 d3plot = keyfile.getcard('DATABASE_BINARY_D3PLOT')
 if d3plot != None:
   lcdt = d3plot['LCDT']
-  parmec.write ('dt_files = tms%d\n' % lcdt)
-else: parmec.write ('dt_fiels = 0\n')
+  parmec.write ('dt_files = tms%d\\n' % lcdt)
+else: parmec.write ('dt_fiels = 0\\n')
 
 d3thdt = keyfile.getcard('DATABASE_BINARY_D3THDT')
 if d3thdt != None:
   lcdt = d3thdt['LCDT']
-  parmec.write ('dt_hist = tms%d\n' % lcdt)
-else: parmec.write ('dt_hist = 0\n')
+  parmec.write ('dt_hist = tms%d\\n' % lcdt)
+else: parmec.write ('dt_hist = 0\\n')
 
 ct = keyfile.getcard('CONTROL_TERMINATION')
 ts = keyfile.getcard('CONTROL_TIMESTEP')
 if ct != None and ts != None:
-  print 'Writing parmec file...'
-  parmec.write ('#\n')
-  parmec.write ('# run simulation\n')
-  parmec.write ('#\n')
-  parmec.write ('DEM(%g, %g, (dt_files, dt_hist))\n' % (ct['ENDTIM'], ts['DTINIT']))
+  print('Writing parmec file...')
+  parmec.write ('#\\n')
+  parmec.write ('# run simulation\\n')
+  parmec.write ('#\\n')
+  parmec.write ('DEM(%g, %g, (dt_files, dt_hist))\\n' % (ct['ENDTIM'], ts['DTINIT']))
 
 parmec.close()
 
 # end timer
 toc = time.clock()
-print 'Translated', len(keyfile['PART_INERTIA']), 'rigid bodies and', \
-       len(keyfile['ELEMENT_DISCRETE']), 'springs in ', toc-tic, 'seconds'
+print('Translated', len(keyfile['PART_INERTIA']), 'rigid bodies and', \\
+       len(keyfile['ELEMENT_DISCRETE']), 'springs in ', toc-tic, 'seconds')

@@ -1,9 +1,9 @@
 ifeq ($(DEBUG),yes)
   CFLAGS=-g -O0 -m64 -fopenmp -DDEBUG # += could be used for an existing variable
-  ISPC=ispc -g -O0 --arch=x86-64 -DDEBUG
+  ISPC=ispc -g -O0 --arch=x86-64 -DDEBUG --pic
 else
   CFLAGS=-O2
-  ISPC=ispc -O2 --arch=x86-64 --woff
+  ISPC=ispc -O2 --arch=x86-64 --woff --pic
 endif
 
 CFLAGS +=-Wno-narrowing # avoid assignment narrowing warnings
@@ -67,7 +67,7 @@ dirs:
 	/bin/mkdir -p objs8/
 
 headers:
-	python headers.py
+	python3 headers.py
 
 del:
 	rm -fr *.dSYM
@@ -87,7 +87,7 @@ qlean:	del
 	/bin/rm -fr $(CPP_OBJS4) $(CPP_OBJS8) $(C_OBJS4) $(C_OBJS8) *~ $(EXE)4 $(EXE)8 *.dSYM $(LIB)4.a $(LIB)8.a parmec4.h parmec8.h condet4.h condet8.h
 
 version:
-	python version.py
+	python3 version.py
 
 $(LIB)4.a: $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)
 	ar rcv $@ $(CPP_OBJS4) $(C_OBJS4) $(ISPC_OBJS4)

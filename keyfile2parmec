@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # look for the parmec path
 import os, sys
@@ -9,12 +9,12 @@ def where(program):
   return None
 path = where('parmec4')
 if path == None:
-  print 'ERROR: parmec4 not found in PATH!'
-  print '       Download and compile parmec; add parmec directory to PATH variable;'
+  print('ERROR: parmec4 not found in PATH!')
+  print('       Download and compile parmec; add parmec directory to PATH variable;')
   sys.exit(1)
 
 # append system path so that keyfileparse.py can be found
 sys.path.append(os.path.join (path, 'python'))
 
 # run keyfile2parmec.py and inherit the command line arguments
-execfile (path + '/python/keyfile2parmec.py')
+exec(open(path + '/python/keyfile2parmec.py').read())

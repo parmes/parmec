@@ -25,8 +25,6 @@ SOFTWARE.
 #include "macros.h"
 #include "partition.h"
 
-typedef unsigned int uint;
-
 /* calculate extrema of x, y, z */
 task void extrema (uniform int span, uniform int n, uniform REAL x[], uniform REAL y[], uniform REAL z[], uniform REAL extents[])
 {

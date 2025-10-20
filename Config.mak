@@ -8,12 +8,12 @@ DEBUG=yes
 # ==================
 
 # Python paths (used to parse input files)
-PYTHONINC=-I/opt/local/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7
-PYTHONLIB=-L/opt/local/lib -lpython2.7
+PYTHONINC=$(shell python3-config --includes)
+PYTHONLIB=$(shell python3-config --ldflags --embed)
 
 # HDF5 paths (used to write output files)
-HDF5INC=-I/opt/local/include
-HDF5LIB=-L/opt/local/lib -lhdf5 -lhdf5_hl
+HDF5INC=$(shell pkg-config --cflags hdf5)
+HDF5LIB=$(shell pkg-config --libs hdf5) -lhdf5_hl
 
 # Optional paths:
 # (comment out if not needed)

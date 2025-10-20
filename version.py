@@ -3,10 +3,10 @@ import subprocess
 
 git = ["git",  "log",  "--pretty=format:'%h'", "-n", "1"]
 p = subprocess.Popen(git, stdout=subprocess.PIPE)
-commit = p.communicate()[0].replace("'",'"')
+commit = p.communicate()[0].decode('utf-8').replace("'","'").strip()
 git = ["git", "show", "-s", "--format=%cd", "--date=short", commit.replace('"','')]
 p = subprocess.Popen(git, stdout=subprocess.PIPE)
-date = p.communicate()[0].replace('\n','')
+date = p.communicate()[0].decode('utf-8').replace('\n','')
 
 with open('version.h') as f:
   lines = f.readlines()

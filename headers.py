@@ -11,7 +11,7 @@ def inplace_change(filename, pairs):
       s = s.replace(p[0], p[1])
     f.write(s)
 
-print 'Generating dynlb4.h, dynlb8.h, condet4.h, condet8.h ...',
+print('Generating dynlb4.h, dynlb8.h, condet4.h, condet8.h ...', end=' ')
 
 shutil.copyfile ('parmec.h', 'parmec4.h')
 inplace_change ('parmec4.h', [('REAL', 'float')])
@@ -23,4 +23,4 @@ inplace_change ('parmec4.h', [('condet_ispc', 'condet4')])
 shutil.copyfile ('objs8/condet_ispc.h', 'condet8.h')
 inplace_change ('parmec8.h', [('condet_ispc', 'condet8')])
 
-print 'done.'
+print('done.')

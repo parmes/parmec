@@ -1,6 +1,6 @@
-print '---------------------'
-print 'Parmec bounce example'
-print '---------------------'
+print('---------------------')
+print('Parmec bounce example')
+print('---------------------')
 from math import pi
 
 # material data
@@ -38,9 +38,9 @@ GRAVITY (0, 0, -10)
 # estimate critical time step
 hcrit = CRITICAL()
 step = ratio * hcrit
-print 'Critical time step: %.2e' % hcrit
+print('Critical time step: %.2e' % hcrit)
 
 # run simulation
-print 'Running', int(dura/step), 'DEM steps of size %.2e' % step, '...'
+print('Running', int(dura/step), 'DEM steps of size %.2e' % step, '...')
 t = DEM (dura, step, 0.02)
-print 'Finished after %f seconds' % t
+print('Finished after %f seconds' % t)

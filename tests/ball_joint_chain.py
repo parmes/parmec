@@ -34,7 +34,7 @@ z = HISTORY ('PZ', parnum)
 h = 0.001
 DEM (10.0, h, (0.05, h))
 
-print 'Generating time-z(center) plot ...'
+print('Generating time-z(center) plot ...')
 
 try:
   import matplotlib.pyplot as plt
@@ -47,5 +47,5 @@ try:
   plt.savefig ('tests/ball_joint_chain_z.png')
 
 except:
-  print 't = ', t
-  print 'z = ', z
+  print('t = ', t)
+  print('z = ', z)

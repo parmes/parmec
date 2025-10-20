@@ -99,7 +99,7 @@ static int is_string (PyObject *obj, const char *var)
 {
   if (obj)
   {
-    if (!PyString_Check (obj))
+    if (!PyUnicode_Check (obj))
     {
       char buf [BUFLEN];
       sprintf (buf, "'%s' must be a string", var);
@@ -116,7 +116,7 @@ static int is_file (PyObject *obj, const char *var)
 {
   if (obj)
   {
-    if (!PyString_Check (obj))
+    if (!PyUnicode_Check (obj))
     {
       char buf [BUFLEN];
       sprintf (buf, "'%s' must be a string", var);
@@ -124,11 +124,11 @@ static int is_file (PyObject *obj, const char *var)
       return 0;
     }
 
-    FILE *f = fopen (PyString_AsString (obj), "r");
+    FILE *f = fopen (PyUnicode_AsUTF8 (obj), "r");
     if (!f)
     {
       char buf [BUFLEN];
-      sprintf (buf, "'%s = %s' must be an existing file path", var, PyString_AsString(obj));
+      sprintf (buf, "'%s = %s' must be an existing file path", var, PyUnicode_AsUTF8(obj));
       PyErr_SetString (PyExc_TypeError, buf);
       return 0;
     }
@@ -143,7 +143,7 @@ static int is_string_or_list (PyObject *obj, const char *var)
 {
   if (obj)
   {
-    if (!(PyString_Check (obj) || PyList_Check(obj)))
+    if (!(PyUnicode_Check (obj) || PyList_Check(obj)))
     {
       char buf [BUFLEN];
       sprintf (buf, "'%s' must be a string or a list", var);
@@ -400,7 +400,7 @@ static int is_integer_and_tuples (PyObject *obj, const char *var, int tuple_leng
       return 0;
     }
 
-    if (PyInt_AsLong (PyList_GetItem (obj, 0)) <= 0)
+    if (PyLong_AsLong (PyList_GetItem (obj, 0)) <= 0)
     {
 	char buf [BUFLEN];
 	sprintf (buf, "item 0 must be a positive integer");
@@ -516,7 +516,7 @@ static int is_number_or_list_or_string (PyObject *obj, const char *var, int div,
 {
   if (obj)
   {
-    if (!(PyNumber_Check(obj) || PyString_Check (obj) || PyList_Check (obj)))
+    if (!(PyNumber_Check(obj) || PyUnicode_Check (obj) || PyList_Check (obj)))
     {
       char buf [BUFLEN];
       sprintf (buf, "'%s' must be a number or a list or a string object", var);
@@ -552,8 +552,8 @@ static int is_number_or_list_or_string (PyObject *obj, const char *var, int div,
 #define TYPETEST(test) if(!(test)) return NULL
 
 /* string argument if block comparison */
-#define IFIS(obj, val) if (strcmp (PyString_AsString (obj), val) == 0)
-#define ELIF(obj, val) else if (strcmp (PyString_AsString (obj), val) == 0)
+#define IFIS(obj, val) if (strcmp (PyUnicode_AsUTF8 (obj), val) == 0)
+#define ELIF(obj, val) else if (strcmp (PyUnicode_AsUTF8 (obj), val) == 0)
 #define ELSE else
 
 /* test if a string has a specific ending */
@@ -590,7 +590,7 @@ static PyObject* ARGV (PyObject *self, PyObject *args, PyObject *kwds)
 	continue;
       }
       else if (strlen (argv[i]) > 3 && strcmp(argv[i]+strlen(argv[i])-3, ".py") == 0) continue;
-      else PyList_Append (list, PyString_FromString (argv[i]));
+      else PyList_Append (list, PyUnicode_FromString (argv[i]));
     }
   }
   else
@@ -599,7 +599,7 @@ static PyObject* ARGV (PyObject *self, PyObject *args, PyObject *kwds)
     {
       if (endswith (argv[i], "parmec4")) continue;
       else if (endswith (argv[i], "parmec8")) continue;
-      else PyList_Append (list, PyString_FromString (argv[i]));
+      else PyList_Append (list, PyUnicode_FromString (argv[i]));
     }
   }
 
@@ -637,9 +637,9 @@ static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
   {
     ts = TMS_Constant (PyFloat_AsDouble (points));
   }
-  else if (PyString_Check (points))
+  else if (PyUnicode_Check (points))
   {
-    if (!(ts = TMS_File (PyString_AsString (points))))
+    if (!(ts = TMS_File ((char*)PyUnicode_AsUTF8 (points))))
     {
       PyErr_SetString (PyExc_ValueError, "Could not open file");
       return NULL;
@@ -721,7 +721,7 @@ static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
 
   parmec::tms[i] = ts;
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* create material */
@@ -742,7 +742,7 @@ static PyObject* MATERIAL (PyObject *self, PyObject *args, PyObject *kwds)
   mparam[YOUNG][i] = young;
   mparam[POISSON][i] = poisson;
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* create spherical particle */
@@ -833,7 +833,7 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   /* return regular particle */
   flags[i] = OUTREST;
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* create meshed particle */
@@ -853,7 +853,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   l = PyList_Size (elements);
   for (i = 0; i < l; i ++)
   {
-    k = PyInt_AsLong (PyList_GetItem (elements, i));
+    k = PyLong_AsLong (PyList_GetItem (elements, i));
 
     if (!(k == 4 || k == 5 || k == 6 || k == 8))
     {
@@ -885,11 +885,11 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
   for (m = n = i = 0; i < l; m ++)
   {
-    lele [n ++] = k = PyInt_AsLong (PyList_GetItem (elements, i ++));
+    lele [n ++] = k = PyLong_AsLong (PyList_GetItem (elements, i ++));
 
     for (j = 0; j < k; j ++)
     {
-      lele [n ++] = PyInt_AsLong (PyList_GetItem (elements, i ++));
+      lele [n ++] = PyLong_AsLong (PyList_GetItem (elements, i ++));
 
       if (lele  [n-1] < 0 || lele [n-1] >= nn) /* must be within the right range */
       {
@@ -915,7 +915,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
       }
     }
 
-    lele [n ++] = PyInt_AsLong (PyList_GetItem (elements, i ++)); /* volid */
+    lele [n ++] = PyLong_AsLong (PyList_GetItem (elements, i ++)); /* volid */
   }
   lele [n] = 0; /* end of list */
 
@@ -925,7 +925,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
     l = PyList_Size (colors);
     for (i = 1; i < l; i ++)
     {
-      k = PyInt_AsLong (PyList_GetItem (colors, i));
+      k = PyLong_AsLong (PyList_GetItem (colors, i));
 
       if (!(k == 3 || k == 4))
       {
@@ -946,15 +946,15 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
     /* read colors */
     ERRMEM (lsur = (int*)malloc ((l + 1) * sizeof (int)));
-    lsur [0] = PyInt_AsLong (PyList_GetItem (colors, 0)); /* gcolor */
+    lsur [0] = PyLong_AsLong (PyList_GetItem (colors, 0)); /* gcolor */
 
     for (m = 0, n = i = 1; i < l; m ++)
     {
-      lsur [n ++] = k = PyInt_AsLong (PyList_GetItem (colors, i ++));
+      lsur [n ++] = k = PyLong_AsLong (PyList_GetItem (colors, i ++));
 
       for (j = 0; j < k; j ++)
       {
-	lsur [n ++] = PyInt_AsLong (PyList_GetItem (colors, i ++));
+	lsur [n ++] = PyLong_AsLong (PyList_GetItem (colors, i ++));
 
 	if (lsur [n-1] < 0 || lsur [n-1] >= nn) /* must be within the right range */
 	{
@@ -980,14 +980,14 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 	}
       }
 
-      lsur [n ++] = PyInt_AsLong (PyList_GetItem (colors, i ++)); /* surfid */
+      lsur [n ++] = PyLong_AsLong (PyList_GetItem (colors, i ++)); /* surfid */
     }
     lsur [n] = 0; /* end of list */
  }
  else
  {
     ERRMEM (lsur = (int*)malloc (2 * sizeof (int)));
-    lsur [0] = PyInt_AsLong (colors);
+    lsur [0] = PyLong_AsLong (colors);
     lsur [1] = 0; /* end of list */
  }
 
@@ -1152,7 +1152,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   /* return regular particle */
   flags[i] = OUTREST;
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* create analytical particle */
@@ -1360,7 +1360,7 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
   /* return analytical particle */
   flags[particle] = parmec::ANALYTICAL|OUTREST;
 
-  return PyInt_FromLong (particle);
+  return PyLong_FromLong (particle);
 }
 
 /* create obstacle */
@@ -1423,11 +1423,11 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 
     if (PyList_Check (color))
     {
-      tricol[i] = PyInt_AsLong (PyList_GetItem (color, n));
+      tricol[i] = PyLong_AsLong (PyList_GetItem (color, n));
     }
     else
     {
-      tricol[i] = PyInt_AsLong (color);
+      tricol[i] = PyLong_AsLong (color);
     }
 
     triobs[i] = haveobs ? -obsnum-2 : -1; /* <0 - moving obstalce (-index-2), -1 - static obstacle, >= 0 - triangulated particle */
@@ -1784,7 +1784,7 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::yield[1][i] = 0.0;
   }
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* create torsional spring constraint */
@@ -1995,7 +1995,7 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	PyObject *angle = PyTuple_GetItem (cone, j);
 
-	if (!PyString_Check(angle))
+	if (!PyUnicode_Check(angle))
 	{
 	  PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component: not a string");
 	  return NULL;
@@ -2076,7 +2076,7 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     trqrefpnt[2][i] = REAL_MAX;
   }
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* add collective spring undoing condition */
@@ -2128,7 +2128,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   for (int i = 0; i < PyList_Size (tsprings); i ++)
   {
-    int j = PyInt_AsLong(PyList_GetItem(tsprings, i));
+    int j = PyLong_AsLong(PyList_GetItem(tsprings, i));
 
     if (j < 0 || j >= sprnum)
     {
@@ -2139,7 +2139,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
   for (int i = 0; i < PyList_Size (msprings); i ++)
   {
-    int j = PyInt_AsLong(PyList_GetItem(msprings, i));
+    int j = PyLong_AsLong(PyList_GetItem(msprings, i));
 
     if (j < 0 || j >= sprnum)
     {
@@ -2171,7 +2171,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   tspridx[i+1] = tspridx[i];
   for (int k = 0; k < PyList_Size (tsprings); k ++)
   {
-    int j = PyInt_AsLong(PyList_GetItem(tsprings, k));
+    int j = PyLong_AsLong(PyList_GetItem(tsprings, k));
     parmec::tsprings[tspridx[i+1]] = j;
     tspridx[i+1] ++;
   }
@@ -2179,7 +2179,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   mspridx[i+1] = mspridx[i];
   for (int k = 0; k < PyList_Size (msprings); k ++)
   {
-    int j = PyInt_AsLong(PyList_GetItem(msprings, k));
+    int j = PyLong_AsLong(PyList_GetItem(msprings, k));
     parmec::msprings[mspridx[i+1]] = j;
     parmec::unspring[j] = -2; /* mark as used by UNSPRING */
     mspridx[i+1] ++;
@@ -2279,7 +2279,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   actidx[i+1] = actidx[i];
   for (int k = 0; activate && k < PyList_Size (activate); k ++)
   {
-    int j = PyInt_AsLong(PyList_GetItem(activate, k));
+    int j = PyLong_AsLong(PyList_GetItem(activate, k));
     if (parmec::unspring[j] != -1) /* test if inactive */
     {
       char buff[1024];
@@ -2291,7 +2291,7 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
     actidx[i+1] ++;
   }
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* isnert algebraic ball joint */
@@ -2329,7 +2329,7 @@ static PyObject* BALL_JOINT (PyObject *self, PyObject *args, PyObject *kwds)
 
   joints_changed = 1;
 
-  return PyInt_FromLong (i);
+  return PyLong_FromLong (i);
 }
 
 /* Calculate equivalent point mass from particle inertia and mass properties */
@@ -2686,9 +2686,9 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
       }
 
       prslin[i] = NULL;
-      tmslin[0][i] = PyInt_AsLong(PyTuple_GetItem(lin, 0));
-      tmslin[1][i] = PyInt_AsLong(PyTuple_GetItem(lin, 1));
-      tmslin[2][i] = PyInt_AsLong(PyTuple_GetItem(lin, 2));
+      tmslin[0][i] = PyLong_AsLong(PyTuple_GetItem(lin, 0));
+      tmslin[1][i] = PyLong_AsLong(PyTuple_GetItem(lin, 1));
+      tmslin[2][i] = PyLong_AsLong(PyTuple_GetItem(lin, 2));
 
       if (tmslin[0][i] < 0 || tmslin[0][i] >= tmsnum ||
           tmslin[1][i] < 0 || tmslin[1][i] >= tmsnum ||
@@ -2730,9 +2730,9 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
       }
 
       prsang[i] = NULL;
-      tmsang[0][i] = PyInt_AsLong(PyTuple_GetItem(ang, 0));
-      tmsang[1][i] = PyInt_AsLong(PyTuple_GetItem(ang, 1));
-      tmsang[2][i] = PyInt_AsLong(PyTuple_GetItem(ang, 2));
+      tmsang[0][i] = PyLong_AsLong(PyTuple_GetItem(ang, 0));
+      tmsang[1][i] = PyLong_AsLong(PyTuple_GetItem(ang, 1));
+      tmsang[2][i] = PyLong_AsLong(PyTuple_GetItem(ang, 2));
 
       if (tmsang[0][i] < 0 || tmsang[0][i] >= tmsnum ||
           tmsang[1][i] < 0 || tmsang[1][i] >= tmsnum ||
@@ -2854,9 +2854,9 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   {
     gravity[0] = PyFloat_AsDouble(gx);
   }
-  else if (PyInt_Check(gx))
+  else if (PyLong_Check(gx))
   {
-    gravtms[0] = PyInt_AsLong(gx);
+    gravtms[0] = PyLong_AsLong(gx);
 
     gravfunc[0] = NULL;
 
@@ -2882,9 +2882,9 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   {
     gravity[1] = PyFloat_AsDouble(gy);
   }
-  else if (PyInt_Check(gy))
+  else if (PyLong_Check(gy))
   {
-    gravtms[1] = PyInt_AsLong(gy);
+    gravtms[1] = PyLong_AsLong(gy);
 
     gravfunc[1] = NULL;
 
@@ -2910,9 +2910,9 @@ static PyObject* GRAVITY (PyObject *self, PyObject *args, PyObject *kwds)
   {
     gravity[2] = PyFloat_AsDouble(gz);
   }
-  else if (PyInt_Check(gz))
+  else if (PyLong_Check(gz))
   {
-    gravtms[2] = PyInt_AsLong(gz);
+    gravtms[2] = PyLong_AsLong(gz);
 
     gravfunc[2] = NULL;
 
@@ -2954,9 +2954,9 @@ static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
-    lindamptms[0] = PyInt_AsLong(PyTuple_GetItem(linear, 0));
-    lindamptms[1] = PyInt_AsLong(PyTuple_GetItem(linear, 1));
-    lindamptms[2] = PyInt_AsLong(PyTuple_GetItem(linear, 2));
+    lindamptms[0] = PyLong_AsLong(PyTuple_GetItem(linear, 0));
+    lindamptms[1] = PyLong_AsLong(PyTuple_GetItem(linear, 1));
+    lindamptms[2] = PyLong_AsLong(PyTuple_GetItem(linear, 2));
 
     lindamp = NULL;
 
@@ -2988,9 +2988,9 @@ static PyObject* DAMPING (PyObject *self, PyObject *args, PyObject *kwds)
       return NULL;
     }
 
-    angdamptms[0] = PyInt_AsLong(PyTuple_GetItem(angular, 0));
-    angdamptms[1] = PyInt_AsLong(PyTuple_GetItem(angular, 1));
-    angdamptms[2] = PyInt_AsLong(PyTuple_GetItem(angular, 2));
+    angdamptms[0] = PyLong_AsLong(PyTuple_GetItem(angular, 0));
+    angdamptms[1] = PyLong_AsLong(PyTuple_GetItem(angular, 1));
+    angdamptms[2] = PyLong_AsLong(PyTuple_GetItem(angular, 2));
 
     angdamp = NULL;
 
@@ -3415,11 +3415,11 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     }
     kind = HIS_LIST;
   }
-  else if (PyInt_Check (source))
+  else if (PyLong_Check (source))
   {
     list_size = 1;
     list = new int;
-    list [0] = PyInt_AsLong (source);
+    list [0] = PyLong_AsLong (source);
     if (!h5file && srckind == 0 && (list[0] < 0 || list[0] >= parnum))
     {
       PyErr_SetString (PyExc_ValueError, "Particle index out of range");
@@ -3448,7 +3448,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
     list = new int[list_size];
     for (int j = 0; j < list_size; j ++)
     {
-      list[j] = PyInt_AsLong (PyList_GetItem(source, j));
+      list[j] = PyLong_AsLong (PyList_GetItem(source, j));
       if (!h5file && srckind == 0 && (list[j] < 0 || list[j] >= parnum))
       {
 	PyErr_SetString (PyExc_ValueError, "Particle index out of range");
@@ -3548,7 +3548,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
 
   history[i] = PyList_New(0);
 
-  if (h5file) parmec::h5file[i] = PyString_AsString(h5file);
+  if (h5file) parmec::h5file[i] = (parmec::pointer_t)PyUnicode_AsUTF8(h5file);
   else parmec::h5file[i] = NULL;
 
   if (h5last == Py_True) output_h5history();
@@ -3582,7 +3582,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (int j = 0; j < list_size; j ++)
       {
-	int k = PyInt_AsLong (PyList_GetItem (subset, j));
+	int k = PyLong_AsLong (PyList_GetItem (subset, j));
 
 	if (k < 0 || k >= parnum)
 	{
@@ -3593,7 +3593,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     }
     else
     {
-      int k = PyInt_AsLong (subset);
+      int k = PyLong_AsLong (subset);
 
       if (k < 0 || k >= parnum)
       {
@@ -3617,7 +3617,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       for (int j = 0; j < list_size; j ++)
       {
-	int k = PyInt_AsLong (PyList_GetItem (subset, j));
+	int k = PyLong_AsLong (PyList_GetItem (subset, j));
 
 	outpart[outidx[i+1]++] = k;
 
@@ -3626,7 +3626,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     }
     else
     {
-      int k = PyInt_AsLong (subset);
+      int k = PyLong_AsLong (subset);
 
       outpart[outidx[i+1]++] = k;
 
@@ -3636,7 +3636,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (mode)
   {
-    if (PyString_Check (mode))
+    if (PyUnicode_Check (mode))
     {
       IFIS (mode, "SPH")
       {
@@ -3683,7 +3683,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
       {
 	PyObject *item = PyList_GetItem (mode, j);
 
-	if (PyString_Check (item))
+	if (PyUnicode_Check (item))
 	{
 	  IFIS (item, "SPH")
 	  {
@@ -3894,7 +3894,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (format)
   {
-    if (PyString_Check (format))
+    if (PyUnicode_Check (format))
     {
       IFIS (format, "DUMP")
       {
@@ -3992,11 +3992,11 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 	dt_func[0] = dt0;
 	dt_tms[0] = -1;
       }
-      else if (PyInt_Check (dt0))
+      else if (PyLong_Check (dt0))
       {
 	dt[0] = 0.0;
 	dt_func[0] = NULL;
-	dt_tms[0] = PyInt_AsLong (dt0);
+	dt_tms[0] = PyLong_AsLong (dt0);
 
 	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
 	{
@@ -4019,11 +4019,11 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 	dt_func[1] = dt1;
 	dt_tms[1] = -1;
       }
-      else if (PyInt_Check (dt1))
+      else if (PyLong_Check (dt1))
       {
 	dt[1] = 0.0;
 	dt_func[1] = NULL;
-	dt_tms[1] = PyInt_AsLong (dt1);
+	dt_tms[1] = PyLong_AsLong (dt1);
 
 	if (dt_tms[1] < 0 || dt_tms[1] >= tmsnum)
 	{
@@ -4046,11 +4046,11 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 	dt_func[0] = dt_func[1] = interval;
 	dt_tms[0] = dt_tms[1] = -1;
       }
-      else if (PyInt_Check (interval))
+      else if (PyLong_Check (interval))
       {
         dt[0] = dt[1] = 0.0;
 	dt_func[0] = dt_func[1] = NULL;
-	dt_tms[0] = dt_tms[1] = PyInt_AsLong (interval);
+	dt_tms[0] = dt_tms[1] = PyLong_AsLong (interval);
 
 	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
 	{
@@ -4081,7 +4081,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
 
   if (prefix)
   {
-    pre = PyString_AsString (prefix);
+    pre = (char*)PyUnicode_AsUTF8 (prefix);
   }
   else pre = NULL;
 
@@ -4118,6 +4118,14 @@ static PyMethodDef methods [] =
   {NULL, 0, 0, NULL}
 };
 
+static struct PyModuleDef parmecmodule = {
+  PyModuleDef_HEAD_INIT,
+  "parmec",
+  "parmec module",
+  -1,
+  methods
+};
+
 namespace parmec
 { /* namespace */
 
@@ -4146,7 +4154,8 @@ int input (const char *path, char **argv, int argc)
 
   Py_Initialize();
 
-  if (!Py_InitModule3 ("parmec", methods, "parmec module")) return -1;
+  PyObject* m = PyModule_Create(&parmecmodule);
+  if (!m) return -1;
 
   PyRun_SimpleString ("from parmec import ARGV\n"
                       "from parmec import RESET\n"
@@ -4173,7 +4182,7 @@ int input (const char *path, char **argv, int argc)
                       "from parmec import DEM\n");
 
   ERRMEM (line = new char [128 + strlen (path)]);
-  sprintf (line, "execfile ('%s')", path);
+  sprintf (line, "exec(open('%s').read())", path);
 
   error = PyRun_SimpleString (line); /* we do not run a file directly because FILE destriptors differe
 					between WIN32 and UNIX while Python is often provided in binary form */

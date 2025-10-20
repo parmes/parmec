@@ -66,7 +66,7 @@ if tspr:
 
 DEM (10., step, (0.05, step))
 
-print 'Generating plots ...',
+print('Generating plots ...', end=' ')
 import sys
 sys.stdout.flush()
 
@@ -107,7 +107,7 @@ try:
     plt.title ('Twsiting torque')
     plt.savefig ('examples/articulated_pendulum_tyaw.png')
 
-  print 'ok.'
+  print('ok.')
 
 except:
-  print 'failed. (check matplotlib)'
+  print('failed. (check matplotlib)')
