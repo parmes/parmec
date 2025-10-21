@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -67,7 +67,7 @@ using namespace parmec;
 
 /* minimal type initialization */
 #define TYPEINIT(typedesc, type, name, flags, dealloc, new, methods, members, getset)\
-memset (&(typedesc), 0, sizeof (PyTypeObject));\
+  memset (&(typedesc), 0, sizeof (PyTypeObject));\
 (typedesc).tp_basicsize = sizeof (type);\
 (typedesc).tp_name = name;\
 (typedesc).tp_flags = flags;\
@@ -290,20 +290,20 @@ static int is_list_of_tuples (PyObject *obj, const char *var, int min_length, in
 
       if (!PyTuple_Check (item))
       {
-	char buf [BUFLEN];
-	sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
 
       j = PyTuple_Size (item);
 
       if (j != tuple_length)
       {
-	char buf [BUFLEN];
-	sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
     }
 
@@ -322,10 +322,10 @@ static int is_tuple_or_list_of_tuples (PyObject *obj, const char *var, int tuple
     {
       if (tuple_length > 0 && PyTuple_Size (obj) != tuple_length)
       {
-	char buf [BUFLEN];
-	snprintf (buf, BUFLEN, "tuple '%s' must have %d elements", var, tuple_length);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        snprintf (buf, BUFLEN, "tuple '%s' must have %d elements", var, tuple_length);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
     }
     else if (PyList_Check (obj))
@@ -334,33 +334,33 @@ static int is_tuple_or_list_of_tuples (PyObject *obj, const char *var, int tuple
 
       if (n < min_length)
       {
-	char buf [BUFLEN];
-	sprintf (buf, "list '%s' must have at least %d items", var, min_length);
-	PyErr_SetString (PyExc_TypeError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "list '%s' must have at least %d items", var, min_length);
+        PyErr_SetString (PyExc_TypeError, buf);
+        return 0;
       }
 
       for (i = 0; i < n; i ++)
       {
-	PyObject *item = PyList_GetItem (obj, i);
+        PyObject *item = PyList_GetItem (obj, i);
 
-	if (!PyTuple_Check (item))
-	{
-	  char buf [BUFLEN];
-	  sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
-	  PyErr_SetString (PyExc_ValueError, buf);
-	  return 0;
-	}
+        if (!PyTuple_Check (item))
+        {
+          char buf [BUFLEN];
+          sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
+          PyErr_SetString (PyExc_ValueError, buf);
+          return 0;
+        }
 
-	j = PyTuple_Size (item);
+        j = PyTuple_Size (item);
 
-	if (j != tuple_length)
-	{
-	  char buf [BUFLEN];
-	  sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
-	  PyErr_SetString (PyExc_ValueError, buf);
-	  return 0;
-	}
+        if (j != tuple_length)
+        {
+          char buf [BUFLEN];
+          sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
+          PyErr_SetString (PyExc_ValueError, buf);
+          return 0;
+        }
       }
 
       return n;
@@ -402,10 +402,10 @@ static int is_integer_and_tuples (PyObject *obj, const char *var, int tuple_leng
 
     if (PyLong_AsLong (PyList_GetItem (obj, 0)) <= 0)
     {
-	char buf [BUFLEN];
-	sprintf (buf, "item 0 must be a positive integer");
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+      char buf [BUFLEN];
+      sprintf (buf, "item 0 must be a positive integer");
+      PyErr_SetString (PyExc_ValueError, buf);
+      return 0;
     }
 
     for (i = 1; i < n; i ++)
@@ -414,20 +414,20 @@ static int is_integer_and_tuples (PyObject *obj, const char *var, int tuple_leng
 
       if (!PyTuple_Check (item))
       {
-	char buf [BUFLEN];
-	sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "'%s' must be a list of tuples: item %d is not a tuple", var, i);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
 
       j = PyTuple_Size (item);
 
       if (j != tuple_length)
       {
-	char buf [BUFLEN];
-	sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "'%s' list items must be tuples of length %d: item %d has length %d", var, tuple_length, i, j);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
     }
 
@@ -500,10 +500,10 @@ static int is_list_or_number (PyObject *obj, const char *var, int len)
     {
       if (len > 0 && PyList_Size (obj) != len)
       {
-	char buf [BUFLEN];
-	sprintf (buf, "'%s' must have %d items", var, len);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "'%s' must have %d items", var, len);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
     }
   }
@@ -528,10 +528,10 @@ static int is_number_or_list_or_string (PyObject *obj, const char *var, int div,
     {
       if (!(PyList_Size (obj) % div == 0 && PyList_Size (obj) >= len))
       {
-	char buf [BUFLEN];
-	sprintf (buf, "'%s' must have N * %d elements, where N >= %d", var, div, len / div);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return 0;
+        char buf [BUFLEN];
+        sprintf (buf, "'%s' must have N * %d elements, where N >= %d", var, div, len / div);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return 0;
       }
     }
   }
@@ -586,8 +586,8 @@ static PyObject* ARGV (PyObject *self, PyObject *args, PyObject *kwds)
       else if (endswith (argv[i], "parmec8")) continue;
       else if (strcmp (argv[i], "-ntasks") == 0)
       {
-	i ++;
-	continue;
+        i ++;
+        continue;
       }
       else if (strlen (argv[i]) > 3 && strcmp(argv[i]+strlen(argv[i])-3, ".py") == 0) continue;
       else PyList_Append (list, PyUnicode_FromString (argv[i]));
@@ -659,12 +659,12 @@ static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (i = 0; i < n; i ++)
       {
-	PyObject *pv = PyList_GetItem (points, i);
+        PyObject *pv = PyList_GetItem (points, i);
 
-	TYPETEST (is_list (pv, "[t,v]", 2));
+        TYPETEST (is_list (pv, "[t,v]", 2));
 
-	times [i] = PyFloat_AsDouble (PyList_GetItem (pv, 0));
-	values [i] = PyFloat_AsDouble (PyList_GetItem (pv, 1));
+        times [i] = PyFloat_AsDouble (PyList_GetItem (pv, 0));
+        values [i] = PyFloat_AsDouble (PyList_GetItem (pv, 1));
       }
     }
     else if (PyTuple_Check (PyList_GetItem (points, 0)))
@@ -676,20 +676,20 @@ static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (i = 0; i < n; i ++)
       {
-	PyObject *pv = PyList_GetItem (points, i);
+        PyObject *pv = PyList_GetItem (points, i);
 
-	TYPETEST (is_tuple (pv, "(t,v)", 2));
+        TYPETEST (is_tuple (pv, "(t,v)", 2));
 
-	times [i] = PyFloat_AsDouble (PyTuple_GetItem (pv, 0));
-	values [i] = PyFloat_AsDouble (PyTuple_GetItem (pv, 1));
+        times [i] = PyFloat_AsDouble (PyTuple_GetItem (pv, 0));
+        values [i] = PyFloat_AsDouble (PyTuple_GetItem (pv, 1));
       }
     }
     else
     {
       if (PyList_Size(points) < 4)
       {
-	PyErr_SetString (PyExc_ValueError, "Time series must have at least two points");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Time series must have at least two points");
+        return NULL;
       }
 
       n = PyList_Size (points) / 2;
@@ -699,8 +699,8 @@ static PyObject* TSERIES (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (i = 0; i < n; i ++)
       {
-	times [i] = PyFloat_AsDouble (PyList_GetItem (points, 2*i));
-	values [i] = PyFloat_AsDouble (PyList_GetItem (points, 2*i + 1));
+        times [i] = PyFloat_AsDouble (PyList_GetItem (points, 2*i));
+        values [i] = PyFloat_AsDouble (PyList_GetItem (points, 2*i + 1));
       }
     }
 
@@ -756,7 +756,7 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("Odii", &cen, &rad, &material, &color);
 
   TYPETEST (is_tuple (cen, kwl[0], 3) && is_positive (rad, kwl[1]) &&
-            is_ge_lt (material, 0, matnum, kwl[2]) && is_positive (color, kwl[3]));
+      is_ge_lt (material, 0, matnum, kwl[2]) && is_positive (color, kwl[3]));
 
   if (ellnum >= ellipsoid_buffer_size) ellipsoid_buffer_grow ();
 
@@ -795,11 +795,11 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
   radii[2][j] = -1.0;
 
   orient[0][j] = orient[4][j] = orient[8][j] =
-  orient[9][j] = orient[13][j] = orient[17][j] = 1.0;
+    orient[9][j] = orient[13][j] = orient[17][j] = 1.0;
   orient[1][j] = orient[2][j] = orient[3][j] =
-  orient[5][j] = orient[6][j] = orient[7][j] =
-  orient[10][j] = orient[11][j] = orient[12][j] =
-  orient[14][j] = orient[15][j] = orient[16][j] = 0.0;
+    orient[5][j] = orient[6][j] = orient[7][j] =
+    orient[10][j] = orient[11][j] = orient[12][j] =
+    orient[14][j] = orient[15][j] = orient[16][j] = 0.0;
 
   ellcol[j] = color;
 
@@ -810,15 +810,15 @@ static PyObject* SPHERE (PyObject *self, PyObject *args, PyObject *kwds)
 
   rotation[0][i] = rotation[4][i] = rotation[8][i] = 1.0;
   rotation[1][i] = rotation[2][i] = rotation[3][i] =
-  rotation[5][i] = rotation[6][i] = rotation[7][i] = 0.0;
+    rotation[5][i] = rotation[6][i] = rotation[7][i] = 0.0;
 
   inertia[0][i] = inertia[4][i] = inertia[8][i] = 0.4*mass[i]*radii[0][j]*radii[0][j];
   inertia[1][i] = inertia[2][i] = inertia[3][i] =
-  inertia[5][i] = inertia[6][i] = inertia[7][i] = 0.0;
+    inertia[5][i] = inertia[6][i] = inertia[7][i] = 0.0;
 
   REAL J[9] = {inertia[0][i], inertia[1][i], inertia[2][i],
-               inertia[3][i], inertia[4][i], inertia[5][i],
-	       inertia[6][i], inertia[7][i], inertia[8][i]}, Jiv[9], det;
+    inertia[3][i], inertia[4][i], inertia[5][i],
+    inertia[6][i], inertia[7][i], inertia[8][i]}, Jiv[9], det;
   INVERT (J, Jiv, det);
   inverse[0][i] = Jiv[0];
   inverse[1][i] = Jiv[1];
@@ -893,10 +893,10 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (lele  [n-1] < 0 || lele [n-1] >= nn) /* must be within the right range */
       {
-	char buf [BUFLEN];
-	sprintf (buf, "Node %d in element %d is outside of range [0, %d]",j , m, nn-1);
-	PyErr_SetString (PyExc_ValueError, buf);
-	return NULL;
+        char buf [BUFLEN];
+        sprintf (buf, "Node %d in element %d is outside of range [0, %d]",j , m, nn-1);
+        PyErr_SetString (PyExc_ValueError, buf);
+        return NULL;
       }
     }
 
@@ -905,13 +905,13 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
     {
       for (o = j + 1; o <= k; o ++)
       {
-	if (lele [n-j] == lele [n-o])
-	{
-	  char buf [BUFLEN];
-	  sprintf (buf, "Nodes %d and %d in element %d are the same", k-j, k-o, m);
-	  PyErr_SetString (PyExc_ValueError, buf);
-	  return NULL;
-	}
+        if (lele [n-j] == lele [n-o])
+        {
+          char buf [BUFLEN];
+          sprintf (buf, "Nodes %d and %d in element %d are the same", k-j, k-o, m);
+          PyErr_SetString (PyExc_ValueError, buf);
+          return NULL;
+        }
       }
     }
 
@@ -919,8 +919,8 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   }
   lele [n] = 0; /* end of list */
 
- if (PyList_Check (colors))
- {
+  if (PyList_Check (colors))
+  {
     /* test color definitions */
     l = PyList_Size (colors);
     for (i = 1; i < l; i ++)
@@ -929,8 +929,8 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (!(k == 3 || k == 4))
       {
-	PyErr_SetString (PyExc_ValueError, "A face must have 3 or 4 nodes");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "A face must have 3 or 4 nodes");
+        return NULL;
       }
 
       /* add one more for the
@@ -939,8 +939,8 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (i >= l) /* incomplete */
       {
-	PyErr_SetString (PyExc_ValueError, "The last face definition is incomplete");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "The last face definition is incomplete");
+        return NULL;
       }
     }
 
@@ -954,42 +954,42 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (j = 0; j < k; j ++)
       {
-	lsur [n ++] = PyLong_AsLong (PyList_GetItem (colors, i ++));
+        lsur [n ++] = PyLong_AsLong (PyList_GetItem (colors, i ++));
 
-	if (lsur [n-1] < 0 || lsur [n-1] >= nn) /* must be within the right range */
-	{
-	  char buf [BUFLEN];
-	  sprintf (buf, "Node %d in face %d is outside of range [0, %d]", j, m, nn-1);
-	  PyErr_SetString (PyExc_ValueError, buf);
-	  return NULL;
-	}
+        if (lsur [n-1] < 0 || lsur [n-1] >= nn) /* must be within the right range */
+        {
+          char buf [BUFLEN];
+          sprintf (buf, "Node %d in face %d is outside of range [0, %d]", j, m, nn-1);
+          PyErr_SetString (PyExc_ValueError, buf);
+          return NULL;
+        }
       }
 
       /* test for repeated nodes in face definition */
       for (j = 1; j <= k; j ++)
       {
-	for (o = j + 1; o <= k; o ++)
-	{
-	  if (lsur [n-j] == lsur [n-o])
-	  {
-	    char buf [BUFLEN];
-	    sprintf (buf, "Nodes %d and %d in face %d are the same", k-j, k-o, m);
-	    PyErr_SetString (PyExc_ValueError, buf);
-	    return NULL;
-	  }
-	}
+        for (o = j + 1; o <= k; o ++)
+        {
+          if (lsur [n-j] == lsur [n-o])
+          {
+            char buf [BUFLEN];
+            sprintf (buf, "Nodes %d and %d in face %d are the same", k-j, k-o, m);
+            PyErr_SetString (PyExc_ValueError, buf);
+            return NULL;
+          }
+        }
       }
 
       lsur [n ++] = PyLong_AsLong (PyList_GetItem (colors, i ++)); /* surfid */
     }
     lsur [n] = 0; /* end of list */
- }
- else
- {
+  }
+  else
+  {
     ERRMEM (lsur = (int*)malloc (2 * sizeof (int)));
     lsur [0] = PyLong_AsLong (colors);
     lsur [1] = 0; /* end of list */
- }
+  }
 
   /* nodes */
   ERRMEM (lnod = (REAL(*)[3])malloc (nn * sizeof (REAL [3])));
@@ -1117,7 +1117,7 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
 
   rotation[0][i] = rotation[4][i] = rotation[8][i] = 1.0;
   rotation[1][i] = rotation[2][i] = rotation[3][i] =
-  rotation[5][i] = rotation[6][i] = rotation[7][i] = 0.0;
+    rotation[5][i] = rotation[6][i] = rotation[7][i] = 0.0;
 
   inertia[0][i] = ii[0];
   inertia[1][i] = ii[1];
@@ -1130,8 +1130,8 @@ static PyObject* MESH (PyObject *self, PyObject *args, PyObject *kwds)
   inertia[8][i] = ii[8];
 
   REAL J[9] = {inertia[0][i], inertia[1][i], inertia[2][i],
-               inertia[3][i], inertia[4][i], inertia[5][i],
-	       inertia[6][i], inertia[7][i], inertia[8][i]}, Jiv[9], det;
+    inertia[3][i], inertia[4][i], inertia[5][i],
+    inertia[6][i], inertia[7][i], inertia[8][i]}, Jiv[9], det;
   INVERT (J, Jiv, det);
   inverse[0][i] = Jiv[0];
   inverse[1][i] = Jiv[1];
@@ -1174,8 +1174,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("|OdOOii", &inertia, &mass, &rotation, &position, &material, &particle);
 
   TYPETEST (is_list (inertia, kwl[0], 6) && is_non_negative (mass, kwl[1]) &&
-            is_list (rotation, kwl[2], 9) && is_tuple (position, kwl[3], 3) &&
-	    is_non_negative (material, kwl[4]));
+      is_list (rotation, kwl[2], 9) && is_tuple (position, kwl[3], 3) &&
+      is_non_negative (material, kwl[4]));
 
   if (inertia)
   {
@@ -1278,8 +1278,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
     parmec::inertia[5][i] = parmec::inertia[7][i] = vinertia[5];
 
     REAL J[9] = {parmec::inertia[0][i], parmec::inertia[1][i], parmec::inertia[2][i],
-		 parmec::inertia[3][i], parmec::inertia[4][i], parmec::inertia[5][i],
-		 parmec::inertia[6][i], parmec::inertia[7][i], parmec::inertia[8][i]}, Jiv[9], det;
+      parmec::inertia[3][i], parmec::inertia[4][i], parmec::inertia[5][i],
+      parmec::inertia[6][i], parmec::inertia[7][i], parmec::inertia[8][i]}, Jiv[9], det;
     INVERT (J, Jiv, det);
     parmec::inverse[0][i] = Jiv[0];
     parmec::inverse[1][i] = Jiv[1];
@@ -1342,8 +1342,8 @@ static PyObject* ANALYTICAL (PyObject *self, PyObject *args, PyObject *kwds)
       parmec::inertia[5][i] = parmec::inertia[7][i] = vinertia[5];
 
       REAL J[9] = {parmec::inertia[0][i], parmec::inertia[1][i], parmec::inertia[2][i],
-		   parmec::inertia[3][i], parmec::inertia[4][i], parmec::inertia[5][i],
-		   parmec::inertia[6][i], parmec::inertia[7][i], parmec::inertia[8][i]}, Jiv[9], det;
+        parmec::inertia[3][i], parmec::inertia[4][i], parmec::inertia[5][i],
+        parmec::inertia[6][i], parmec::inertia[7][i], parmec::inertia[8][i]}, Jiv[9], det;
       INVERT (J, Jiv, det);
       parmec::inverse[0][i] = Jiv[0];
       parmec::inverse[1][i] = Jiv[1];
@@ -1376,9 +1376,9 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("OO|OOO", &triangles, &color, &point, &lin, &ang);
 
   TYPETEST (is_list_of_tuples (triangles, kwl[0], 1, 9) &&
-            is_positive_or_list (color, kwl[1], PyList_Size(triangles)) &&
-            is_tuple (point, kwl[2], 3) && is_callable (lin, kwl[3]) &&
-	    is_callable (ang, kwl[4]));
+      is_positive_or_list (color, kwl[1], PyList_Size(triangles)) &&
+      is_tuple (point, kwl[2], 3) && is_callable (lin, kwl[3]) &&
+      is_callable (ang, kwl[4]));
 
   int m = PyList_Size (triangles);
 
@@ -1440,7 +1440,7 @@ static PyObject* OBSTACLE (PyObject *self, PyObject *args, PyObject *kwds)
 static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 {
   KEYWORDS ("part1", "point1", "part2", "geom2", "spring", "dashpot", "direction", "planar",
-             "unload", "ylim", "inactive", "offset", "friction", "kskn");
+      "unload", "ylim", "inactive", "offset", "friction", "kskn");
   PyObject *point1, *geom2, *spring, *dashpot, *direction, *planar, *unload, *ylim, *inactive;
   double friction = 0.0, kskn = 0.0;
   int part1, part2, offset;
@@ -1454,14 +1454,14 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   offset = -1; /* unspecified spring stroke offest */
 
   PARSEKEYS ("iOiOO|OOOOOOidd", &part1, &point1, &part2, &geom2, &spring, &dashpot, &direction, &planar,
-             &unload, &ylim, &inactive, &offset, &friction, &kskn);
+      &unload, &ylim, &inactive, &offset, &friction, &kskn);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
-            is_tuple_or_list_of_tuples (geom2, kwl[3], 3, 2) &&
-	    is_list (spring, kwl[4], 0) && is_list_or_number (dashpot, kwl[5], 0) &&
-	    is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
-	    is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]) &&
-	    is_non_negative (friction, kwl[12]) && is_non_negative (kskn, kwl[13]));
+      is_tuple_or_list_of_tuples (geom2, kwl[3], 3, 2) &&
+      is_list (spring, kwl[4], 0) && is_list_or_number (dashpot, kwl[5], 0) &&
+      is_tuple (direction, kwl[6], 3) && is_string (planar, kwl[7]) &&
+      is_list (unload, kwl[8], 0) && is_tuple (ylim, kwl[9], 2) && is_bool (inactive, kwl[10]) &&
+      is_non_negative (friction, kwl[12]) && is_non_negative (kskn, kwl[13]));
 
   if (offset < -1 || offset >= tmsnum)
   {
@@ -1539,8 +1539,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     sprpnt[1][5][i] = sprpnt[1][2][i];
 
     REAL dir[3] = {PyFloat_AsDouble (PyTuple_GetItem (normal,0)),
-                   PyFloat_AsDouble (PyTuple_GetItem (normal,1)),
-                   PyFloat_AsDouble (PyTuple_GetItem (normal,2))};
+      PyFloat_AsDouble (PyTuple_GetItem (normal,1)),
+      PyFloat_AsDouble (PyTuple_GetItem (normal,2))};
 
     NORMALIZE (dir);
 
@@ -1598,8 +1598,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       REAL force = PyFloat_AsDouble(PyList_GetItem(dashpot,2*j+1));
       if (j && velocity <= parmec::dashpot[0][k-1])
       {
-	PyErr_SetString (PyExc_ValueError, "Dashpot velocity values must increase");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Dashpot velocity values must increase");
+        return NULL;
       }
       parmec::dashpot[0][k] = velocity;
       parmec::dashpot[1][k] = force;
@@ -1640,12 +1640,12 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (j)
       {
-	REAL slope = (force-parmec::unload[1][k-1])/(stroke-parmec::unload[0][k-1]);
-	if (slope <= 0.0) /* unloading curve must be monotonic --> (x,y) slope search */
-	{
-	  PyErr_SetString (PyExc_ValueError, "Unloading curve must be monotonically increasing");
-	  return NULL;
-	}
+        REAL slope = (force-parmec::unload[1][k-1])/(stroke-parmec::unload[0][k-1]);
+        if (slope <= 0.0) /* unloading curve must be monotonic --> (x,y) slope search */
+        {
+          PyErr_SetString (PyExc_ValueError, "Unloading curve must be monotonically increasing");
+          return NULL;
+        }
       }
     }
     unidx[sprnum] = k;
@@ -1671,8 +1671,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     sprflg[i] |= SPRDIR_PROJECT;
 
     REAL dif[3] = {sprpnt[0][0][i] - sprpnt[1][0][i],
-		   sprpnt[0][1][i] - sprpnt[1][1][i],
-		   sprpnt[0][2][i] - sprpnt[1][2][i]};
+      sprpnt[0][1][i] - sprpnt[1][1][i],
+      sprpnt[0][2][i] - sprpnt[1][2][i]};
 
     REAL nor[3] = {sprdir[0][i], sprdir[1][i], sprdir[2][i]};
 
@@ -1692,8 +1692,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (len == 0.0)
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid zero direction");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Invalid zero direction");
+        return NULL;
       }
 
       REAL inv = 1.0/len;
@@ -1711,42 +1711,42 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (planar)
       {
-	IFIS (planar, "ON") /* direction in plane */
-	{
-	  sprflg[i] |= SPRDIR_PLANAR;
-	}
-	ELIF (planar, "OFF") /* constant direction */
-	{
-	  sprflg[i] |= SPRDIR_CONSTANT;
-	}
-	ELSE
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid planar switch");
-	  return NULL;
-	}
+        IFIS (planar, "ON") /* direction in plane */
+        {
+          sprflg[i] |= SPRDIR_PLANAR;
+        }
+        ELIF (planar, "OFF") /* constant direction */
+        {
+          sprflg[i] |= SPRDIR_CONSTANT;
+        }
+        ELSE
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid planar switch");
+          return NULL;
+        }
       }
       else /* constant direction */
       {
-	sprflg[i] |= SPRDIR_CONSTANT;
+        sprflg[i] |= SPRDIR_CONSTANT;
       }
 
       REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
-		     sprpnt[1][1][i] - sprpnt[0][1][i],
-		     sprpnt[1][2][i] - sprpnt[0][2][i]};
+        sprpnt[1][1][i] - sprpnt[0][1][i],
+        sprpnt[1][2][i] - sprpnt[0][2][i]};
 
       if (sprflg[i] & SPRDIR_CONSTANT)
       {
-	stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
+        stroke0[i] = DOT (dif, dir); /* stroke(0) = projection along direction */
       }
       else /* stroke(0) = length in orthogonal plane */
       {
-	REAL dot = DOT (dif, dir);
+        REAL dot = DOT (dif, dir);
 
-	dif[0] -= dot*dir[0];
-	dif[1] -= dot*dir[1];
-	dif[2] -= dot*dir[2];
+        dif[0] -= dot*dir[0];
+        dif[1] -= dot*dir[1];
+        dif[2] -= dot*dir[2];
 
-	stroke0[i] = LEN (dif);
+        stroke0[i] = LEN (dif);
       }
     }
     else /* direction = (p2 - p1)/|p2 - p1| */
@@ -1754,8 +1754,8 @@ static PyObject* SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       sprflg[i] |= SPRDIR_FOLLOWER;
 
       REAL dif[3] = {sprpnt[1][0][i] - sprpnt[0][0][i],
-		     sprpnt[1][1][i] - sprpnt[0][1][i],
-		     sprpnt[1][2][i] - sprpnt[0][2][i]};
+        sprpnt[1][1][i] - sprpnt[0][1][i],
+        sprpnt[1][2][i] - sprpnt[0][2][i]};
 
       stroke0[i] = LEN (dif);
     }
@@ -1806,10 +1806,10 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("iiOO|OOOOOOOO", &part1, &part2, &zdir, &xdir, &kroll, &kpitch, &kyaw, &droll, &dpitch, &dyaw, &cone, &refpnt);
 
   TYPETEST (is_non_negative (part1, kwl[0]) && is_tuple (zdir, kwl[2], 3) &&
-            is_tuple (xdir, kwl[3], 3) && is_list (kroll, kwl[4], 0) &&
-            is_list (kpitch, kwl[5], 0) && is_list (kyaw, kwl[6], 0) &&
-	    is_list_or_number (droll, kwl[7], 0) && is_list_or_number (dpitch, kwl[8], 0) &&
-	    is_list_or_number (dyaw, kwl[9], 0) && is_tuple (cone, kwl[10], 0) && is_tuple (refpnt, kwl[11], 3));
+      is_tuple (xdir, kwl[3], 3) && is_list (kroll, kwl[4], 0) &&
+      is_list (kpitch, kwl[5], 0) && is_list (kyaw, kwl[6], 0) &&
+      is_list_or_number (droll, kwl[7], 0) && is_list_or_number (dpitch, kwl[8], 0) &&
+      is_list_or_number (dyaw, kwl[9], 0) && is_tuple (cone, kwl[10], 0) && is_tuple (refpnt, kwl[11], 3));
 
   if (part2 < -1)
   {
@@ -1854,12 +1854,12 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   }
 
   int krpy_lookup[3] = {kroll ? PyList_Size (kroll) : 4,
-                        kpitch ? PyList_Size (kpitch) : 4,
-                        kyaw ? PyList_Size (kyaw) : 4};
+    kpitch ? PyList_Size (kpitch) : 4,
+    kyaw ? PyList_Size (kyaw) : 4};
 
   int drpy_lookup[3] = {droll && PyList_Check(droll) ? PyList_Size (droll) : 4,
-                        dpitch && PyList_Check(dpitch) ? PyList_Size (dpitch) : 4,
-                        dyaw && PyList_Check(dyaw) ? PyList_Size (dyaw) : 4};
+    dpitch && PyList_Check(dpitch) ? PyList_Size (dpitch) : 4,
+    dyaw && PyList_Check(dyaw) ? PyList_Size (dyaw) : 4};
 
   trqspr_buffer_grow (krpy_lookup, drpy_lookup);
 
@@ -1873,11 +1873,11 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
   trqsprpart[1][i] = part2;
 
   REAL zdir0[3] = {PyFloat_AsDouble (PyTuple_GetItem (zdir,0)),
-                   PyFloat_AsDouble (PyTuple_GetItem (zdir,1)),
-                   PyFloat_AsDouble (PyTuple_GetItem (zdir,2))};
+    PyFloat_AsDouble (PyTuple_GetItem (zdir,1)),
+    PyFloat_AsDouble (PyTuple_GetItem (zdir,2))};
   REAL xdir0[3] = {PyFloat_AsDouble (PyTuple_GetItem (xdir,0)),
-                   PyFloat_AsDouble (PyTuple_GetItem (xdir,1)),
-                   PyFloat_AsDouble (PyTuple_GetItem (xdir,2))};
+    PyFloat_AsDouble (PyTuple_GetItem (xdir,1)),
+    PyFloat_AsDouble (PyTuple_GetItem (xdir,2))};
   REAL ydir0[3];
 
   REAL zlen0 = LEN(zdir0), xlen0 = LEN(zdir0);
@@ -1923,15 +1923,15 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       for (j = 0, k = krpyidx[o][i]; j < krpy_lookup[o]/2; j ++, k ++)
       {
-	REAL angle = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j));
-	REAL torque = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j+1));
-	if (j && angle <= parmec::krpy[o][0][k-1])
-	{
-	  PyErr_SetString (PyExc_ValueError, "Torsion spring angle values must increase");
-	  return NULL;
-	}
-	parmec::krpy[o][0][k] = angle;
-	parmec::krpy[o][1][k] = torque;
+        REAL angle = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j));
+        REAL torque = PyFloat_AsDouble(PyList_GetItem(spring[o],2*j+1));
+        if (j && angle <= parmec::krpy[o][0][k-1])
+        {
+          PyErr_SetString (PyExc_ValueError, "Torsion spring angle values must increase");
+          return NULL;
+        }
+        parmec::krpy[o][0][k] = angle;
+        parmec::krpy[o][1][k] = torque;
       }
       krpyidx[o][trqsprnum] = k;
     }
@@ -1949,15 +1949,15 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       for (j = 0, k = drpyidx[o][i]; j < drpy_lookup[o]/2; j ++, k ++)
       {
-	REAL angvel = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j));
-	REAL torque = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j+1));
-	if (j && angvel <= parmec::drpy[o][0][k-1])
-	{
-	  PyErr_SetString (PyExc_ValueError, "Torsion damper angular velocity values must increase");
-	  return NULL;
-	}
-	parmec::drpy[o][0][k] = angvel;
-	parmec::drpy[o][1][k] = torque;
+        REAL angvel = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j));
+        REAL torque = PyFloat_AsDouble(PyList_GetItem(dashpot[o],2*j+1));
+        if (j && angvel <= parmec::drpy[o][0][k-1])
+        {
+          PyErr_SetString (PyExc_ValueError, "Torsion damper angular velocity values must increase");
+          return NULL;
+        }
+        parmec::drpy[o][0][k] = angvel;
+        parmec::drpy[o][1][k] = torque;
       }
       drpyidx[o][trqsprnum] = k;
     }
@@ -1966,8 +1966,8 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
       REAL ratio = PyFloat_AsDouble (dashpot[o]);
       if (ratio < 0.0)
       {
-	PyErr_SetString (PyExc_ValueError, "Critical damping ratio not in [0.0, +Inf) interval");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Critical damping ratio not in [0.0, +Inf) interval");
+        return NULL;
       }
       k = drpyidx[o][i];
       parmec::drpy[o][0][k] = ratio;
@@ -1993,67 +1993,67 @@ static PyObject* TORSION_SPRING (PyObject *self, PyObject *args, PyObject *kwds)
     {
       for (int j = 0; j < n; j ++)
       {
-	PyObject *angle = PyTuple_GetItem (cone, j);
+        PyObject *angle = PyTuple_GetItem (cone, j);
 
-	if (!PyUnicode_Check(angle))
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component: not a string");
-	  return NULL;
-	}
+        if (!PyUnicode_Check(angle))
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component: not a string");
+          return NULL;
+        }
 
-	IFIS (angle, "roll")
-	{
-	  parmec::trqcone[i] |= TRQCONE_ROLL;
-	}
-	ELIF (angle, "pitch")
-	{
-	  parmec::trqcone[i] |= TRQCONE_PITCH;
-	}
-	ELIF (angle, "yaw")
-	{
-	  parmec::trqcone[i] |= TRQCONE_YAW;
-	}
-	ELSE
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component name");
-	  return NULL;
-	}
+        IFIS (angle, "roll")
+        {
+          parmec::trqcone[i] |= TRQCONE_ROLL;
+        }
+        ELIF (angle, "pitch")
+        {
+          parmec::trqcone[i] |= TRQCONE_PITCH;
+        }
+        ELIF (angle, "yaw")
+        {
+          parmec::trqcone[i] |= TRQCONE_YAW;
+        }
+        ELSE
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid cone tuple component name");
+          return NULL;
+        }
       }
 
       switch (parmec::trqcone[i])
       {
-      case TRQCONE_ROLL_PITCH:
-        if (kroll == NULL && droll == NULL)
-	{
-	  PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'pitch')");
-	  return NULL;
-	}
-      break;
-      case TRQCONE_ROLL_YAW:
-        if (kroll == NULL && droll == NULL)
-	{
-	  PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'yaw')");
-	  return NULL;
-	}
-      break;
-      case TRQCONE_PITCH_YAW:
-        if (kpitch == NULL && dpitch == NULL)
-	{
-	  PyErr_SetString (PyExc_ValueError, "A pitch curve not defined for cone = ('pitch', 'yaw')");
-	  return NULL;
-	}
-      break;
-      case TRQCONE_ROLL_PITCH_YAW:
-        if (kroll == NULL && droll == NULL)
-	{
-	  PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'pitch', 'yaw')");
-	  return NULL;
-	}
-      break;
-      default:
-	PyErr_SetString (PyExc_ValueError, "Invalid cone tuple: components repeat");
-	return NULL;
-      break;
+        case TRQCONE_ROLL_PITCH:
+          if (kroll == NULL && droll == NULL)
+          {
+            PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'pitch')");
+            return NULL;
+          }
+          break;
+        case TRQCONE_ROLL_YAW:
+          if (kroll == NULL && droll == NULL)
+          {
+            PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'yaw')");
+            return NULL;
+          }
+          break;
+        case TRQCONE_PITCH_YAW:
+          if (kpitch == NULL && dpitch == NULL)
+          {
+            PyErr_SetString (PyExc_ValueError, "A pitch curve not defined for cone = ('pitch', 'yaw')");
+            return NULL;
+          }
+          break;
+        case TRQCONE_ROLL_PITCH_YAW:
+          if (kroll == NULL && droll == NULL)
+          {
+            PyErr_SetString (PyExc_ValueError, "A roll curve not defined for cone = ('roll', 'pitch', 'yaw')");
+            return NULL;
+          }
+          break;
+        default:
+          PyErr_SetString (PyExc_ValueError, "Invalid cone tuple: components repeat");
+          return NULL;
+          break;
       }
     }
     else
@@ -2097,8 +2097,8 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("OOO|OOOiiOO", &tsprings, &msprings, &limits, &entity, &operat, &abs, &nsteps, &nfreq, &unload, &activate);
 
   TYPETEST (is_list (tsprings, kwl[0], 0) && is_list (msprings, kwl[1], 0) && is_tuple (limits, kwl[2], 2) &&
-            is_string (entity, kwl[3]) && is_string (operat, kwl[4]) && is_bool (abs, kwl[5]) &&
-	    is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]) && is_list (activate, kwl[9], 0));
+      is_string (entity, kwl[3]) && is_string (operat, kwl[4]) && is_bool (abs, kwl[5]) &&
+      is_positive (nsteps, kwl[6]) && is_positive (nfreq, kwl[7]) && is_list (activate, kwl[9], 0));
 
   if (unload < -1 || unload >= tmsnum)
   {
@@ -2116,12 +2116,12 @@ static PyObject* UNSPRING (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (j)
       {
-	REAL slope = (force - ts->points[1][j-1])/(stroke - ts->points[0][j-1]);
-	if (slope <= 0.0) /* unloading curve must be monotonic --> (x,y) slope search */
-	{
-	  PyErr_SetString (PyExc_ValueError, "Unloading curve must be monotonically increasing");
-	  return NULL;
-	}
+        REAL slope = (force - ts->points[1][j-1])/(stroke - ts->points[0][j-1]);
+        if (slope <= 0.0) /* unloading curve must be monotonic --> (x,y) slope search */
+        {
+          PyErr_SetString (PyExc_ValueError, "Unloading curve must be monotonically increasing");
+          return NULL;
+        }
       }
     }
   }
@@ -2346,7 +2346,7 @@ static PyObject* EQM (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("iO|iOO", &part1, &point1, &part2, &point2, &direction);
 
   TYPETEST (is_ge_lt (part1, 0, parnum, kwl[0]) && is_tuple (point1, kwl[1], 3) &&
-            is_tuple (point2, kwl[3], 3) && is_tuple (direction, kwl[4], 3));
+      is_tuple (point2, kwl[3], 3) && is_tuple (direction, kwl[4], 3));
 
   REAL p1[3], p2[3], d[3], *pd = NULL;
 
@@ -2400,8 +2400,8 @@ static PyObject* GRANULAR (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("iid|dOddd", &color1, &color2, &spring, &damper, &friction, &rolling, &drilling, &kskn);
 
   TYPETEST (is_positive (spring, kwl[2]) && is_non_negative (damper, kwl[3]) &&
-            is_non_negative (rolling, kwl[5]) && is_non_negative (drilling, kwl[6]) &&
-	    is_positive (kskn, kwl[7]));
+      is_non_negative (rolling, kwl[5]) && is_non_negative (drilling, kwl[6]) &&
+      is_positive (kskn, kwl[7]));
 
   if (PyTuple_Check (friction))
   {
@@ -2681,8 +2681,8 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
     {
       if (PyTuple_Size(lin) != 3) 
       {
-	PyErr_SetString (PyExc_ValueError, "'linear' tuple size != 3");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "'linear' tuple size != 3");
+        return NULL;
       }
 
       prslin[i] = NULL;
@@ -2694,8 +2694,8 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
           tmslin[1][i] < 0 || tmslin[1][i] >= tmsnum ||
           tmslin[2][i] < 0 || tmslin[2][i] >= tmsnum)
       {
-	PyErr_SetString (PyExc_ValueError, "'linear' time series number out of range");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "'linear' time series number out of range");
+        return NULL;
       }
     }
     else
@@ -2725,8 +2725,8 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
     {
       if (PyTuple_Size(ang) != 3) 
       {
-	PyErr_SetString (PyExc_ValueError, "'angular' tuple size != 3");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "'angular' tuple size != 3");
+        return NULL;
       }
 
       prsang[i] = NULL;
@@ -2738,8 +2738,8 @@ static PyObject* PRESCRIBE (PyObject *self, PyObject *args, PyObject *kwds)
           tmsang[1][i] < 0 || tmsang[1][i] >= tmsnum ||
           tmsang[2][i] < 0 || tmsang[2][i] >= tmsnum)
       {
-	PyErr_SetString (PyExc_ValueError, "'angular' time series number out of range");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "'angular' time series number out of range");
+        return NULL;
       }
     }
     else
@@ -2823,8 +2823,8 @@ static PyObject* VELOCITY (PyObject *self, PyObject *args, PyObject *kwds)
 
     REAL o[3] = {angular[3][i], angular[4][i], angular[5][i]}, O[3];
     REAL L[9] = {rotation[0][i], rotation[1][i], rotation[2][i],
-                 rotation[3][i], rotation[4][i], rotation[5][i],
-		 rotation[6][i], rotation[7][i], rotation[8][i]};
+      rotation[3][i], rotation[4][i], rotation[5][i],
+      rotation[6][i], rotation[7][i], rotation[8][i]};
 
     TVMUL (L,o,O);
 
@@ -3062,7 +3062,7 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
     REAL *ocri = new REAL[sprnum];
     REAL *rcri = new REAL[sprnum];
     ispc::critical_perspring (sprnum, sprpart, sprpnt, sprdir, spring, spridx,
-                 dashpot, dashidx, inverse, invm, position, hcri, ocri, rcri);
+        dashpot, dashidx, inverse, invm, position, hcri, ocri, rcri);
 
     /* sort per-spring steps */
     std::vector<cristep> v;
@@ -3095,9 +3095,9 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
     REAL *ocri = new REAL[parnum];
     REAL *rcri = new REAL[parnum];
     ispc::critical_perparticle (ntasks, master, slave, parnum, mass, inertia, invm, inverse,
-                                rotation, position, sprnum, sprflg, sprpart, sprpnt, sprdir,
-				spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, hcri,
-				ocri, rcri);
+        rotation, position, sprnum, sprflg, sprpart, sprpnt, sprdir,
+        spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, hcri,
+        ocri, rcri);
 
     /* sort per-particle steps */
     std::vector<cristep> v;
@@ -3131,9 +3131,9 @@ static PyObject* CRITICAL (PyObject *self, PyObject *args, PyObject *kwds)
     REAL *ocri = new REAL[parnum];
     REAL *rcri = new REAL[parnum];
     ispc::critical_perparticle (ntasks, master, slave, parnum, mass, inertia, invm, inverse,
-                                rotation, position, sprnum, sprflg, sprpart, sprpnt, sprdir,
-				spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, hcri,
-				ocri, rcri);
+        rotation, position, sprnum, sprflg, sprpart, sprpnt, sprdir,
+        spring, spridx, dashpot, dashidx, kact, kmax, emax, krot, hcri,
+        ocri, rcri);
     /* sort per-particle steps */
     std::vector<cristep> v;
     v.reserve (parnum);
@@ -3170,7 +3170,7 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("O|OOOO", &entity, &source, &point, &h5file, &h5last);
 
   TYPETEST (is_string (entity, kwl[0]) && is_tuple (point, kwl[2], 3) &&
-            is_file (h5file, kwl[3]) && is_bool (h5last, kwl[4]));
+      is_file (h5file, kwl[3]) && is_bool (h5last, kwl[4]));
 
   IFIS (entity, "TIME")
   {
@@ -3451,23 +3451,23 @@ static PyObject* HISTORY (PyObject *self, PyObject *args, PyObject *kwds)
       list[j] = PyLong_AsLong (PyList_GetItem(source, j));
       if (!h5file && srckind == 0 && (list[j] < 0 || list[j] >= parnum))
       {
-	PyErr_SetString (PyExc_ValueError, "Particle index out of range");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Particle index out of range");
+        return NULL;
       }
       if (!h5file && srckind == 1 && (list[j] < 0 || list[j] >= sprnum))
       {
-	PyErr_SetString (PyExc_ValueError, "Spring index out of range");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Spring index out of range");
+        return NULL;
       }
       if (!h5file && srckind == 2 && (list[j] < 0 || list[j] >= trqsprnum))
       {
-	PyErr_SetString (PyExc_ValueError, "Spring index out of range");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Spring index out of range");
+        return NULL;
       }
       if (!h5file && srckind == 3 && (list[j] < 0 || list[j] >= jnum))
       {
-	PyErr_SetString (PyExc_ValueError, "Joint index out of range");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Joint index out of range");
+        return NULL;
       }
     }
     kind = HIS_LIST;
@@ -3570,7 +3570,7 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("|OOOO", &entities, &subset, &mode, &format);
 
   TYPETEST (is_list (entities, kwl[0], 0) && is_list_or_number (subset, kwl[1], 0) &&
-            is_string_or_list (mode, kwl[2]) && is_string_or_list (format, kwl[3]));
+      is_string_or_list (mode, kwl[2]) && is_string_or_list (format, kwl[3]));
 
   int list_size = 0;
 
@@ -3582,13 +3582,13 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (int j = 0; j < list_size; j ++)
       {
-	int k = PyLong_AsLong (PyList_GetItem (subset, j));
+        int k = PyLong_AsLong (PyList_GetItem (subset, j));
 
-	if (k < 0 || k >= parnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid particle number");
-	  return NULL;
-	}
+        if (k < 0 || k >= parnum)
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid particle number");
+          return NULL;
+        }
       }
     }
     else
@@ -3597,10 +3597,10 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
       if (k < 0 || k >= parnum)
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid particle number");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Invalid particle number");
+        return NULL;
       }
- 
+
       list_size = 1;
     }
   }
@@ -3617,11 +3617,11 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       for (int j = 0; j < list_size; j ++)
       {
-	int k = PyLong_AsLong (PyList_GetItem (subset, j));
+        int k = PyLong_AsLong (PyList_GetItem (subset, j));
 
-	outpart[outidx[i+1]++] = k;
+        outpart[outidx[i+1]++] = k;
 
-	flags[k] &= ~OUTREST;
+        flags[k] &= ~OUTREST;
       }
     }
     else
@@ -3640,38 +3640,38 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       IFIS (mode, "SPH")
       {
-	if (subset) outmode[i] = OUT_MODE_SPH;
-	else outrest[1] = OUT_MODE_SPH;
+        if (subset) outmode[i] = OUT_MODE_SPH;
+        else outrest[1] = OUT_MODE_SPH;
       }
       ELIF (mode, "MESH")
       {
-	if (subset) outmode[i] = OUT_MODE_MESH;
-	else outrest[1] = OUT_MODE_MESH;
+        if (subset) outmode[i] = OUT_MODE_MESH;
+        else outrest[1] = OUT_MODE_MESH;
       }
       ELIF (mode, "RB")
       {
-	if (subset) outmode[i] = OUT_MODE_RB;
-	else outmode[1] = OUT_MODE_RB;
+        if (subset) outmode[i] = OUT_MODE_RB;
+        else outmode[1] = OUT_MODE_RB;
       }
       ELIF (mode, "CD")
       {
-	if (subset) outmode[i] = OUT_MODE_CD;
-	else outmode[1] = OUT_MODE_CD;
+        if (subset) outmode[i] = OUT_MODE_CD;
+        else outmode[1] = OUT_MODE_CD;
       }
       ELIF (mode, "SL")
       {
-	if (subset) outmode[i] = OUT_MODE_SL;
-	else outmode[i] = OUT_MODE_SL;
+        if (subset) outmode[i] = OUT_MODE_SL;
+        else outmode[i] = OUT_MODE_SL;
       }
       ELIF (mode, "ST")
       {
-	if (subset) outmode[i] = OUT_MODE_ST;
-	else outmode[i] = OUT_MODE_ST;
+        if (subset) outmode[i] = OUT_MODE_ST;
+        else outmode[i] = OUT_MODE_ST;
       }
       ELSE
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid mode");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Invalid mode");
+        return NULL;
       }
     }
     else
@@ -3681,56 +3681,56 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (int j = 0; j < PyList_Size (mode); j ++)
       {
-	PyObject *item = PyList_GetItem (mode, j);
+        PyObject *item = PyList_GetItem (mode, j);
 
-	if (PyUnicode_Check (item))
-	{
-	  IFIS (item, "SPH")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_SPH;
-	    else outrest[1] |= OUT_MODE_SPH;
-	  }
-	  ELIF (item, "MESH")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_MESH;
-	    else outrest[1] |= OUT_MODE_MESH;
-	  }
-	  ELIF (item, "RB")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_RB;
-	    else outmode[1] |= OUT_MODE_RB;
-	  }
-	  ELIF (item, "CD")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_CD;
-	    else outmode[1] |= OUT_MODE_CD;
-	  }
-	  ELIF (item, "SL")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_SL;
-	    else outmode[i] |= OUT_MODE_SL;
-	  }
-	  ELIF (item, "ST")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_ST;
-	    else outmode[i] |= OUT_MODE_ST;
-	  }
-	  ELIF (item, "JT")
-	  {
-	    if (subset) outmode[i] |= OUT_MODE_JT;
-	    else outmode[i] |= OUT_MODE_JT;
-	  }
-	  ELSE
-	  {
-	    PyErr_SetString (PyExc_ValueError, "Invalid mode");
-	    return NULL;
-	  }
-	}
-	else
-	{
-	  PyErr_SetString (PyExc_TypeError, "mode list item is not a string");
-	  return NULL;
-	}
+        if (PyUnicode_Check (item))
+        {
+          IFIS (item, "SPH")
+          {
+            if (subset) outmode[i] |= OUT_MODE_SPH;
+            else outrest[1] |= OUT_MODE_SPH;
+          }
+          ELIF (item, "MESH")
+          {
+            if (subset) outmode[i] |= OUT_MODE_MESH;
+            else outrest[1] |= OUT_MODE_MESH;
+          }
+          ELIF (item, "RB")
+          {
+            if (subset) outmode[i] |= OUT_MODE_RB;
+            else outmode[1] |= OUT_MODE_RB;
+          }
+          ELIF (item, "CD")
+          {
+            if (subset) outmode[i] |= OUT_MODE_CD;
+            else outmode[1] |= OUT_MODE_CD;
+          }
+          ELIF (item, "SL")
+          {
+            if (subset) outmode[i] |= OUT_MODE_SL;
+            else outmode[i] |= OUT_MODE_SL;
+          }
+          ELIF (item, "ST")
+          {
+            if (subset) outmode[i] |= OUT_MODE_ST;
+            else outmode[i] |= OUT_MODE_ST;
+          }
+          ELIF (item, "JT")
+          {
+            if (subset) outmode[i] |= OUT_MODE_JT;
+            else outmode[i] |= OUT_MODE_JT;
+          }
+          ELSE
+          {
+            PyErr_SetString (PyExc_ValueError, "Invalid mode");
+            return NULL;
+          }
+        }
+        else
+        {
+          PyErr_SetString (PyExc_TypeError, "mode list item is not a string");
+          return NULL;
+        }
       }
     }
   }
@@ -3751,138 +3751,138 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
       IFIS (item, "NUMBER")
       {
-	if (subset) outent[i] |= OUT_NUMBER;
-	else outrest[0] |= OUT_NUMBER;
+        if (subset) outent[i] |= OUT_NUMBER;
+        else outrest[0] |= OUT_NUMBER;
       }
       ELIF (item, "COLOR")
       {
-	if (subset) outent[i] |= OUT_COLOR;
-	else outrest[0] |= OUT_COLOR;
+        if (subset) outent[i] |= OUT_COLOR;
+        else outrest[0] |= OUT_COLOR;
       }
       ELIF (item, "DISPL")
       {
-	if (subset) outent[i] |= OUT_DISPL;
-	else outrest[0] |= OUT_DISPL;
+        if (subset) outent[i] |= OUT_DISPL;
+        else outrest[0] |= OUT_DISPL;
       }
       ELIF (item, "LENGTH")
       {
-	if (subset) outent[i] |= OUT_LENGTH;
-	else outrest[0] |= OUT_LENGTH;
+        if (subset) outent[i] |= OUT_LENGTH;
+        else outrest[0] |= OUT_LENGTH;
       }
       ELIF (item, "ORIENT")
       {
-	if (subset) outent[i] |= OUT_ORIENT;
-	else outrest[0] |= OUT_ORIENT;
+        if (subset) outent[i] |= OUT_ORIENT;
+        else outrest[0] |= OUT_ORIENT;
       }
       ELIF (item, "ORIENT1")
       {
-	if (subset) outent[i] |= OUT_ORIENT1;
-	else outrest[0] |= OUT_ORIENT1;
+        if (subset) outent[i] |= OUT_ORIENT1;
+        else outrest[0] |= OUT_ORIENT1;
       }
       ELIF (item, "ORIENT2")
       {
-	if (subset) outent[i] |= OUT_ORIENT2;
-	else outrest[0] |= OUT_ORIENT2;
+        if (subset) outent[i] |= OUT_ORIENT2;
+        else outrest[0] |= OUT_ORIENT2;
       }
       ELIF (item, "ORIENT3")
       {
-	if (subset) outent[i] |= OUT_ORIENT3;
-	else outrest[0] |= OUT_ORIENT3;
+        if (subset) outent[i] |= OUT_ORIENT3;
+        else outrest[0] |= OUT_ORIENT3;
       }
       ELIF (item, "LINVEL")
       {
-	if (subset) outent[i] |= OUT_LINVEL;
-	else outrest[0] |= OUT_LINVEL;
+        if (subset) outent[i] |= OUT_LINVEL;
+        else outrest[0] |= OUT_LINVEL;
       }
       ELIF (item, "ANGVEL")
       {
-	if (subset) outent[i] |= OUT_ANGVEL;
-	else outrest[0] |= OUT_ANGVEL;
+        if (subset) outent[i] |= OUT_ANGVEL;
+        else outrest[0] |= OUT_ANGVEL;
       }
       ELIF (item, "FORCE")
       {
-	if (subset) outent[i] |= OUT_FORCE;
-	else outrest[0] |= OUT_FORCE;
+        if (subset) outent[i] |= OUT_FORCE;
+        else outrest[0] |= OUT_FORCE;
       }
       ELIF (item, "TORQUE")
       {
-	if (subset) outent[i] |= OUT_TORQUE;
-	else outrest[0] |= OUT_TORQUE;
+        if (subset) outent[i] |= OUT_TORQUE;
+        else outrest[0] |= OUT_TORQUE;
       }
       ELIF (item, "F")
       {
-	if (subset) outent[i] |= OUT_F;
-	else outrest[0] |= OUT_F;
+        if (subset) outent[i] |= OUT_F;
+        else outrest[0] |= OUT_F;
       }
       ELIF (item, "FN")
       {
-	if (subset) outent[i] |= OUT_FN;
-	else outrest[0] |= OUT_FN;
+        if (subset) outent[i] |= OUT_FN;
+        else outrest[0] |= OUT_FN;
       }
       ELIF (item, "FT")
       {
-	if (subset) outent[i] |= OUT_FT;
-	else outrest[0] |= OUT_FT;
+        if (subset) outent[i] |= OUT_FT;
+        else outrest[0] |= OUT_FT;
       }
       ELIF (item, "SF")
       {
-	if (subset) outent[i] |= OUT_SF;
-	else outrest[0] |= OUT_SF;
+        if (subset) outent[i] |= OUT_SF;
+        else outrest[0] |= OUT_SF;
       }
       ELIF (item, "SS")
       {
-	if (subset) outent[i] |= OUT_SS;
-	else outrest[0] |= OUT_SS;
+        if (subset) outent[i] |= OUT_SS;
+        else outrest[0] |= OUT_SS;
       }
       ELIF (item, "AREA")
       {
-	if (subset) outent[i] |= OUT_AREA;
-	else outrest[0] |= OUT_AREA;
+        if (subset) outent[i] |= OUT_AREA;
+        else outrest[0] |= OUT_AREA;
       }
       ELIF (item, "PAIR")
       {
-	if (subset) outent[i] |= OUT_PAIR;
-	else outrest[0] |= OUT_PAIR;
+        if (subset) outent[i] |= OUT_PAIR;
+        else outrest[0] |= OUT_PAIR;
       }
       ELIF (item, "XDIR")
       {
-	if (subset) outent[i] |= OUT_XDIR;
-	else outrest[0] |= OUT_XDIR;
+        if (subset) outent[i] |= OUT_XDIR;
+        else outrest[0] |= OUT_XDIR;
       }
       ELIF (item, "YDIR")
       {
-	if (subset) outent[i] |= OUT_YDIR;
-	else outrest[0] |= OUT_YDIR;
+        if (subset) outent[i] |= OUT_YDIR;
+        else outrest[0] |= OUT_YDIR;
       }
       ELIF (item, "ZDIR")
       {
-	if (subset) outent[i] |= OUT_ZDIR;
-	else outrest[0] |= OUT_ZDIR;
+        if (subset) outent[i] |= OUT_ZDIR;
+        else outrest[0] |= OUT_ZDIR;
       }
       ELIF (item, "TRQROT")
       {
-	if (subset) outent[i] |= OUT_TRQROT;
-	else outrest[0] |= OUT_TRQROT;
+        if (subset) outent[i] |= OUT_TRQROT;
+        else outrest[0] |= OUT_TRQROT;
       }
       ELIF (item, "TRQTOT")
       {
-	if (subset) outent[i] |= OUT_TRQTOT;
-	else outrest[0] |= OUT_TRQTOT;
+        if (subset) outent[i] |= OUT_TRQTOT;
+        else outrest[0] |= OUT_TRQTOT;
       }
       ELIF (item, "TRQSPR")
       {
-	if (subset) outent[i] |= OUT_TRQSPR;
-	else outrest[0] |= OUT_TRQSPR;
+        if (subset) outent[i] |= OUT_TRQSPR;
+        else outrest[0] |= OUT_TRQSPR;
       }
       ELIF (item, "JREAC")
       {
-	if (subset) outent[i] |= OUT_JREAC;
-	else outrest[0] |= OUT_JREAC;
+        if (subset) outent[i] |= OUT_JREAC;
+        else outrest[0] |= OUT_JREAC;
       }
       ELSE
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid entity");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Invalid entity");
+        return NULL;
       }
     }
   }
@@ -3898,24 +3898,24 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
     {
       IFIS (format, "DUMP")
       {
-	parmec::outformat = OUT_FORMAT_DUMP;
+        parmec::outformat = OUT_FORMAT_DUMP;
       }
       ELIF (format, "VTK")
       {
-	parmec::outformat = OUT_FORMAT_VTK;
+        parmec::outformat = OUT_FORMAT_VTK;
       }
       ELIF (format, "XDMF")
       {
-	parmec::outformat = OUT_FORMAT_XDMF;
+        parmec::outformat = OUT_FORMAT_XDMF;
       }
       ELIF (format, "MED")
       {
-	parmec::outformat = OUT_FORMAT_MED;
+        parmec::outformat = OUT_FORMAT_MED;
       }
       ELSE
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid format");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Invalid format");
+        return NULL;
       }
     }
     else
@@ -3924,29 +3924,29 @@ static PyObject* OUTPUT (PyObject *self, PyObject *args, PyObject *kwds)
 
       for (int j = 0; j < PyList_Size (format); j ++)
       {
-	PyObject *item = PyList_GetItem (format, j);
+        PyObject *item = PyList_GetItem (format, j);
 
-	IFIS (item, "DUMP")
-	{
-	  parmec::outformat |= OUT_FORMAT_DUMP;
-	}
-	ELIF (item, "VTK")
-	{
-	  parmec::outformat |= OUT_FORMAT_VTK;
-	}
-	ELIF (item, "XDMF")
-	{
-	  parmec::outformat |= OUT_FORMAT_XDMF;
-	}
-	ELIF (item, "MED")
-	{
-	  parmec::outformat |= OUT_FORMAT_MED;
-	}
-	ELSE
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid format");
-	  return NULL;
-	}
+        IFIS (item, "DUMP")
+        {
+          parmec::outformat |= OUT_FORMAT_DUMP;
+        }
+        ELIF (item, "VTK")
+        {
+          parmec::outformat |= OUT_FORMAT_VTK;
+        }
+        ELIF (item, "XDMF")
+        {
+          parmec::outformat |= OUT_FORMAT_XDMF;
+        }
+        ELIF (item, "MED")
+        {
+          parmec::outformat |= OUT_FORMAT_MED;
+        }
+        ELSE
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid format");
+          return NULL;
+        }
       }
     }
   }
@@ -3972,7 +3972,7 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
   PARSEKEYS ("dd|OOd", &duration, &step, &interval, &prefix, &adaptive);
 
   TYPETEST (is_positive (duration, kwl[0]) && is_positive (step, kwl[1]) &&
-            is_string (prefix, kwl[3]) && is_ge_le (adaptive, 0.0, 1.0, kwl[4]));
+      is_string (prefix, kwl[3]) && is_ge_le (adaptive, 0.0, 1.0, kwl[4]));
 
   if (interval)
   {
@@ -3980,62 +3980,62 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
     {
       if (PyTuple_Size(interval) != 2)
       {
-	PyErr_SetString (PyExc_ValueError, "Invalid output interval");
-	return NULL;
+        PyErr_SetString (PyExc_ValueError, "Invalid output interval");
+        return NULL;
       }
 
       PyObject *dt0 = PyTuple_GetItem (interval, 0);
 
       if (PyCallable_Check (dt0))
       {
-	dt[0] = 0.0;
-	dt_func[0] = dt0;
-	dt_tms[0] = -1;
+        dt[0] = 0.0;
+        dt_func[0] = dt0;
+        dt_tms[0] = -1;
       }
       else if (PyLong_Check (dt0))
       {
-	dt[0] = 0.0;
-	dt_func[0] = NULL;
-	dt_tms[0] = PyLong_AsLong (dt0);
+        dt[0] = 0.0;
+        dt_func[0] = NULL;
+        dt_tms[0] = PyLong_AsLong (dt0);
 
-	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
-	  return NULL;
-	}
+        if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+          return NULL;
+        }
       }
       else
       {
-	dt[0] = PyFloat_AsDouble (dt0);
-	dt_func[0] = NULL;
-	dt_tms[0] = -1;
+        dt[0] = PyFloat_AsDouble (dt0);
+        dt_func[0] = NULL;
+        dt_tms[0] = -1;
       }
 
       PyObject *dt1 = PyTuple_GetItem (interval, 1);
 
       if (PyCallable_Check (dt1))
       {
-	dt[1] = 0.0;
-	dt_func[1] = dt1;
-	dt_tms[1] = -1;
+        dt[1] = 0.0;
+        dt_func[1] = dt1;
+        dt_tms[1] = -1;
       }
       else if (PyLong_Check (dt1))
       {
-	dt[1] = 0.0;
-	dt_func[1] = NULL;
-	dt_tms[1] = PyLong_AsLong (dt1);
+        dt[1] = 0.0;
+        dt_func[1] = NULL;
+        dt_tms[1] = PyLong_AsLong (dt1);
 
-	if (dt_tms[1] < 0 || dt_tms[1] >= tmsnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
-	  return NULL;
-	}
+        if (dt_tms[1] < 0 || dt_tms[1] >= tmsnum)
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+          return NULL;
+        }
       }
       else
       {
-	dt[1] = PyFloat_AsDouble (dt1);
-	dt_func[1] = NULL;
-	dt_tms[1] = -1;
+        dt[1] = PyFloat_AsDouble (dt1);
+        dt_func[1] = NULL;
+        dt_tms[1] = -1;
       }
     }
     else 
@@ -4043,26 +4043,26 @@ static PyObject* DEM (PyObject *self, PyObject *args, PyObject *kwds)
       if (PyCallable_Check (interval))
       {
         dt[0] = dt[1] = 0.0;
-	dt_func[0] = dt_func[1] = interval;
-	dt_tms[0] = dt_tms[1] = -1;
+        dt_func[0] = dt_func[1] = interval;
+        dt_tms[0] = dt_tms[1] = -1;
       }
       else if (PyLong_Check (interval))
       {
         dt[0] = dt[1] = 0.0;
-	dt_func[0] = dt_func[1] = NULL;
-	dt_tms[0] = dt_tms[1] = PyLong_AsLong (interval);
+        dt_func[0] = dt_func[1] = NULL;
+        dt_tms[0] = dt_tms[1] = PyLong_AsLong (interval);
 
-	if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
-	{
-	  PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
-	  return NULL;
-	}
+        if (dt_tms[0] < 0 || dt_tms[0] >= tmsnum)
+        {
+          PyErr_SetString (PyExc_ValueError, "Invalid output interval TSERIES number");
+          return NULL;
+        }
       }
       else
       {
         dt[0] = dt[1] = PyFloat_AsDouble (interval);
-	dt_func[0] = dt_func[1] = NULL;
-	dt_tms[0] = dt_tms[1] = -1;
+        dt_func[0] = dt_func[1] = NULL;
+        dt_tms[0] = dt_tms[1] = -1;
       }
     }
 
@@ -4129,393 +4129,393 @@ static struct PyModuleDef parmecmodule = {
 namespace parmec
 { /* namespace */
 
-/* interpret an input file (return 0 on success) */
-int input (const char *path, char **argv, int argc)
-{
-  int error, len;
-  char *line;
-
-  parmec::argv = argv;
-  parmec::argc = argc;
-
-  len = strlen (path);
-  ERRMEM (output_path = new char [len+1]);
-  strcpy (output_path, path);
- 
-  if (output_path[len-3] != '.' ||
-      output_path[len-2] != 'p' ||
-      output_path[len-1] != 'y')
+  /* interpret an input file (return 0 on success) */
+  int input (const char *path, char **argv, int argc)
   {
-    fprintf (stderr, "ERROR: input file does not have '.py' extension!\n");
-    fprintf (stderr, "       the input path reads: %s\n", path);
-    return 1;
-  }
-  else output_path[len-3] = '\0';
+    int error, len;
+    char *line;
 
-  Py_Initialize();
+    parmec::argv = argv;
+    parmec::argc = argc;
 
-  PyObject* m = PyModule_Create(&parmecmodule);
-  if (!m) return -1;
-  
-  // Add the module to sys.modules so it can be imported
-  PyDict_SetItemString(PyImport_GetModuleDict(), "parmec", m);
-  Py_DECREF(m); // Decrement reference since PyDict_SetItemString increments it
+    len = strlen (path);
+    ERRMEM (output_path = new char [len+1]);
+    strcpy (output_path, path);
 
-  PyRun_SimpleString ("from parmec import ARGV\n"
-                      "from parmec import RESET\n"
-                      "from parmec import TSERIES\n"
-                      "from parmec import MATERIAL\n"
-                      "from parmec import SPHERE\n"
-                      "from parmec import MESH\n"
-                      "from parmec import ANALYTICAL\n"
-                      "from parmec import OBSTACLE\n"
-                      "from parmec import SPRING\n"
-                      "from parmec import TORSION_SPRING\n"
-                      "from parmec import UNSPRING\n"
-                      "from parmec import BALL_JOINT\n"
-                      "from parmec import EQM\n"
-                      "from parmec import GRANULAR\n"
-                      "from parmec import RESTRAIN\n"
-                      "from parmec import PRESCRIBE\n"
-                      "from parmec import VELOCITY\n"
-                      "from parmec import GRAVITY\n"
-                      "from parmec import DAMPING\n"
-                      "from parmec import CRITICAL\n"
-                      "from parmec import HISTORY\n"
-                      "from parmec import OUTPUT\n"
-                      "from parmec import DEM\n");
-
-  ERRMEM (line = new char [128 + strlen (path)]);
-  sprintf (line, "exec(open('%s').read())", path);
-
-  error = PyRun_SimpleString (line); /* we do not run a file directly because FILE destriptors differe
-					between WIN32 and UNIX while Python is often provided in binary form */
-  delete line;
-
-  return error;
-}
-
-/* update obstacles time histories from callbacks */
-void obstaclev (int obsnum, REAL *obsang, REAL *obslin, pointer_t anghis[], pointer_t linhis[], REAL time)
-{
-  PyObject *result, *args;
-  int i;
-
-  args = Py_BuildValue ("(d)", time);
-
-  for (i = 0; i < obsnum; i ++, obsang += 3, obslin += 3)
-  {
-    if (anghis[i])
+    if (output_path[len-3] != '.' ||
+        output_path[len-2] != 'p' ||
+        output_path[len-1] != 'y')
     {
-      result = PyObject_CallObject ((PyObject*)anghis[i], args);
-
-      ASSERT (is_tuple (result, "Returned value", 3), "Obstacle angular velocity callback did not return a (ox, oy, oz) tuple");
-
-      obsang[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-      obsang[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-      obsang[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-      Py_DECREF (result);
+      fprintf (stderr, "ERROR: input file does not have '.py' extension!\n");
+      fprintf (stderr, "       the input path reads: %s\n", path);
+      return 1;
     }
-    else
-    {
-      SET (obsang, 0.0);
-    }
+    else output_path[len-3] = '\0';
 
-    if (linhis[i])
-    {
-      result = PyObject_CallObject ((PyObject*)linhis[i], args);
+    Py_Initialize();
 
-      ASSERT (is_tuple (result, "Returned value", 3), "Obstacle linear velocity callback did not return a (vx, vy, vz) tuple");
+    PyObject* m = PyModule_Create(&parmecmodule);
+    if (!m) return -1;
 
-      obslin[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-      obslin[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-      obslin[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+    // Add the module to sys.modules so it can be imported
+    PyDict_SetItemString(PyImport_GetModuleDict(), "parmec", m);
+    Py_DECREF(m); // Decrement reference since PyDict_SetItemString increments it
 
-      Py_DECREF (result);
-    }
-    else
-    {
-      SET (obslin, 0.0);
-    }
+    PyRun_SimpleString ("from parmec import ARGV\n"
+        "from parmec import RESET\n"
+        "from parmec import TSERIES\n"
+        "from parmec import MATERIAL\n"
+        "from parmec import SPHERE\n"
+        "from parmec import MESH\n"
+        "from parmec import ANALYTICAL\n"
+        "from parmec import OBSTACLE\n"
+        "from parmec import SPRING\n"
+        "from parmec import TORSION_SPRING\n"
+        "from parmec import UNSPRING\n"
+        "from parmec import BALL_JOINT\n"
+        "from parmec import EQM\n"
+        "from parmec import GRANULAR\n"
+        "from parmec import RESTRAIN\n"
+        "from parmec import PRESCRIBE\n"
+        "from parmec import VELOCITY\n"
+        "from parmec import GRAVITY\n"
+        "from parmec import DAMPING\n"
+        "from parmec import CRITICAL\n"
+        "from parmec import HISTORY\n"
+        "from parmec import OUTPUT\n"
+        "from parmec import DEM\n");
+
+    ERRMEM (line = new char [128 + strlen (path)]);
+    sprintf (line, "exec(open('%s').read())", path);
+
+    error = PyRun_SimpleString (line); /* we do not run a file directly because FILE destriptors differe
+                                          between WIN32 and UNIX while Python is often provided in binary form */
+    delete line;
+
+    return error;
   }
 
-  Py_DECREF (args);
-}
-
-/* prescribe particle acceleration */
-void prescribe_acceleration (int prsnum, pointer_t tms[], int prspart[], pointer_t prslin[], int *tmslin[3], int linkind[],
-  pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3])
-{
-  PyObject *result, *args;
-  int i, j;
-
-  for (i = 0; i < prsnum; i ++)
+  /* update obstacles time histories from callbacks */
+  void obstaclev (int obsnum, REAL *obsang, REAL *obslin, pointer_t anghis[], pointer_t linhis[], REAL time)
   {
-    j = prspart[i];
+    PyObject *result, *args;
+    int i;
 
-    if ((prslin[i] || tmslin[0][i] >= 0) && linkind[i] == 1) /* prescribed acceleration --> set up force */
+    args = Py_BuildValue ("(d)", time);
+
+    for (i = 0; i < obsnum; i ++, obsang += 3, obslin += 3)
     {
-      REAL acc[3];
-
-      if (prslin[i])
+      if (anghis[i])
       {
-        args = Py_BuildValue ("(d)", time);
+        result = PyObject_CallObject ((PyObject*)anghis[i], args);
 
-	result = PyObject_CallObject ((PyObject*)prslin[i], args);
+        ASSERT (is_tuple (result, "Returned value", 3), "Obstacle angular velocity callback did not return a (ox, oy, oz) tuple");
 
-	ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear acceleration callback did not return a (ax, ay, az) tuple");
+        obsang[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+        obsang[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+        obsang[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
 
-	acc[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-	acc[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-	acc[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-        Py_DECREF (args);
-	Py_DECREF (result);
-      }
-      else
-      {
-	acc[0] = TMS_Value ((TMS*)tms[tmslin[0][i]], time);
-	acc[1] = TMS_Value ((TMS*)tms[tmslin[1][i]], time);
-	acc[2] = TMS_Value ((TMS*)tms[tmslin[2][i]], time);
-      }
-
-      REAL ma = mass[j];
-
-      force[0][j] = ma * acc[0];
-      force[1][j] = ma * acc[1];
-      force[2][j] = ma * acc[2];
-    }
-    else if ((prslin[i] || tmslin[0][i] >= 0) && linkind[i] == 0) /* prescribed velocity --> zero force */
-    {
-      force[0][j] = 0.0;
-      force[1][j] = 0.0;
-      force[2][j] = 0.0;
-    }
-
-    if ((prsang[i] || tmsang[0][i] >= 0) && angkind[i] == 1) /* prescribed acceleration --> set up torque */
-    {
-      REAL acc[3];
-
-      if (prsang[i])
-      {
-        args = Py_BuildValue ("(d)", time);
-
-	result = PyObject_CallObject ((PyObject*)prsang[i], args);
-
-	ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular acceleration callback did not return a (ox, oy, oz) tuple");
-
-	acc[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-	acc[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-	acc[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-        Py_DECREF (args);
         Py_DECREF (result);
       }
       else
       {
-	acc[0] = TMS_Value ((TMS*)tms[tmsang[0][i]], time);
-	acc[1] = TMS_Value ((TMS*)tms[tmsang[1][i]], time);
-	acc[2] = TMS_Value ((TMS*)tms[tmsang[2][i]], time);
+        SET (obsang, 0.0);
       }
 
-      REAL in[9] = {inertia[0][j], inertia[1][j], inertia[2][j],
-                    inertia[3][j], inertia[4][j], inertia[5][j],
-		    inertia[6][j], inertia[7][j], inertia[8][j]};
-
-      REAL to[3];
-
-      NVMUL (in, acc, to);
-
-      torque[0][j] = to[0];
-      torque[1][j] = to[1];
-      torque[2][j] = to[2];
-    }
-    else if ((prsang[i] || tmsang[0][i] >= 0) && angkind[i] == 0) /* prescribed velocity --> zero torque */
-    {
-      torque[0][j] = 0.0;
-      torque[1][j] = 0.0;
-      torque[2][j] = 0.0;
-    }
-  }
-}
-
-/* prescribe particle velocity */
-void prescribe_velocity (int prsnum, pointer_t tms[], int prspart[], pointer_t prslin[], int *tmslin[3], int linkind[],
-  pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6])
-{
-  PyObject *result, *args;
-  int i, j;
-
-  for (i = 0; i < prsnum; i ++)
-  {
-    j = prspart[i];
-
-    if ((prslin[i] || tmslin[0][i] >= 0) && linkind[i] == 0)
-    {
-      if (prslin[i])
+      if (linhis[i])
       {
-	args = Py_BuildValue ("(d)", time);
+        result = PyObject_CallObject ((PyObject*)linhis[i], args);
 
-	result = PyObject_CallObject ((PyObject*)prslin[i], args);
+        ASSERT (is_tuple (result, "Returned value", 3), "Obstacle linear velocity callback did not return a (vx, vy, vz) tuple");
 
-	ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear velocity callback did not return a (vx, vy, vz) tuple");
-	
-	linear[0][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-	linear[1][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-	linear[2][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+        obslin[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+        obslin[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+        obslin[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
 
-	Py_DECREF (args);
-	Py_DECREF (result);
-      }
-      else
-      {
-	linear[0][j] = TMS_Value((TMS*)tms[tmslin[0][i]], time);
-	linear[1][j] = TMS_Value((TMS*)tms[tmslin[1][i]], time);
-	linear[2][j] = TMS_Value((TMS*)tms[tmslin[2][i]], time);
-      }
-    }
-
-    if ((prsang[i] || tmsang[0][i] >= 0) && angkind[i] == 0)
-    {
-      REAL o[3];
-
-      if (prsang[i])
-      {
-	args = Py_BuildValue ("(d)", time);
-
-	result = PyObject_CallObject ((PyObject*)prsang[i], args);
-
-	ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular velocity callback did not return a (ox, oy, oz) tuple");
-
-        o[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-	o[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-	o[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-
-	Py_DECREF (args);
         Py_DECREF (result);
       }
       else
       {
-	o[0] = TMS_Value((TMS*)tms[tmsang[0][i]], time);
-	o[1] = TMS_Value((TMS*)tms[tmsang[1][i]], time);
-	o[2] = TMS_Value((TMS*)tms[tmsang[2][i]], time);
+        SET (obslin, 0.0);
+      }
+    }
+
+    Py_DECREF (args);
+  }
+
+  /* prescribe particle acceleration */
+  void prescribe_acceleration (int prsnum, pointer_t tms[], int prspart[], pointer_t prslin[], int *tmslin[3], int linkind[],
+      pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL mass[], REAL *inertia[9], REAL *force[3], REAL *torque[3])
+  {
+    PyObject *result, *args;
+    int i, j;
+
+    for (i = 0; i < prsnum; i ++)
+    {
+      j = prspart[i];
+
+      if ((prslin[i] || tmslin[0][i] >= 0) && linkind[i] == 1) /* prescribed acceleration --> set up force */
+      {
+        REAL acc[3];
+
+        if (prslin[i])
+        {
+          args = Py_BuildValue ("(d)", time);
+
+          result = PyObject_CallObject ((PyObject*)prslin[i], args);
+
+          ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear acceleration callback did not return a (ax, ay, az) tuple");
+
+          acc[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+          acc[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+          acc[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+          Py_DECREF (args);
+          Py_DECREF (result);
+        }
+        else
+        {
+          acc[0] = TMS_Value ((TMS*)tms[tmslin[0][i]], time);
+          acc[1] = TMS_Value ((TMS*)tms[tmslin[1][i]], time);
+          acc[2] = TMS_Value ((TMS*)tms[tmslin[2][i]], time);
+        }
+
+        REAL ma = mass[j];
+
+        force[0][j] = ma * acc[0];
+        force[1][j] = ma * acc[1];
+        force[2][j] = ma * acc[2];
+      }
+      else if ((prslin[i] || tmslin[0][i] >= 0) && linkind[i] == 0) /* prescribed velocity --> zero force */
+      {
+        force[0][j] = 0.0;
+        force[1][j] = 0.0;
+        force[2][j] = 0.0;
       }
 
-      REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
-                   rotation[3][j], rotation[4][j], rotation[5][j],
-		   rotation[6][j], rotation[7][j], rotation[8][j]};
+      if ((prsang[i] || tmsang[0][i] >= 0) && angkind[i] == 1) /* prescribed acceleration --> set up torque */
+      {
+        REAL acc[3];
 
-      REAL O[3];
+        if (prsang[i])
+        {
+          args = Py_BuildValue ("(d)", time);
 
-      TVMUL (L, o, O);
+          result = PyObject_CallObject ((PyObject*)prsang[i], args);
 
-      angular[0][j] = O[0];
-      angular[1][j] = O[1];
-      angular[2][j] = O[2];
-      angular[3][j] = o[0];
-      angular[4][j] = o[1];
-      angular[5][j] = o[2];
+          ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular acceleration callback did not return a (ox, oy, oz) tuple");
+
+          acc[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+          acc[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+          acc[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+          Py_DECREF (args);
+          Py_DECREF (result);
+        }
+        else
+        {
+          acc[0] = TMS_Value ((TMS*)tms[tmsang[0][i]], time);
+          acc[1] = TMS_Value ((TMS*)tms[tmsang[1][i]], time);
+          acc[2] = TMS_Value ((TMS*)tms[tmsang[2][i]], time);
+        }
+
+        REAL in[9] = {inertia[0][j], inertia[1][j], inertia[2][j],
+          inertia[3][j], inertia[4][j], inertia[5][j],
+          inertia[6][j], inertia[7][j], inertia[8][j]};
+
+        REAL to[3];
+
+        NVMUL (in, acc, to);
+
+        torque[0][j] = to[0];
+        torque[1][j] = to[1];
+        torque[2][j] = to[2];
+      }
+      else if ((prsang[i] || tmsang[0][i] >= 0) && angkind[i] == 0) /* prescribed velocity --> zero torque */
+      {
+        torque[0][j] = 0.0;
+        torque[1][j] = 0.0;
+        torque[2][j] = 0.0;
+      }
     }
   }
-}
 
-/* read gravity and global damping */
-void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3], int gravtms[3],
-  REAL gravity[3], pointer_t lindamp, int lindamptms[3], pointer_t angdamp, int angdamptms[3], REAL damping[6])
-{
-  for (int i = 0; i < 3; i ++)
+  /* prescribe particle velocity */
+  void prescribe_velocity (int prsnum, pointer_t tms[], int prspart[], pointer_t prslin[], int *tmslin[3], int linkind[],
+      pointer_t prsang[], int *tmsang[3], int angkind[], REAL time, REAL *rotation[9], REAL *linear[3], REAL *angular[6])
   {
-    if (gravfunc[i])
+    PyObject *result, *args;
+    int i, j;
+
+    for (i = 0; i < prsnum; i ++)
+    {
+      j = prspart[i];
+
+      if ((prslin[i] || tmslin[0][i] >= 0) && linkind[i] == 0)
+      {
+        if (prslin[i])
+        {
+          args = Py_BuildValue ("(d)", time);
+
+          result = PyObject_CallObject ((PyObject*)prslin[i], args);
+
+          ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear velocity callback did not return a (vx, vy, vz) tuple");
+
+          linear[0][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+          linear[1][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+          linear[2][j] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+          Py_DECREF (args);
+          Py_DECREF (result);
+        }
+        else
+        {
+          linear[0][j] = TMS_Value((TMS*)tms[tmslin[0][i]], time);
+          linear[1][j] = TMS_Value((TMS*)tms[tmslin[1][i]], time);
+          linear[2][j] = TMS_Value((TMS*)tms[tmslin[2][i]], time);
+        }
+      }
+
+      if ((prsang[i] || tmsang[0][i] >= 0) && angkind[i] == 0)
+      {
+        REAL o[3];
+
+        if (prsang[i])
+        {
+          args = Py_BuildValue ("(d)", time);
+
+          result = PyObject_CallObject ((PyObject*)prsang[i], args);
+
+          ASSERT (is_tuple (result, "Returned value", 3), "Prescribed angular velocity callback did not return a (ox, oy, oz) tuple");
+
+          o[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+          o[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+          o[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+
+          Py_DECREF (args);
+          Py_DECREF (result);
+        }
+        else
+        {
+          o[0] = TMS_Value((TMS*)tms[tmsang[0][i]], time);
+          o[1] = TMS_Value((TMS*)tms[tmsang[1][i]], time);
+          o[2] = TMS_Value((TMS*)tms[tmsang[2][i]], time);
+        }
+
+        REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
+          rotation[3][j], rotation[4][j], rotation[5][j],
+          rotation[6][j], rotation[7][j], rotation[8][j]};
+
+        REAL O[3];
+
+        TVMUL (L, o, O);
+
+        angular[0][j] = O[0];
+        angular[1][j] = O[1];
+        angular[2][j] = O[2];
+        angular[3][j] = o[0];
+        angular[4][j] = o[1];
+        angular[5][j] = o[2];
+      }
+    }
+  }
+
+  /* read gravity and global damping */
+  void read_gravity_and_damping (REAL time, pointer_t *tms, pointer_t gravfunc[3], int gravtms[3],
+      REAL gravity[3], pointer_t lindamp, int lindamptms[3], pointer_t angdamp, int angdamptms[3], REAL damping[6])
+  {
+    for (int i = 0; i < 3; i ++)
+    {
+      if (gravfunc[i])
+      {
+        PyObject *result, *args;
+
+        args = Py_BuildValue ("(d)", time);
+
+        result = PyObject_CallObject ((PyObject*)gravfunc[i], args);
+        ASSERT (PyNumber_Check (result), "Gravity callback component %d did not return a number", i);
+        gravity[i] = PyFloat_AsDouble(result);
+        Py_DECREF (result);
+
+        Py_DECREF (args);
+      }
+      else if (gravtms[i] >= 0 && gravtms[i] < tmsnum)
+      {
+        gravity[i] = TMS_Value ((TMS*)tms[gravtms[i]], time);
+      }
+    }
+
+    if (lindamp)
     {
       PyObject *result, *args;
 
       args = Py_BuildValue ("(d)", time);
 
-      result = PyObject_CallObject ((PyObject*)gravfunc[i], args);
-      ASSERT (PyNumber_Check (result), "Gravity callback component %d did not return a number", i);
-      gravity[i] = PyFloat_AsDouble(result);
+      result = PyObject_CallObject ((PyObject*)lindamp, args);
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dvx, dvy, dvz) tuple");
+      damping[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+      damping[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+      damping[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
       Py_DECREF (result);
 
       Py_DECREF (args);
     }
-    else if (gravtms[i] >= 0 && gravtms[i] < tmsnum)
+    else if (lindamptms[0] >= 0 && lindamptms[0] < tmsnum &&
+        lindamptms[1] >= 0 && lindamptms[1] < tmsnum &&
+        lindamptms[2] >= 0 && lindamptms[2] < tmsnum)
     {
-      gravity[i] = TMS_Value ((TMS*)tms[gravtms[i]], time);
+      damping[0] = TMS_Value ((TMS*)tms[lindamptms[0]], time);
+      damping[1] = TMS_Value ((TMS*)tms[lindamptms[1]], time);
+      damping[2] = TMS_Value ((TMS*)tms[lindamptms[2]], time);
+    }
+    else
+    {
+      damping[0] = damping[1] = damping[2] = 0.0;
+    }
+
+    if (angdamp)
+    {
+      PyObject *result, *args;
+
+      args = Py_BuildValue ("(d)", time);
+
+      result = PyObject_CallObject ((PyObject*)angdamp, args);
+      ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dox, doy, doz) tuple");
+      damping[3] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
+      damping[4] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
+      damping[5] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+      Py_DECREF (result);
+
+      Py_DECREF (args);
+    }
+    else if (angdamptms[0] >= 0 && angdamptms[0] < tmsnum &&
+        angdamptms[1] >= 0 && angdamptms[1] < tmsnum &&
+        angdamptms[2] >= 0 && angdamptms[2] < tmsnum)
+    {
+      damping[3] = TMS_Value ((TMS*)tms[angdamptms[0]], time);
+      damping[4] = TMS_Value ((TMS*)tms[angdamptms[1]], time);
+      damping[5] = TMS_Value ((TMS*)tms[angdamptms[2]], time);
+    }
+    else
+    {
+      damping[3] = damping[4] = damping[5] = 0.0;
     }
   }
 
-  if (lindamp)
+  /* call interval callback */
+  REAL current_interval (pointer_t func, REAL time)
   {
     PyObject *result, *args;
+    REAL dt;
 
     args = Py_BuildValue ("(d)", time);
 
-    result = PyObject_CallObject ((PyObject*)lindamp, args);
-    ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dvx, dvy, dvz) tuple");
-    damping[0] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-    damping[1] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-    damping[2] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
+    result = PyObject_CallObject ((PyObject*)func, args);
+
+    dt = PyFloat_AsDouble(result);
+
     Py_DECREF (result);
 
-    Py_DECREF (args);
+    return dt;
   }
-  else if (lindamptms[0] >= 0 && lindamptms[0] < tmsnum &&
-           lindamptms[1] >= 0 && lindamptms[1] < tmsnum &&
-           lindamptms[2] >= 0 && lindamptms[2] < tmsnum)
-  {
-    damping[0] = TMS_Value ((TMS*)tms[lindamptms[0]], time);
-    damping[1] = TMS_Value ((TMS*)tms[lindamptms[1]], time);
-    damping[2] = TMS_Value ((TMS*)tms[lindamptms[2]], time);
-  }
-  else
-  {
-    damping[0] = damping[1] = damping[2] = 0.0;
-  }
-
-  if (angdamp)
-  {
-    PyObject *result, *args;
-
-    args = Py_BuildValue ("(d)", time);
-
-    result = PyObject_CallObject ((PyObject*)angdamp, args);
-    ASSERT (is_tuple (result, "Returned value", 3), "Prescribed linear damping did not return a (dox, doy, doz) tuple");
-    damping[3] = PyFloat_AsDouble(PyTuple_GetItem (result, 0));
-    damping[4] = PyFloat_AsDouble(PyTuple_GetItem (result, 1));
-    damping[5] = PyFloat_AsDouble(PyTuple_GetItem (result, 2));
-    Py_DECREF (result);
-
-    Py_DECREF (args);
-  }
-  else if (angdamptms[0] >= 0 && angdamptms[0] < tmsnum &&
-           angdamptms[1] >= 0 && angdamptms[1] < tmsnum &&
-           angdamptms[2] >= 0 && angdamptms[2] < tmsnum)
-  {
-    damping[3] = TMS_Value ((TMS*)tms[angdamptms[0]], time);
-    damping[4] = TMS_Value ((TMS*)tms[angdamptms[1]], time);
-    damping[5] = TMS_Value ((TMS*)tms[angdamptms[2]], time);
-  }
-  else
-  {
-    damping[3] = damping[4] = damping[5] = 0.0;
-  }
-}
-
-/* call interval callback */
-REAL current_interval (pointer_t func, REAL time)
-{
-  PyObject *result, *args;
-  REAL dt;
-
-  args = Py_BuildValue ("(d)", time);
-
-  result = PyObject_CallObject ((PyObject*)func, args);
-
-  dt = PyFloat_AsDouble(result);
-
-  Py_DECREF (result);
-
-  return dt;
-}
 } /* namespace */

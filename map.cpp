@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2016 Tomasz Koziara
+   Copyright (c) 2016 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -80,30 +80,30 @@ inline static void map_delete_fixup (MAP **root, MAP *x, MAP *xp)
         xp->colour = red;
         y->colour = black;
         map_rotate_l (root, xp);
-	y = xp->r;
+        y = xp->r;
       }
-     
+
       if (y->r->colour == black && y->l->colour == black)
       {
-         y->colour = red;
-	 x = xp;
-	 xp = x->p;
+        y->colour = red;
+        x = xp;
+        xp = x->p;
       }
       else
       {
         if (y->r->colour == black)
-	{
-	  y->l->colour = black;
-	  y->colour = red;
-	  map_rotate_r (root, y);
-	  y = xp->r;
-	}
+        {
+          y->l->colour = black;
+          y->colour = red;
+          map_rotate_r (root, y);
+          y = xp->r;
+        }
 
-	y->colour = xp->colour;
-	xp->colour = black;
-	y->r->colour = black;
-	map_rotate_l (root, xp);
-	x = *root;
+        y->colour = xp->colour;
+        xp->colour = black;
+        y->r->colour = black;
+        map_rotate_l (root, xp);
+        x = *root;
       }
     } 
     else
@@ -116,30 +116,30 @@ inline static void map_delete_fixup (MAP **root, MAP *x, MAP *xp)
         xp->colour = red;
         y->colour = black;
         map_rotate_r (root, xp);
-	y = xp->l;
+        y = xp->l;
       }
-    
+
       if (y->l->colour == black && y->r->colour == black)
       {
-         y->colour = red;
-	 x = xp;
-	 xp = x->p;
+        y->colour = red;
+        x = xp;
+        xp = x->p;
       }
       else
       {
         if (y->l->colour == black)
-	{
-	  y->r->colour = black;
-	  y->colour = red;
-	  map_rotate_l (root, y);
-	  y = xp->l;
-	}
+        {
+          y->r->colour = black;
+          y->colour = red;
+          map_rotate_l (root, y);
+          y = xp->l;
+        }
 
-	y->colour = xp->colour;
-	xp->colour = black;
-	y->l->colour = black;
-	map_rotate_r (root, xp);
-	x = *root;
+        y->colour = xp->colour;
+        xp->colour = black;
+        y->l->colour = black;
+        map_rotate_r (root, xp);
+        x = *root;
       }
     }
   }
@@ -184,64 +184,64 @@ MAP* MAP_Insert (MEM *pool, MAP **root, void *key, void *data, MAP_Compare compa
   else
   {
     node = *root;
-    
+
     if (compare)
     {
       while (1)
       {
-	cmp = compare (key, node->key);
-	if (cmp < 0)
-	{
-	  if (node->l == NIL)
-	  {
-	    x = item (pool, key, data);
-	    node->l = x;
-	    x->p = node;
-	    break;
-	  }
-	  else node = node->l;
-	}
-	else if (cmp > 0)
-	{
-	  if (node->r == NIL)
-	  {
-	    x = item (pool, key, data);
-	    node->r = x;
-	    x->p = node;
-	    break;
-	  }
-	  else node = node->r;
-	}
-	else return NULL;
+        cmp = compare (key, node->key);
+        if (cmp < 0)
+        {
+          if (node->l == NIL)
+          {
+            x = item (pool, key, data);
+            node->l = x;
+            x->p = node;
+            break;
+          }
+          else node = node->l;
+        }
+        else if (cmp > 0)
+        {
+          if (node->r == NIL)
+          {
+            x = item (pool, key, data);
+            node->r = x;
+            x->p = node;
+            break;
+          }
+          else node = node->r;
+        }
+        else return NULL;
       }
     }
     else
     {
       while (1)
       {
-	if (key < node->key)
-	{
-	  if (node->l == NIL)
-	  {
-	    x = item (pool, key, data);
-	    node->l = x;
-	    x->p = node;
-	    break;
-	  }
-	  else node = node->l;
-	}
-	else if (key > node->key)
-	{
-	  if (node->r == NIL)
-	  {
-	    x = item (pool, key, data);
-	    node->r = x;
-	    x->p = node;
-	    break;
-	  }
-	  else node = node->r;
-	}
-	else return NULL;
+        if (key < node->key)
+        {
+          if (node->l == NIL)
+          {
+            x = item (pool, key, data);
+            node->l = x;
+            x->p = node;
+            break;
+          }
+          else node = node->l;
+        }
+        else if (key > node->key)
+        {
+          if (node->r == NIL)
+          {
+            x = item (pool, key, data);
+            node->r = x;
+            x->p = node;
+            break;
+          }
+          else node = node->r;
+        }
+        else return NULL;
       }
     }
   }
@@ -263,9 +263,9 @@ MAP* MAP_Insert (MEM *pool, MAP **root, void *key, void *data, MAP_Compare compa
       else
       {
         if (x == x->p->r)
-	{
+        {
           x = x->p;
-	  map_rotate_l (root, x);
+          map_rotate_l (root, x);
         }
 
         x->p->colour = black;
@@ -286,7 +286,7 @@ MAP* MAP_Insert (MEM *pool, MAP **root, void *key, void *data, MAP_Compare compa
       else
       {
         if (x == x->p->l)
-	{
+        {
           x = x->p;
           map_rotate_r (root, x);
         }
@@ -362,7 +362,7 @@ void* MAP_Delete (MEM *pool, MAP **root, void *key, MAP_Compare compare)
   MAP *node = *root, *x, *y;
   void *data;
   int cmp;
- 
+
   if (compare)
   {
     while (node != NIL && node != NULL)
@@ -391,7 +391,7 @@ void* MAP_Delete (MEM *pool, MAP **root, void *key, MAP_Compare compare)
     }
   }
   return NULL;
-  
+
 FOUND:
   if (node->l == NIL || node->r == NIL)
   {
@@ -402,7 +402,7 @@ FOUND:
     y = node->r;
     while (y->l != NIL) y = y->l;
   }
-  
+
   if (y->l != NIL)
     x = y->l;
   else x = y->r;
@@ -427,7 +427,7 @@ FOUND:
 
   if (y->colour == black)
     map_delete_fixup (root, x, xp);
-      
+
   if (pool) MEM_Free (pool, y);
   else free (y);
 
@@ -437,7 +437,7 @@ FOUND:
 MAP* MAP_Delete_Node (MEM *pool, MAP **root, MAP *node)
 {
   MAP *x, *y, *next;
- 
+
   next = MAP_Next (node);
 
   if (node->l == NIL || node->r == NIL)
@@ -449,7 +449,7 @@ MAP* MAP_Delete_Node (MEM *pool, MAP **root, MAP *node)
     y = node->r;
     while (y->l != NIL) y = y->l;
   }
-  
+
   if (y->l != NIL)
     x = y->l;
   else x = y->r;
@@ -475,7 +475,7 @@ MAP* MAP_Delete_Node (MEM *pool, MAP **root, MAP *node)
 
   if (y->colour == black)
     map_delete_fixup (root, x, xp); /* this cannot change the next item after 'node' */
-      
+
   if (pool) MEM_Free (pool, y);
   else free (y);
 
@@ -517,7 +517,7 @@ MAP* MAP_Last (MAP *root)
 MAP* MAP_Prev (MAP *node)
 {
   MAP *y;
-  
+
   if (node == NULL)
     return NULL;
 
@@ -525,7 +525,7 @@ MAP* MAP_Prev (MAP *node)
 
     if (node->p == NULL)
       return NULL; /* this is the only l node of root */
-  
+
     if (node == node->p->r)
       return node->p; /* p is the predecessor */
 
@@ -550,7 +550,7 @@ MAP* MAP_Prev (MAP *node)
 MAP* MAP_Next (MAP *node)
 {
   MAP *y;
-  
+
   if (node == NULL)
     return NULL;
 
@@ -558,7 +558,7 @@ MAP* MAP_Next (MAP *node)
 
     if (node->p == NULL)
       return NULL; /* this is the only r node of root */
-  
+
     if (node == node->p->l)
       return node->p; /* p is the predecessor */
 

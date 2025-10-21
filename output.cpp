@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -103,8 +103,8 @@ static void output_dump_dataset (int num, int *set, int ent, ofstream &out)
       j = set[i];
 
       REAL d[3] = {position[0][j]-position[3][j],
-                   position[1][j]-position[4][j],
-		   position[2][j]-position[5][j]};
+        position[1][j]-position[4][j],
+        position[2][j]-position[5][j]};
 
       out << d[0] << " " << d[1] << " " << d[2] << "\n";
     }
@@ -180,8 +180,8 @@ static void output_rb_dataset (int num, int *set, int ent, ofstream &out)
       j = set[i];
 
       REAL d[3] = {position[0][j]-position[3][j],
-                   position[1][j]-position[4][j],
-		   position[2][j]-position[5][j]};
+        position[1][j]-position[4][j],
+        position[2][j]-position[5][j]};
 
       out << d[0] << " " << d[1] << " " << d[2] << "\n";
     }
@@ -306,8 +306,8 @@ static void h5_rb_dataset (int num, int *set, int ent, hid_t h5_step)
       j = set[i];
 
       REAL d[3] = {position[0][j]-position[3][j],
-                   position[1][j]-position[4][j],
-		   position[2][j]-position[5][j]};
+        position[1][j]-position[4][j],
+        position[2][j]-position[5][j]};
 
       pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
     }
@@ -437,7 +437,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     char axisName[3 * MED_SNAME_SIZE + 1] = "";
     char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
     ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
-	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+          MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
 
     /* create family 0 : by default, all mesh entities family number is 0 */
     ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
@@ -457,12 +457,12 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
     else
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
   }
 
@@ -476,7 +476,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
-	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
+          MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
   }
 
   if (ent & OUT_NUMBER)
@@ -490,7 +490,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -503,23 +503,23 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #else
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #endif
   }
@@ -535,7 +535,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -544,8 +544,8 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
       j = set[i];
 
       REAL d[3] = {position[0][j]-position[3][j],
-                   position[1][j]-position[4][j],
-		   position[2][j]-position[5][j]};
+        position[1][j]-position[4][j],
+        position[2][j]-position[5][j]};
 
       values.push_back (d[0]);
       values.push_back (d[1]);
@@ -555,12 +555,12 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -575,7 +575,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -591,12 +591,12 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -611,7 +611,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -628,23 +628,23 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #else
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #endif
   }
@@ -660,7 +660,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -677,23 +677,23 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #else
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #endif
   }
@@ -709,7 +709,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -726,23 +726,23 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #else
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #endif
   }
@@ -758,7 +758,7 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -781,23 +781,23 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #else
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
 #endif
   }
@@ -805,8 +805,8 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
   int mask[3] = {OUT_ORIENT1, OUT_ORIENT2, OUT_ORIENT3};
   const char fieldName[3][MED_NAME_SIZE+1] = {"ORIENT1", "ORIENT2", "ORIENT3"};
   const char componentName[3][3*MED_SNAME_SIZE+1] = {"o1x             o1y             o1z",
-                                                     "o2x             o2y             o2z",
-						     "o3x             o3y             o3z"};
+    "o2x             o2y             o2z",
+    "o3x             o3y             o3z"};
   for (int k = 0; k < 3; k ++)
   {
     if (ent & mask[k])
@@ -817,41 +817,41 @@ static void med_rb_dataset (int num, int *set, int ent, med_idt fid)
 
       if (output_frame == 0)
       {
-	ASSERT (MEDfieldCr(fid, fieldName[k], MED_FLOAT64, ncomponent, componentName[k],
-	  componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+        ASSERT (MEDfieldCr(fid, fieldName[k], MED_FLOAT64, ncomponent, componentName[k],
+              componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
       }
 
       std::vector<med_float> values;
       for (i = 0; i < num; i ++)
       {
-	j = set[i];
+        j = set[i];
 
-	values.push_back (rotation[3*k+0][j]);
-	values.push_back (rotation[3*k+1][j]);
-	values.push_back (rotation[3*k+2][j]);
+        values.push_back (rotation[3*k+0][j]);
+        values.push_back (rotation[3*k+1][j]);
+        values.push_back (rotation[3*k+2][j]);
       }
 
 #if 0
       if (output_frame == 0)
       {
-	ASSERT (MEDfieldValueWr(fid, fieldName[k], MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-	  MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+        ASSERT (MEDfieldValueWr(fid, fieldName[k], MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
+              MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
       }
       else
       {
-	ASSERT (MEDfieldValueWr(fid, fieldName[k], output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
-	  MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+        ASSERT (MEDfieldValueWr(fid, fieldName[k], output_frame, 1, curtime-curtime_output, MED_CELL, MED_POINT1, MED_FULL_INTERLACE, 
+              MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
       }
 #else
       if (output_frame == 0)
       {
-	ASSERT (MEDfieldValueWr(fid, fieldName[k], MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-	  MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+        ASSERT (MEDfieldValueWr(fid, fieldName[k], MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+              MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
       }
       else
       {
-	ASSERT (MEDfieldValueWr(fid, fieldName[k], output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-	  MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+        ASSERT (MEDfieldValueWr(fid, fieldName[k], output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
+              MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
       }
 #endif
     }
@@ -873,7 +873,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     char axisName[3 * MED_SNAME_SIZE + 1] = "";
     char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
     ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
-	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+          MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
 
     /* create family 0 : by default, all mesh entities family number is 0 */
     ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
@@ -893,12 +893,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
     else
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
   }
 
@@ -912,7 +912,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
-	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
+          MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
   }
 
   if (ent & OUT_NUMBER)
@@ -926,7 +926,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -939,12 +939,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -959,7 +959,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -973,12 +973,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -993,7 +993,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1001,8 +1001,8 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     {
       j = set[i];
       REAL q[3] = {sprpnt[1][0][j]-sprpnt[0][0][j],
-		   sprpnt[1][1][j]-sprpnt[0][1][j],
-		   sprpnt[1][2][j]-sprpnt[0][2][j]};
+        sprpnt[1][1][j]-sprpnt[0][1][j],
+        sprpnt[1][2][j]-sprpnt[0][2][j]};
 
       values.push_back (LEN(q));
     }
@@ -1010,12 +1010,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1030,7 +1030,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1046,12 +1046,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1066,7 +1066,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1079,12 +1079,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1099,7 +1099,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1112,12 +1112,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1132,7 +1132,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1145,12 +1145,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1165,7 +1165,7 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1178,12 +1178,12 @@ static void med_sl_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 }
@@ -1203,7 +1203,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     char axisName[3 * MED_SNAME_SIZE + 1] = "";
     char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
     ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
-	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+          MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
 
     /* create family 0 : by default, all mesh entities family number is 0 */
     ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
@@ -1222,30 +1222,30 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
 
       if (refpnt[0] != REAL_MAX)
       {
-	refpnt[1] = trqrefpnt[1][j];
-	refpnt[2] = trqrefpnt[2][j];
+        refpnt[1] = trqrefpnt[1][j];
+        refpnt[2] = trqrefpnt[2][j];
 
-	REAL diff[3];
-	REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
-	REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
-	REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-			  rotation[3][k], rotation[4][k], rotation[5][k],
-			  rotation[6][k], rotation[7][k], rotation[8][k]};
+        REAL diff[3];
+        REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
+        REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
+        REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
+          rotation[3][k], rotation[4][k], rotation[5][k],
+          rotation[6][k], rotation[7][k], rotation[8][k]};
 
-	SUB (refpnt, refpos, diff);
-	NVADDMUL (curpos, rotate, diff, refpnt);
+        SUB (refpnt, refpos, diff);
+        NVADDMUL (curpos, rotate, diff, refpnt);
       }
       else if(l == -1)
       {
-	refpnt[0] = position[0][k];
-	refpnt[1] = position[1][k];
-	refpnt[2] = position[2][k];
+        refpnt[0] = position[0][k];
+        refpnt[1] = position[1][k];
+        refpnt[2] = position[2][k];
       }
       else
       {
-	refpnt[0] = 0.5*(position[0][k] + position[0][l]);
-	refpnt[1] = 0.5*(position[1][k] + position[1][l]);
-	refpnt[2] = 0.5*(position[2][k] + position[2][l]);
+        refpnt[0] = 0.5*(position[0][k] + position[0][l]);
+        refpnt[1] = 0.5*(position[1][k] + position[1][l]);
+        refpnt[2] = 0.5*(position[2][k] + position[2][l]);
       }
 
       coord.push_back(refpnt[0]);
@@ -1256,12 +1256,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
     else
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
   }
 
@@ -1275,7 +1275,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
-	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
+          MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
   }
 
   if (ent & OUT_NUMBER)
@@ -1289,7 +1289,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1302,12 +1302,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1322,7 +1322,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1338,12 +1338,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1358,7 +1358,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1374,12 +1374,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1394,7 +1394,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1416,12 +1416,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1436,7 +1436,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1451,8 +1451,8 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqrot[3] = {xdir[0]*trqrpy[0][j]+ydir[0]*trqrpy[1][j]+zdir[0]*trqrpy[2][j],
-                        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
-                        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
+        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
+        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
 
       values.push_back (trqrot[0]);
       values.push_back (trqrot[1]);
@@ -1462,12 +1462,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1482,7 +1482,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1497,8 +1497,8 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqtot[3] = {xdir[0]*trqrpytot[0][j]+ydir[0]*trqrpytot[1][j]+zdir[0]*trqrpytot[2][j],
-                        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
-                        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
+        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
+        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
 
       values.push_back (trqtot[0]);
       values.push_back (trqtot[1]);
@@ -1508,12 +1508,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1528,7 +1528,7 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1543,8 +1543,8 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqspr[3] = {xdir[0]*trqrpyspr[0][j]+ydir[0]*trqrpyspr[1][j]+zdir[0]*trqrpyspr[2][j],
-                        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
-                        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
+        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
+        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
 
       values.push_back (trqspr[0]);
       values.push_back (trqspr[1]);
@@ -1554,12 +1554,12 @@ static void med_st_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 }
@@ -1579,7 +1579,7 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     char axisName[3 * MED_SNAME_SIZE + 1] = "";
     char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
     ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
-	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+          MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
 
     /* create family 0 : by default, all mesh entities family number is 0 */
     ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
@@ -1597,8 +1597,8 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
       REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
       REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
       REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-			rotation[3][k], rotation[4][k], rotation[5][k],
-			rotation[6][k], rotation[7][k], rotation[8][k]};
+        rotation[3][k], rotation[4][k], rotation[5][k],
+        rotation[6][k], rotation[7][k], rotation[8][k]};
       REAL diff[3];
 
       SUB (refpnt, refpos, diff);
@@ -1612,12 +1612,12 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
     else
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
   }
 
@@ -1631,7 +1631,7 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_POINT1,
-	    MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
+          MED_NODAL, MED_FULL_INTERLACE, conn.size(), &conn[0]) >= 0, "Could not write MED elements");
   }
 
   if (ent & OUT_NUMBER)
@@ -1645,7 +1645,7 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1658,12 +1658,12 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -1678,7 +1678,7 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -1694,12 +1694,12 @@ static void med_jt_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 }
@@ -1717,8 +1717,8 @@ static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
   {
     j = set[i];
     out << tri [0][0][j] << " " << tri[0][1][j] << " " << tri[0][2][j] << " "
-	<< tri [1][0][j] << " " << tri[1][1][j] << " " << tri[1][2][j] << " "
-	<< tri [2][0][j] << " " << tri[2][1][j] << " " << tri[2][2][j] << "\n";
+      << tri [1][0][j] << " " << tri[1][1][j] << " " << tri[1][2][j] << " "
+      << tri [2][0][j] << " " << tri[2][1][j] << " " << tri[2][2][j] << "\n";
   }
 
   out << "CELLS " << num << " " << 4*num << "\n";
@@ -1754,58 +1754,58 @@ static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
 
       if (j >= 0) /* particle */
       {
-	REAL L[9], X[3], x[3], P[3], d[3];
+        REAL L[9], X[3], x[3], P[3], d[3];
 
-	L[0] = rotation[0][j];
-	L[1] = rotation[1][j];
-	L[2] = rotation[2][j];
-	L[3] = rotation[3][j];
-	L[4] = rotation[4][j];
-	L[5] = rotation[5][j];
-	L[6] = rotation[6][j];
-	L[7] = rotation[7][j];
-	L[8] = rotation[8][j];
+        L[0] = rotation[0][j];
+        L[1] = rotation[1][j];
+        L[2] = rotation[2][j];
+        L[3] = rotation[3][j];
+        L[4] = rotation[4][j];
+        L[5] = rotation[5][j];
+        L[6] = rotation[6][j];
+        L[7] = rotation[7][j];
+        L[8] = rotation[8][j];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	X[0] = position[3][j];
-	X[1] = position[4][j];
-	X[2] = position[5][j];
+        X[0] = position[3][j];
+        X[1] = position[4][j];
+        X[2] = position[5][j];
 
-	SUB (p1, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p1, P, d);
+        SUB (p1, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p1, P, d);
         out << d[0] << " " << d[1] << " " << d[2] << "\n";
 
-	SUB (p2, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p2, P, d);
+        SUB (p2, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p2, P, d);
         out << d[0] << " " << d[1] << " " << d[2] << "\n";
 
-	SUB (p3, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p3, P, d);
+        SUB (p3, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p3, P, d);
         out << d[0] << " " << d[1] << " " << d[2] << "\n";
       }
       else if (j == -1) /* static obstacle */
       {
-	out << "0.0 0.0 0.0\n";
-	out << "0.0 0.0 0.0\n";
-	out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
-	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
+        REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
 
-	SUB (p1, x, d);
+        SUB (p1, x, d);
         out << d[0] << " " << d[1] << " " << d[2] << "\n";
-	SUB (p2, x, d);
+        SUB (p2, x, d);
         out << d[0] << " " << d[1] << " " << d[2] << "\n";
-	SUB (p3, x, d);
+        SUB (p3, x, d);
         out << d[0] << " " << d[1] << " " << d[2] << "\n";
       }
     }
@@ -1827,63 +1827,63 @@ static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
 
       if (j >= 0) /* particle */
       {
-	REAL x[3], a[3], o[3], v[3], w[3];
+        REAL x[3], a[3], o[3], v[3], w[3];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	o[0] = angular[3][j];
-	o[1] = angular[4][j];
-	o[2] = angular[5][j];
+        o[0] = angular[3][j];
+        o[1] = angular[4][j];
+        o[2] = angular[5][j];
 
-	v[0] = linear[0][j];
-	v[1] = linear[1][j];
-	v[2] = linear[2][j];
+        v[0] = linear[0][j];
+        v[1] = linear[1][j];
+        v[2] = linear[2][j];
 
         COPY (v, w);
-	SUB (p1, x, a);
-	PRODUCTADD (o, a, w);
+        SUB (p1, x, a);
+        PRODUCTADD (o, a, w);
         out << w[0] << " " << w[1] << " " << w[2] << "\n";
 
         COPY (v, w);
-	SUB (p2, x, a);
-	PRODUCTADD (o, a, w);
+        SUB (p2, x, a);
+        PRODUCTADD (o, a, w);
         out << w[0] << " " << w[1] << " " << w[2] << "\n";
 
         COPY (v, w);
-	SUB (p3, x, a);
-	PRODUCTADD (o, a, w);
+        SUB (p3, x, a);
+        PRODUCTADD (o, a, w);
         out << w[0] << " " << w[1] << " " << w[2] << "\n";
       }
       else if (j == -1) /* static obstacle */
       {
-	out << "0.0 0.0 0.0\n";
-	out << "0.0 0.0 0.0\n";
-	out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
-	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
-	REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
-	REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
-	REAL a[3], w[3];
+        REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
+        REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
+        REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
+        REAL a[3], w[3];
 
         COPY (v, w);
-	SUB (p1, x, a);
-	PRODUCTADD (o, a, w);
+        SUB (p1, x, a);
+        PRODUCTADD (o, a, w);
         out << w[0] << " " << w[1] << " " << w[2] << "\n";
 
         COPY (v, w);
-	SUB (p2, x, a);
-	PRODUCTADD (o, a, w);
+        SUB (p2, x, a);
+        PRODUCTADD (o, a, w);
         out << w[0] << " " << w[1] << " " << w[2] << "\n";
 
         COPY (v, w);
-	SUB (p3, x, a);
-	PRODUCTADD (o, a, w);
+        SUB (p3, x, a);
+        PRODUCTADD (o, a, w);
         out << w[0] << " " << w[1] << " " << w[2] << "\n";
       }
     }
@@ -1928,11 +1928,11 @@ static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
       }
       else if (j == -1) /* static obstacle */
       {
-	out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
         out << obsang[3*j] << " " << obsang[3*j+1] << " " << obsang[3*j+2] << "\n";
       }
@@ -1952,7 +1952,7 @@ static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
       }
       else
       {
-	out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
       }
     }
   }
@@ -1970,7 +1970,7 @@ static void vtk_triangle_dataset (int num, int *set, int ent, ofstream &out)
       }
       else
       {
-	out << "0.0 0.0 0.0\n";
+        out << "0.0 0.0 0.0\n";
       }
     }
   }
@@ -2025,59 +2025,59 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
       if (j >= 0) /* particle */
       {
-	REAL L[9], X[3], x[3], P[3], d[3];
+        REAL L[9], X[3], x[3], P[3], d[3];
 
-	L[0] = rotation[0][j];
-	L[1] = rotation[1][j];
-	L[2] = rotation[2][j];
-	L[3] = rotation[3][j];
-	L[4] = rotation[4][j];
-	L[5] = rotation[5][j];
-	L[6] = rotation[6][j];
-	L[7] = rotation[7][j];
-	L[8] = rotation[8][j];
+        L[0] = rotation[0][j];
+        L[1] = rotation[1][j];
+        L[2] = rotation[2][j];
+        L[3] = rotation[3][j];
+        L[4] = rotation[4][j];
+        L[5] = rotation[5][j];
+        L[6] = rotation[6][j];
+        L[7] = rotation[7][j];
+        L[8] = rotation[8][j];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	X[0] = position[3][j];
-	X[1] = position[4][j];
-	X[2] = position[5][j];
+        X[0] = position[3][j];
+        X[1] = position[4][j];
+        X[2] = position[5][j];
 
-	SUB (p1, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p1, P, d);
-	pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+        SUB (p1, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p1, P, d);
+        pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
 
-	SUB (p2, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p2, P, d);
-	pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+        SUB (p2, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p2, P, d);
+        pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
 
-	SUB (p3, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p3, P, d);
-	pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+        SUB (p3, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p3, P, d);
+        pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
       }
       else if (j == -1) /* static obstacle */
       {
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
-	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
+        REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
 
-	SUB (p1, x, d);
-	pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
-	SUB (p2, x, d);
-	pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
-	SUB (p3, x, d);
-	pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+        SUB (p1, x, d);
+        pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+        SUB (p2, x, d);
+        pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
+        SUB (p3, x, d);
+        pdata[0] = d[0]; pdata[1] = d[1]; pdata[2] = d[2]; pdata +=3;
       }
     }
 
@@ -2099,64 +2099,64 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
       if (j >= 0) /* particle */
       {
-	REAL x[3], a[3], o[3], v[3], w[3];
+        REAL x[3], a[3], o[3], v[3], w[3];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	o[0] = angular[3][j];
-	o[1] = angular[4][j];
-	o[2] = angular[5][j];
+        o[0] = angular[3][j];
+        o[1] = angular[4][j];
+        o[2] = angular[5][j];
 
-	v[0] = linear[0][j];
-	v[1] = linear[1][j];
-	v[2] = linear[2][j];
-
-        COPY (v, w);
-	SUB (p1, x, a);
-	PRODUCTADD (o, a, w);
-	pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+        v[0] = linear[0][j];
+        v[1] = linear[1][j];
+        v[2] = linear[2][j];
 
         COPY (v, w);
-	SUB (p2, x, a);
-	PRODUCTADD (o, a, w);
-	pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+        SUB (p1, x, a);
+        PRODUCTADD (o, a, w);
+        pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
 
         COPY (v, w);
-	SUB (p3, x, a);
-	PRODUCTADD (o, a, w);
-	pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+        SUB (p2, x, a);
+        PRODUCTADD (o, a, w);
+        pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+
+        COPY (v, w);
+        SUB (p3, x, a);
+        PRODUCTADD (o, a, w);
+        pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
       }
       else if (j == -1) /* static obstacle */
       {
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata +=3;
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
-	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
-	REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
-	REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
-	REAL a[3], w[3];
-
-        COPY (v, w);
-	SUB (p1, x, a);
-	PRODUCTADD (o, a, w);
-	pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+        REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
+        REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
+        REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
+        REAL a[3], w[3];
 
         COPY (v, w);
-	SUB (p2, x, a);
-	PRODUCTADD (o, a, w);
-	pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+        SUB (p1, x, a);
+        PRODUCTADD (o, a, w);
+        pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
 
         COPY (v, w);
-	SUB (p3, x, a);
-	PRODUCTADD (o, a, w);
-	pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+        SUB (p2, x, a);
+        PRODUCTADD (o, a, w);
+        pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
+
+        COPY (v, w);
+        SUB (p3, x, a);
+        PRODUCTADD (o, a, w);
+        pdata[0] = w[0]; pdata[1] = w[1]; pdata[2] = w[2]; pdata +=3;
       }
     }
 
@@ -2194,15 +2194,15 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
 
       if (j >= 0) /* particle */
       {
-	pdata[0] = angular[3][j]; pdata[1] = angular[4][j]; pdata[2] = angular[5][j]; pdata += 3;
+        pdata[0] = angular[3][j]; pdata[1] = angular[4][j]; pdata[2] = angular[5][j]; pdata += 3;
       }
       else if (j == -1) /* static obstacle */
       {
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata += 3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata += 3;
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
         pdata[0] = obsang[3*j]; pdata[1] = obsang[3*j+1]; pdata[2] =  obsang[3*j+2]; pdata += 3;
       }
@@ -2225,7 +2225,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
       }
       else
       {
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata += 3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata += 3;
       }
     }
 
@@ -2246,7 +2246,7 @@ static void h5_triangle_dataset (int num, int *set, int ent, hid_t h5_step)
       }
       else
       {
-	pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata += 3;
+        pdata[0] = 0.0; pdata[1] = 0.0; pdata[2] = 0.0; pdata += 3;
       }
     }
 
@@ -2289,7 +2289,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     char axisName[3 * MED_SNAME_SIZE + 1] = "";
     char axisUnit[3 * MED_SNAME_SIZE + 1] = "";
     ASSERT(MEDmeshCr(fid, meshName, 3, 3, MED_UNSTRUCTURED_MESH, "PARMEC mesh in MED format", dtUnit,
-	   MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
+          MED_SORT_DTIT, MED_CARTESIAN, axisName, axisUnit) >= 0, "Could not create MED mesh");
 
     /* create family 0 : by default, all mesh entities family number is 0 */
     ASSERT (MEDfamilyCr(fid, meshName, MED_NO_NAME, 0, 0, MED_NO_GROUP) >= 0, "Could not create MED family");
@@ -2315,12 +2315,12 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0.,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
     else
     {
       ASSERT (MEDmeshNodeCoordinateWr(fid, meshName, output_frame, 1, curtime-curtime_output,
-	      MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
+            MED_FULL_INTERLACE, coord.size()/3, &coord[0]) >= 0, "Could not write MED nodes");
     }
   }
 
@@ -2336,7 +2336,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     }
 
     ASSERT (MEDmeshElementConnectivityWr(fid, meshName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3,
-	    MED_NODAL, MED_FULL_INTERLACE, conn.size()/3, &conn[0]) >= 0, "Could not write MED elements");
+          MED_NODAL, MED_FULL_INTERLACE, conn.size()/3, &conn[0]) >= 0, "Could not write MED elements");
   }
 
   if (ent & OUT_DISPL)
@@ -2350,7 +2350,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2366,89 +2366,89 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
       if (j >= 0) /* particle */
       {
-	REAL L[9], X[3], x[3], P[3], d[3];
+        REAL L[9], X[3], x[3], P[3], d[3];
 
-	L[0] = rotation[0][j];
-	L[1] = rotation[1][j];
-	L[2] = rotation[2][j];
-	L[3] = rotation[3][j];
-	L[4] = rotation[4][j];
-	L[5] = rotation[5][j];
-	L[6] = rotation[6][j];
-	L[7] = rotation[7][j];
-	L[8] = rotation[8][j];
+        L[0] = rotation[0][j];
+        L[1] = rotation[1][j];
+        L[2] = rotation[2][j];
+        L[3] = rotation[3][j];
+        L[4] = rotation[4][j];
+        L[5] = rotation[5][j];
+        L[6] = rotation[6][j];
+        L[7] = rotation[7][j];
+        L[8] = rotation[8][j];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	X[0] = position[3][j];
-	X[1] = position[4][j];
-	X[2] = position[5][j];
+        X[0] = position[3][j];
+        X[1] = position[4][j];
+        X[2] = position[5][j];
 
-	SUB (p1, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p1, P, d);
-	values.push_back (d[0]);
-	values.push_back (d[1]);
-	values.push_back (d[2]);
+        SUB (p1, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p1, P, d);
+        values.push_back (d[0]);
+        values.push_back (d[1]);
+        values.push_back (d[2]);
 
-	SUB (p2, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p2, P, d);
-	values.push_back (d[0]);
-	values.push_back (d[1]);
-	values.push_back (d[2]);
+        SUB (p2, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p2, P, d);
+        values.push_back (d[0]);
+        values.push_back (d[1]);
+        values.push_back (d[2]);
 
-	SUB (p3, x, d);
-	TVADDMUL (X, L, d, P);
-	SUB (p3, P, d);
-	values.push_back (d[0]);
-	values.push_back (d[1]);
-	values.push_back (d[2]);
+        SUB (p3, x, d);
+        TVADDMUL (X, L, d, P);
+        SUB (p3, P, d);
+        values.push_back (d[0]);
+        values.push_back (d[1]);
+        values.push_back (d[2]);
       }
       else if (j == -1) /* static obstacle */
       {
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
-	values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
+        values.push_back (0.);
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
-	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
+        REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]}, d[3];
 
-	SUB (p1, x, d);
-	values.push_back (d[0]);
-	values.push_back (d[1]);
-	values.push_back (d[2]);
-	SUB (p2, x, d);
-	values.push_back (d[0]);
-	values.push_back (d[1]);
-	values.push_back (d[2]);
-	SUB (p3, x, d);
-	values.push_back (d[0]);
-	values.push_back (d[1]);
-	values.push_back (d[2]);
+        SUB (p1, x, d);
+        values.push_back (d[0]);
+        values.push_back (d[1]);
+        values.push_back (d[2]);
+        SUB (p2, x, d);
+        values.push_back (d[0]);
+        values.push_back (d[1]);
+        values.push_back (d[2]);
+        SUB (p3, x, d);
+        values.push_back (d[0]);
+        values.push_back (d[1]);
+        values.push_back (d[2]);
       }
     }
 
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -2463,7 +2463,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2479,94 +2479,94 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
 
       if (j >= 0) /* particle */
       {
-	REAL x[3], a[3], o[3], v[3], w[3];
+        REAL x[3], a[3], o[3], v[3], w[3];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	o[0] = angular[3][j];
-	o[1] = angular[4][j];
-	o[2] = angular[5][j];
+        o[0] = angular[3][j];
+        o[1] = angular[4][j];
+        o[2] = angular[5][j];
 
-	v[0] = linear[0][j];
-	v[1] = linear[1][j];
-	v[2] = linear[2][j];
-
-        COPY (v, w);
-	SUB (p1, x, a);
-	PRODUCTADD (o, a, w);
-	values.push_back(w[0]);
-	values.push_back(w[1]);
-	values.push_back(w[2]);
+        v[0] = linear[0][j];
+        v[1] = linear[1][j];
+        v[2] = linear[2][j];
 
         COPY (v, w);
-	SUB (p2, x, a);
-	PRODUCTADD (o, a, w);
-	values.push_back(w[0]);
-	values.push_back(w[1]);
-	values.push_back(w[2]);
+        SUB (p1, x, a);
+        PRODUCTADD (o, a, w);
+        values.push_back(w[0]);
+        values.push_back(w[1]);
+        values.push_back(w[2]);
 
         COPY (v, w);
-	SUB (p3, x, a);
-	PRODUCTADD (o, a, w);
-	values.push_back(w[0]);
-	values.push_back(w[1]);
-	values.push_back(w[2]);
+        SUB (p2, x, a);
+        PRODUCTADD (o, a, w);
+        values.push_back(w[0]);
+        values.push_back(w[1]);
+        values.push_back(w[2]);
+
+        COPY (v, w);
+        SUB (p3, x, a);
+        PRODUCTADD (o, a, w);
+        values.push_back(w[0]);
+        values.push_back(w[1]);
+        values.push_back(w[2]);
       }
       else if (j == -1) /* static obstacle */
       {
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
-	REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
-	REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
-	REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
-	REAL a[3], w[3];
-
-        COPY (v, w);
-	SUB (p1, x, a);
-	PRODUCTADD (o, a, w);
-	values.push_back(w[0]);
-	values.push_back(w[1]);
-	values.push_back(w[2]);
+        REAL x[3] = {obspnt[3*j], obspnt[3*j+1], obspnt[3*j+2]};
+        REAL o[3] = {obsang[3*j], obsang[3*j+1], obsang[3*j+2]};
+        REAL v[3] = {obslin[3*j], obslin[3*j+1], obslin[3*j+2]};
+        REAL a[3], w[3];
 
         COPY (v, w);
-	SUB (p2, x, a);
-	PRODUCTADD (o, a, w);
-	values.push_back(w[0]);
-	values.push_back(w[1]);
-	values.push_back(w[2]);
+        SUB (p1, x, a);
+        PRODUCTADD (o, a, w);
+        values.push_back(w[0]);
+        values.push_back(w[1]);
+        values.push_back(w[2]);
 
         COPY (v, w);
-	SUB (p3, x, a);
-	PRODUCTADD (o, a, w);
-	values.push_back(w[0]);
-	values.push_back(w[1]);
-	values.push_back(w[2]);
+        SUB (p2, x, a);
+        PRODUCTADD (o, a, w);
+        values.push_back(w[0]);
+        values.push_back(w[1]);
+        values.push_back(w[2]);
+
+        COPY (v, w);
+        SUB (p3, x, a);
+        PRODUCTADD (o, a, w);
+        values.push_back(w[0]);
+        values.push_back(w[1]);
+        values.push_back(w[2]);
       }
     }
 
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_NODE, MED_NONE, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -2581,7 +2581,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2593,12 +2593,12 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -2613,7 +2613,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2625,12 +2625,12 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size(), (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -2645,7 +2645,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2656,34 +2656,34 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
       if (j >= 0) /* particle */
       {
         values.push_back(angular[3][j]);
-	values.push_back(angular[4][j]);
-	values.push_back(angular[5][j]);
+        values.push_back(angular[4][j]);
+        values.push_back(angular[5][j]);
       }
       else if (j == -1) /* static obstacle */
       {
         values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
       }
       else /* moving obstacle */
       {
-	j = -j-2;
+        j = -j-2;
 
         values.push_back(obsang[3*j]); 
-	values.push_back(obsang[3*j+1]);
-	values.push_back(obsang[3*j+2]);
+        values.push_back(obsang[3*j+1]);
+        values.push_back(obsang[3*j+2]);
       }
     }
 
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -2698,7 +2698,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2709,26 +2709,26 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
       if (j >= 0) /* particle */
       {
         values.push_back(force[0][j]); 
-	values.push_back(force[1][j]); 
-	values.push_back(force[2][j]);
+        values.push_back(force[1][j]); 
+        values.push_back(force[2][j]);
       }
       else /* obstacle */
       {
         values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
       }
     }
 
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 
@@ -2743,7 +2743,7 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
     if (output_frame == 0)
     {
       ASSERT (MEDfieldCr(fid, fieldName, MED_FLOAT64, ncomponent, componentName,
-        componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
+            componentUnit, dtUnit, meshName) >= 0, "Could not create MED field");
     }
 
     std::vector<med_float> values;
@@ -2754,26 +2754,26 @@ static void med_triangle_dataset (int num, int *set, int ent, med_idt fid)
       if (j >= 0) /* particle */
       {
         values.push_back(torque[0][j]); 
-	values.push_back(torque[1][j]); 
-	values.push_back(torque[2][j]);
+        values.push_back(torque[1][j]); 
+        values.push_back(torque[2][j]);
       }
       else /* obstacle */
       {
         values.push_back(0.);
-	values.push_back(0.);
-	values.push_back(0.);
+        values.push_back(0.);
+        values.push_back(0.);
       }
     }
 
     if (output_frame == 0)
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, MED_NO_DT, MED_NO_IT, 0., MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
     else
     {
       ASSERT (MEDfieldValueWr(fid, fieldName, output_frame, 1, curtime-curtime_output, MED_CELL, MED_TRIA3, MED_FULL_INTERLACE, 
-        MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
+            MED_ALL_CONSTITUENT, values.size()/3, (unsigned char*) &values[0]) >= 0, "Could not write MED field values");
     }
   }
 }
@@ -2805,9 +2805,9 @@ static int find_ellipsoid_set (int *part0, int *part1, int *ellipsoids)
 
       while (i < ellnum && part[i] == j)
       {
-	ellipsoids[num] = i;
-	num ++;
-	i ++;
+        ellipsoids[num] = i;
+        num ++;
+        i ++;
       }
     }
   }
@@ -2841,9 +2841,9 @@ static int find_triangle_set (int *part0, int *part1, int *triangles)
 
       while (i < trinum && triobs[i] == j)
       {
-	triangles[num] = i;
-	num ++;
-	i ++;
+        triangles[num] = i;
+        num ++;
+        i ++;
       }
     }
   }
@@ -2863,8 +2863,8 @@ static void vtk_linear_spring_dataset (int num, int *set, int ent, ofstream &out
   {
     j = set[i];
     out << 0.5*(sprpnt[0][0][j]+sprpnt[1][0][j]) << " "
-        << 0.5*(sprpnt[0][1][j]+sprpnt[1][1][j]) << " "
-	<< 0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]) << "\n";
+      << 0.5*(sprpnt[0][1][j]+sprpnt[1][1][j]) << " "
+      << 0.5*(sprpnt[0][2][j]+sprpnt[1][2][j]) << "\n";
   }
 
   if (ent & (OUT_NUMBER|OUT_DISPL|OUT_F|OUT_SF|OUT_PAIR|OUT_SS|OUT_FF))
@@ -2902,8 +2902,8 @@ static void vtk_linear_spring_dataset (int num, int *set, int ent, ofstream &out
     {
       j = set[i];
       REAL q[3] = {sprpnt[1][0][j]-sprpnt[0][0][j],
-		   sprpnt[1][1][j]-sprpnt[0][1][j],
-		   sprpnt[1][2][j]-sprpnt[0][2][j]};
+        sprpnt[1][1][j]-sprpnt[0][1][j],
+        sprpnt[1][2][j]-sprpnt[0][2][j]};
       out << LEN(q) << "\n";
     }
   }
@@ -2915,8 +2915,8 @@ static void vtk_linear_spring_dataset (int num, int *set, int ent, ofstream &out
     {
       j = set[i];
       out << sprdir[0][j] << " "
-	  << sprdir[1][j] << " "
-	  << sprdir[2][j] << "\n";
+        << sprdir[1][j] << " "
+        << sprdir[2][j] << "\n";
     }
   }
 
@@ -2990,8 +2990,8 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
       REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
       REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
       REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-                        rotation[3][k], rotation[4][k], rotation[5][k],
-			rotation[6][k], rotation[7][k], rotation[8][k]};
+        rotation[3][k], rotation[4][k], rotation[5][k],
+        rotation[6][k], rotation[7][k], rotation[8][k]};
 
       SUB (refpnt, refpos, diff);
       NVADDMUL (curpos, rotate, diff, refpnt);
@@ -3035,8 +3035,8 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
     {
       j = set[i];
       out << trqzdir1[0][j] << " "
-	  << trqzdir1[1][j] << " "
-	  << trqzdir1[2][j] << "\n";
+        << trqzdir1[1][j] << " "
+        << trqzdir1[2][j] << "\n";
     }
   }
 
@@ -3047,8 +3047,8 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
     {
       j = set[i];
       out << trqxdir1[0][j] << " "
-	  << trqxdir1[1][j] << " "
-	  << trqxdir1[2][j] << "\n";
+        << trqxdir1[1][j] << " "
+        << trqxdir1[2][j] << "\n";
     }
   }
 
@@ -3066,8 +3066,8 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
       PRODUCT (zdir, xdir, ydir);
 
       out << ydir[0] << " "
-	  << ydir[1] << " "
-	  << ydir[2] << "\n";
+        << ydir[1] << " "
+        << ydir[2] << "\n";
     }
   }
 
@@ -3085,12 +3085,12 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqrot[3] = {xdir[0]*trqrpy[0][j]+ydir[0]*trqrpy[1][j]+zdir[0]*trqrpy[2][j],
-                        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
-                        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
+        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
+        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
 
       out << trqrot[0] << " "
-	  << trqrot[1] << " "
-	  << trqrot[2] << "\n";
+        << trqrot[1] << " "
+        << trqrot[2] << "\n";
     }
   }
 
@@ -3108,12 +3108,12 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqtot[3] = {xdir[0]*trqrpytot[0][j]+ydir[0]*trqrpytot[1][j]+zdir[0]*trqrpytot[2][j],
-                        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
-                        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
+        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
+        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
 
       out << trqtot[0] << " "
-	  << trqtot[1] << " "
-	  << trqtot[2] << "\n";
+        << trqtot[1] << " "
+        << trqtot[2] << "\n";
     }
   }
 
@@ -3131,12 +3131,12 @@ static void vtk_torsional_spring_dataset (int num, int *set, int ent, ofstream &
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqspr[3] = {xdir[0]*trqrpyspr[0][j]+ydir[0]*trqrpyspr[1][j]+zdir[0]*trqrpyspr[2][j],
-                        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
-                        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
+        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
+        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
 
       out << trqspr[0] << " "
-	  << trqspr[1] << " "
-	  << trqspr[2] << "\n";
+        << trqspr[1] << " "
+        << trqspr[2] << "\n";
     }
   }
 }
@@ -3158,8 +3158,8 @@ static void vtk_joints_dataset (int num, int *set, int ent, ofstream &out)
     REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
     REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
     REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-		      rotation[3][k], rotation[4][k], rotation[5][k],
-		      rotation[6][k], rotation[7][k], rotation[8][k]};
+      rotation[3][k], rotation[4][k], rotation[5][k],
+      rotation[6][k], rotation[7][k], rotation[8][k]};
     REAL diff[3];
 
     SUB (refpnt, refpos, diff);
@@ -3191,8 +3191,8 @@ static void vtk_joints_dataset (int num, int *set, int ent, ofstream &out)
     {
       j = set[i];
       out << jreac[0][j] << " "
-	  << jreac[1][j] << " "
-	  << jreac[2][j] << "\n";
+        << jreac[1][j] << " "
+        << jreac[2][j] << "\n";
     }
   }
 }
@@ -3248,8 +3248,8 @@ static void h5_linear_spring_dataset (int num, int *set, int ent, hid_t h5_step)
     {
       j = set[i];
       REAL q[3] = {sprpnt[1][0][j]-sprpnt[0][0][j],
-		   sprpnt[1][1][j]-sprpnt[0][1][j],
-		   sprpnt[1][2][j]-sprpnt[0][2][j]};
+        sprpnt[1][1][j]-sprpnt[0][1][j],
+        sprpnt[1][2][j]-sprpnt[0][2][j]};
       data[i] = LEN(q);
     }
 
@@ -3345,8 +3345,8 @@ static void h5_torsional_spring_dataset (int num, int *set, int ent, hid_t h5_st
       REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
       REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
       REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-                        rotation[3][k], rotation[4][k], rotation[5][k],
-			rotation[6][k], rotation[7][k], rotation[8][k]};
+        rotation[3][k], rotation[4][k], rotation[5][k],
+        rotation[6][k], rotation[7][k], rotation[8][k]};
 
       SUB (refpnt, refpos, diff);
       NVADDMUL (curpos, rotate, diff, refpnt);
@@ -3446,8 +3446,8 @@ static void h5_torsional_spring_dataset (int num, int *set, int ent, hid_t h5_st
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqrot[3] = {xdir[0]*trqrpy[0][j]+ydir[0]*trqrpy[1][j]+zdir[0]*trqrpy[2][j],
-                        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
-                        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
+        xdir[1]*trqrpy[0][j]+ydir[1]*trqrpy[1][j]+zdir[1]*trqrpy[2][j],
+        xdir[2]*trqrpy[0][j]+ydir[2]*trqrpy[1][j]+zdir[2]*trqrpy[2][j]};
 
       pdata[0] = trqrot[0];
       pdata[1] = trqrot[1];
@@ -3470,8 +3470,8 @@ static void h5_torsional_spring_dataset (int num, int *set, int ent, hid_t h5_st
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqtot[3] = {xdir[0]*trqrpytot[0][j]+ydir[0]*trqrpytot[1][j]+zdir[0]*trqrpytot[2][j],
-                        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
-                        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
+        xdir[1]*trqrpytot[0][j]+ydir[1]*trqrpytot[1][j]+zdir[1]*trqrpytot[2][j],
+        xdir[2]*trqrpytot[0][j]+ydir[2]*trqrpytot[1][j]+zdir[2]*trqrpytot[2][j]};
 
       pdata[0] = trqtot[0];
       pdata[1] = trqtot[1];
@@ -3494,8 +3494,8 @@ static void h5_torsional_spring_dataset (int num, int *set, int ent, hid_t h5_st
       PRODUCT (zdir, xdir, ydir);
 
       REAL trqspr[3] = {xdir[0]*trqrpyspr[0][j]+ydir[0]*trqrpyspr[1][j]+zdir[0]*trqrpyspr[2][j],
-                        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
-                        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
+        xdir[1]*trqrpyspr[0][j]+ydir[1]*trqrpyspr[1][j]+zdir[1]*trqrpyspr[2][j],
+        xdir[2]*trqrpyspr[0][j]+ydir[2]*trqrpyspr[1][j]+zdir[2]*trqrpyspr[2][j]};
 
       pdata[0] = trqspr[0];
       pdata[1] = trqspr[1];
@@ -3524,8 +3524,8 @@ static void h5_joints_dataset (int num, int *set, int ent, hid_t h5_step)
     REAL refpos[3] = {position[3][k], position[4][k], position[5][k]};
     REAL curpos[3] = {position[0][k], position[1][k], position[2][k]};
     REAL rotate[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-		      rotation[3][k], rotation[4][k], rotation[5][k],
-		      rotation[6][k], rotation[7][k], rotation[8][k]};
+      rotation[3][k], rotation[4][k], rotation[5][k],
+      rotation[6][k], rotation[7][k], rotation[8][k]};
     REAL diff[3];
 
     SUB (refpnt, refpos, diff);
@@ -3612,19 +3612,19 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
 
   switch (mode)
   {
-  case OUT_MODE_MESH:
-    fprintf (xmf_file, "<Topology Type=\"Mixed\" NumberOfElements=\"%d\">\n", elements);
-    fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", topo_size);
-    fprintf (xmf_file, "%s:/%d/TOPO\n", h5file, output_frame);
-    fprintf (xmf_file, "</DataStructure>\n");
-    fprintf (xmf_file, "</Topology>\n");
-    break;
-  case OUT_MODE_RB:
-  case OUT_MODE_SL:
-  case OUT_MODE_ST:
-    fprintf (xmf_file, "<Topology Type=\"Polyvertex\" NumberOfElements=\"%d\" NodesPerElement=\"%d\">\n", nodes, 1);
-    fprintf (xmf_file, "</Topology>\n");
-    break;
+    case OUT_MODE_MESH:
+      fprintf (xmf_file, "<Topology Type=\"Mixed\" NumberOfElements=\"%d\">\n", elements);
+      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", topo_size);
+      fprintf (xmf_file, "%s:/%d/TOPO\n", h5file, output_frame);
+      fprintf (xmf_file, "</DataStructure>\n");
+      fprintf (xmf_file, "</Topology>\n");
+      break;
+    case OUT_MODE_RB:
+    case OUT_MODE_SL:
+    case OUT_MODE_ST:
+      fprintf (xmf_file, "<Topology Type=\"Polyvertex\" NumberOfElements=\"%d\" NodesPerElement=\"%d\">\n", nodes, 1);
+      fprintf (xmf_file, "</Topology>\n");
+      break;
   }
 
   fprintf (xmf_file, "<Geometry GeometryType=\"XYZ\">\n");
@@ -3635,325 +3635,325 @@ static void append_xmf_file (const char *xmf_path, int mode, int elements, int n
 
   switch (mode)
   {
-  case OUT_MODE_MESH:
+    case OUT_MODE_MESH:
 
-    if (ent & OUT_DISPL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_DISPL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_LINVEL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_LINVEL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_NUMBER)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
-      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_NUMBER)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
+        fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_COLOR)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"COLOR\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
-      fprintf (xmf_file, "%s:/%d/COLOR\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_COLOR)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"COLOR\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", elements);
+        fprintf (xmf_file, "%s:/%d/COLOR\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ANGVEL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Cell\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
-      fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ANGVEL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Cell\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
+        fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_FORCE)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
-      fprintf (xmf_file, "%s:/%d/FORCE\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_FORCE)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
+        fprintf (xmf_file, "%s:/%d/FORCE\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_TORQUE)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
-      fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
-    break;
+      if (ent & OUT_TORQUE)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Cell\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", elements);
+        fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
+      break;
 
-  case OUT_MODE_RB:
+    case OUT_MODE_RB:
 
-    if (ent & OUT_DISPL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_DISPL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_LINVEL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_LINVEL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"LINVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/LINVEL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_NUMBER)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_NUMBER)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ANGVEL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ANGVEL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ANGVEL\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ANGVEL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_FORCE)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/FORCE\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_FORCE)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"FORCE\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/FORCE\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_TORQUE)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_TORQUE)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"TORQUE\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/TORQUE\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ORIENT)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Tensor\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 9\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ORIENT)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Tensor\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 9\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ORIENT1)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ORIENT1\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ORIENT1\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ORIENT1)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ORIENT1\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ORIENT1\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ORIENT2)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ORIENT2\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ORIENT2\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ORIENT2)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ORIENT2\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ORIENT2\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ORIENT3)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ORIENT3\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ORIENT3\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
-    break;
-  case OUT_MODE_SL:
+      if (ent & OUT_ORIENT3)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ORIENT3\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ORIENT3\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
+      break;
+    case OUT_MODE_SL:
 
-    if (ent & OUT_NUMBER)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_NUMBER)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_DISPL)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_DISPL)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"DISPL\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/DISPL\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_LENGTH)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"LENGTH\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/LENGTH\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_LENGTH)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"LENGTH\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/LENGTH\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ORIENT)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ORIENT)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ORIENT\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ORIENT\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_F)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"F\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/F\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_F)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"F\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/F\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_SF)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"SF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/SF\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_SF)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"SF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/SF\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_FF)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"FF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/FF\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_FF)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"FF\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/FF\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_SS)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"SS\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/SS\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
-    break;
+      if (ent & OUT_SS)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"SS\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/SS\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
+      break;
 
-  case OUT_MODE_ST:
+    case OUT_MODE_ST:
 
-    if (ent & OUT_NUMBER)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_NUMBER)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_ZDIR)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"ZDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/ZDIR\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_ZDIR)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"ZDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/ZDIR\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_XDIR)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"XDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/XDIR\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_XDIR)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"XDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/XDIR\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_YDIR)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"YDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/YDIR\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_YDIR)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"YDIR\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/YDIR\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_TRQROT)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"TRQROT\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/TRQROT\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_TRQROT)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"TRQROT\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/TRQROT\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_TRQTOT)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"TRQTOT\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/TRQTOT\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_TRQTOT)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"TRQTOT\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/TRQTOT\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_TRQSPR)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"TRQSPR\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/TRQSPR\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
-    break;
+      if (ent & OUT_TRQSPR)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"TRQSPR\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/TRQSPR\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
+      break;
 
-  case OUT_MODE_JT:
+    case OUT_MODE_JT:
 
-    if (ent & OUT_NUMBER)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
+      if (ent & OUT_NUMBER)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"NUMBER\" Center=\"Node\" AttributeType=\"Scalar\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d\" NumberType=\"Int\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/NUMBER\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
 
-    if (ent & OUT_JREAC)
-    {
-      fprintf (xmf_file, "<Attribute Name=\"JREAC\" Center=\"Node\" AttributeType=\"Vector\">\n");
-      fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
-      fprintf (xmf_file, "%s:/%d/JREAC\n", h5file, output_frame);
-      fprintf (xmf_file, "</DataStructure>\n");
-      fprintf (xmf_file, "</Attribute>\n");
-    }
-    break;
+      if (ent & OUT_JREAC)
+      {
+        fprintf (xmf_file, "<Attribute Name=\"JREAC\" Center=\"Node\" AttributeType=\"Vector\">\n");
+        fprintf (xmf_file, "<DataStructure Dimensions=\"%d 3\" NumberType=\"Float\" Presicion=\"8\" Format=\"HDF\">\n", nodes);
+        fprintf (xmf_file, "%s:/%d/JREAC\n", h5file, output_frame);
+        fprintf (xmf_file, "</DataStructure>\n");
+        fprintf (xmf_file, "</Attribute>\n");
+      }
+      break;
   }
 
   fprintf (xmf_file, "</Grid>\n");
@@ -3984,65 +3984,65 @@ static void output_xdmf_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
       {
-	for (i = 0; i < trinum; i ++)
-	{
-	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
-	  {
-	    set[num ++] = i;
-	  }
-	  else if (triobs[i] < 0) /* triangles of obstacles */
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < trinum; i ++)
+        {
+          if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
+          {
+            set[num ++] = i;
+          }
+          else if (triobs[i] < 0) /* triangles of obstacles */
+          {
+            set[num ++] = i;
+          }
+        }
 
-	ent = outrest[0];
+        ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_MESH) /* output selected triangles */
       {
-	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+        num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num)
       { 
-	h5_path.str("");
-	h5_path.clear();
-	h5_path << output_path << j+1 << ".h5";
+        h5_path.str("");
+        h5_path.clear();
+        h5_path << output_path << j+1 << ".h5";
 
-	if (curtime == 0.0)
-	{
-	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
-	else
-	{
-	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
+        if (curtime == 0.0)
+        {
+          ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
+        else
+        {
+          ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
 
-	h5_text.str("");
-	h5_text.clear();
-	h5_text << output_frame;
-	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
-	double time = curtime;
+        h5_text.str("");
+        h5_text.clear();
+        h5_text << output_frame;
+        ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+        double time = curtime;
         ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
 
-	h5_triangle_dataset (num, set, ent, h5_step); /* append h5 file */
+        h5_triangle_dataset (num, set, ent, h5_step); /* append h5 file */
 
         xmf_path.str("");
-	xmf_path.clear();
-	xmf_path << output_path << j+1 << ".xmf"; /* append xmf file */
+        xmf_path.clear();
+        xmf_path << output_path << j+1 << ".xmf"; /* append xmf file */
 
-	int elements = num;
-	int nodes = 3*num;
-	int topo_size = 4*num;
-	const char *label = "PARMEC triangles";
-	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+        int elements = num;
+        int nodes = 3*num;
+        int topo_size = 4*num;
+        const char *label = "PARMEC triangles";
+        string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_MESH, elements, nodes, topo_size, label, h5file.c_str(), ent);
 
-	H5Gclose (h5_step);
-	H5Fclose (h5_file);
+        H5Gclose (h5_step);
+        H5Fclose (h5_file);
       }
     }
 
@@ -4061,62 +4061,62 @@ static void output_xdmf_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
-	for (i = 0; i < parnum; i ++)
-	{
-	  if (flags[i] & OUTREST)
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < parnum; i ++)
+        {
+          if (flags[i] & OUTREST)
+          {
+            set[num ++] = i;
+          }
+        }
 
-	pset = set;
-	ent = outrest[0];
+        pset = set;
+        ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_RB) /* output selected particles */
       {
-	num = outidx[j+1]-outidx[j];
-	pset = &outpart[outidx[j]];
-	ent = outent[j];
+        num = outidx[j+1]-outidx[j];
+        pset = &outpart[outidx[j]];
+        ent = outent[j];
       }
 
       if (num)
       {
-	h5_path.str("");
-	h5_path.clear();
-	h5_path << output_path << j+1 << "rb.h5";
+        h5_path.str("");
+        h5_path.clear();
+        h5_path << output_path << j+1 << "rb.h5";
 
-	if (curtime == 0.0)
-	{
-	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
-	else
-	{
-	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
+        if (curtime == 0.0)
+        {
+          ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
+        else
+        {
+          ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
 
-	h5_text.str("");
-	h5_text.clear();
-	h5_text << output_frame;
-	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
-	double time = curtime;
+        h5_text.str("");
+        h5_text.clear();
+        h5_text << output_frame;
+        ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+        double time = curtime;
         ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
-   
-	h5_rb_dataset (num, pset, ent, h5_step); /* append h5 file */
+
+        h5_rb_dataset (num, pset, ent, h5_step); /* append h5 file */
 
         xmf_path.str("");
-	xmf_path.clear();
-	xmf_path << output_path << j+1 << "rb.xmf"; /* append xmf file */
+        xmf_path.clear();
+        xmf_path << output_path << j+1 << "rb.xmf"; /* append xmf file */
 
-	int elements = 0;
-	int nodes = num;
-	int topo_size = 0;
-	const char *label = "PARMEC rigid bodies";
-	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+        int elements = 0;
+        int nodes = num;
+        int topo_size = 0;
+        const char *label = "PARMEC rigid bodies";
+        string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_RB, elements, nodes, topo_size, label, h5file.c_str(), ent);
 
-	H5Gclose (h5_step);
-	H5Fclose (h5_file);
+        H5Gclose (h5_step);
+        H5Fclose (h5_file);
       }
     }
 
@@ -4147,68 +4147,68 @@ static void output_xdmf_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_SL)) /* output springs attached to unselected particles */
       {
-	for (i = 0; i < sprnum; i ++)
-	{
-	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < sprnum; i ++)
+        {
+          if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
         ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_SL) /* output springs attached to selected particles */
       {
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num) 
       {
-	h5_path.str("");
-	h5_path.clear();
-	h5_path << output_path << j+1 << "sl.h5";
+        h5_path.str("");
+        h5_path.clear();
+        h5_path << output_path << j+1 << "sl.h5";
 
-	if (curtime == 0.0)
-	{
-	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
-	else
-	{
-	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
+        if (curtime == 0.0)
+        {
+          ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
+        else
+        {
+          ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
 
-	h5_text.str("");
-	h5_text.clear();
-	h5_text << output_frame;
-	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
-	double time = curtime;
+        h5_text.str("");
+        h5_text.clear();
+        h5_text << output_frame;
+        ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+        double time = curtime;
         ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
- 
-	h5_linear_spring_dataset (num, set, ent, h5_step); /* append h5 dataset */
+
+        h5_linear_spring_dataset (num, set, ent, h5_step); /* append h5 dataset */
 
         xmf_path.str("");
-	xmf_path.clear();
-	xmf_path << output_path << j+1 << "sl.xmf"; /* append xmf file */
+        xmf_path.clear();
+        xmf_path << output_path << j+1 << "sl.xmf"; /* append xmf file */
 
-	int elements = 0;
-	int nodes = num;
-	int topo_size = 0;
-	const char *label = "PARMEC linear springs";
-	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+        int elements = 0;
+        int nodes = num;
+        int topo_size = 0;
+        const char *label = "PARMEC linear springs";
+        string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_SL, elements, nodes, topo_size, label, h5file.c_str(), ent);
 
-	H5Gclose (h5_step);
-	H5Fclose (h5_file);
+        H5Gclose (h5_step);
+        H5Fclose (h5_file);
       }
     }
 
@@ -4239,68 +4239,68 @@ static void output_xdmf_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_ST)) /* output springs attached to unselected particles */
       {
-	for (i = 0; i < trqsprnum; i ++)
-	{
-	  if (flags[trqsprpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (trqsprpart[1][i] >= 0 && (flags[trqsprpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < trqsprnum; i ++)
+        {
+          if (flags[trqsprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (trqsprpart[1][i] >= 0 && (flags[trqsprpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
         ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_ST) /* output springs attached to selected particles */
       {
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num) 
       {
-	h5_path.str("");
-	h5_path.clear();
-	h5_path << output_path << j+1 << "st.h5";
+        h5_path.str("");
+        h5_path.clear();
+        h5_path << output_path << j+1 << "st.h5";
 
-	if (curtime == 0.0)
-	{
-	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
-	else
-	{
-	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
+        if (curtime == 0.0)
+        {
+          ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
+        else
+        {
+          ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
 
-	h5_text.str("");
-	h5_text.clear();
-	h5_text << output_frame;
-	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
-	double time = curtime;
+        h5_text.str("");
+        h5_text.clear();
+        h5_text << output_frame;
+        ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+        double time = curtime;
         ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
- 
-	h5_torsional_spring_dataset (num, set, ent, h5_step); /* append h5 dataset */
+
+        h5_torsional_spring_dataset (num, set, ent, h5_step); /* append h5 dataset */
 
         xmf_path.str("");
-	xmf_path.clear();
-	xmf_path << output_path << j+1 << "st.xmf"; /* append xmf file */
+        xmf_path.clear();
+        xmf_path << output_path << j+1 << "st.xmf"; /* append xmf file */
 
-	int elements = 0;
-	int nodes = num;
-	int topo_size = 0;
-	const char *label = "PARMEC torsional springs";
-	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+        int elements = 0;
+        int nodes = num;
+        int topo_size = 0;
+        const char *label = "PARMEC torsional springs";
+        string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_ST, elements, nodes, topo_size, label, h5file.c_str(), ent);
 
-	H5Gclose (h5_step);
-	H5Fclose (h5_file);
+        H5Gclose (h5_step);
+        H5Fclose (h5_file);
       }
     }
 
@@ -4331,68 +4331,68 @@ static void output_xdmf_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_JT)) /* output springs attached to unselected particles */
       {
-	for (i = 0; i < jnum; i ++)
-	{
-	  if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < jnum; i ++)
+        {
+          if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
         ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_JT) /* output springs attached to selected particles */
       {
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num) 
       {
-	h5_path.str("");
-	h5_path.clear();
-	h5_path << output_path << j+1 << "jt.h5";
+        h5_path.str("");
+        h5_path.clear();
+        h5_path << output_path << j+1 << "jt.h5";
 
-	if (curtime == 0.0)
-	{
-	  ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
-	else
-	{
-	  ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
-	}
+        if (curtime == 0.0)
+        {
+          ASSERT ((h5_file = H5Fcreate(h5_path.str().c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
+        else
+        {
+          ASSERT((h5_file = H5Fopen(h5_path.str().c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) >= 0, "HDF5 file open error");
+        }
 
-	h5_text.str("");
-	h5_text.clear();
-	h5_text << output_frame;
-	ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
-	double time = curtime;
+        h5_text.str("");
+        h5_text.clear();
+        h5_text << output_frame;
+        ASSERT ((h5_step = H5Gcreate (h5_file, h5_text.str().c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0, "HDF5 file write error");
+        double time = curtime;
         ASSERT (H5LTset_attribute_double (h5_step, ".", "TIME", &time, 1) >= 0, "HDF5 file write error"); 
- 
-	h5_joints_dataset (num, set, ent, h5_step); /* append h5 dataset */
+
+        h5_joints_dataset (num, set, ent, h5_step); /* append h5 dataset */
 
         xmf_path.str("");
-	xmf_path.clear();
-	xmf_path << output_path << j+1 << "jt.xmf"; /* append xmf file */
+        xmf_path.clear();
+        xmf_path << output_path << j+1 << "jt.xmf"; /* append xmf file */
 
-	int elements = 0;
-	int nodes = num;
-	int topo_size = 0;
-	const char *label = "PARMEC joints";
-	string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
+        int elements = 0;
+        int nodes = num;
+        int topo_size = 0;
+        const char *label = "PARMEC joints";
+        string h5file = h5_path.str().substr(h5_path.str().find_last_of('/')+1);
 
         append_xmf_file (xmf_path.str().c_str(), OUT_MODE_JT, elements, nodes, topo_size, label, h5file.c_str(), ent);
 
-	H5Gclose (h5_step);
-	H5Fclose (h5_file);
+        H5Gclose (h5_step);
+        H5Fclose (h5_file);
       }
     }
 
@@ -4419,45 +4419,45 @@ static void output_vtk_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << ".vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << ".vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC triangles output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC triangles output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = i = 0; i < trinum; i ++)
-	{
-	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
-	  {
-	    set[num ++] = i;
-	  }
-	  else if (triobs[i] < 0) /* triangles of obstacles */
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < trinum; i ++)
+        {
+          if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
+          {
+            set[num ++] = i;
+          }
+          else if (triobs[i] < 0) /* triangles of obstacles */
+          {
+            set[num ++] = i;
+          }
+        }
 
-	vtk_triangle_dataset (num, set, outrest[0], out);
+        vtk_triangle_dataset (num, set, outrest[0], out);
 
-	out.close();
+        out.close();
       }
       else if (outmode[j] & OUT_MODE_MESH) /* output selected triangles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << ".vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << ".vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC triangles output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC triangles output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+        num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
-	if (num) vtk_triangle_dataset (num, set, outent[j], out);
+        if (num) vtk_triangle_dataset (num, set, outent[j], out);
 
         out.close();
       }
@@ -4476,39 +4476,39 @@ static void output_vtk_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "rb.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "rb.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC rigid bodies output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC rigid bodies output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = i = 0; i < parnum; i ++)
-	{
-	  if (flags[i] & OUTREST)
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < parnum; i ++)
+        {
+          if (flags[i] & OUTREST)
+          {
+            set[num ++] = i;
+          }
+        }
 
-	output_rb_dataset (num, set, outrest[0], out);
+        output_rb_dataset (num, set, outrest[0], out);
 
         out.close();
       }
       else if (outmode[j] & OUT_MODE_RB) /* output selected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "rb.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "rb.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC rigid bodies output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC rigid bodies output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[j], out);
+        output_rb_dataset (outidx[j+1]-outidx[j], &outpart[outidx[j]], outent[j], out);
 
         out.close();
       }
@@ -4539,48 +4539,48 @@ static void output_vtk_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_SL)) /* output springs attached to unselected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "sl.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "sl.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC linear springs output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC linear springs output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = i = 0; i < sprnum; i ++)
-	{
-	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < sprnum; i ++)
+        {
+          if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
-	vtk_linear_spring_dataset (num, set, outrest[0], out);
+        vtk_linear_spring_dataset (num, set, outrest[0], out);
 
         out.close();
       }
       else if (outmode[j] & OUT_MODE_SL) /* output springs attached to selected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "sl.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "sl.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC linear springs output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC linear springs output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	if (num) vtk_linear_spring_dataset (num, set, outent[j], out);
+        if (num) vtk_linear_spring_dataset (num, set, outent[j], out);
 
         out.close();
       }
@@ -4611,48 +4611,48 @@ static void output_vtk_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_ST)) /* output springs attached to unselected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "st.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "st.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC torsional springs output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC torsional springs output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = i = 0; i < trqsprnum; i ++)
-	{
-	  if (flags[trqsprpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (trqsprpart[1][i] >= 0 && (flags[trqsprpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < trqsprnum; i ++)
+        {
+          if (flags[trqsprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (trqsprpart[1][i] >= 0 && (flags[trqsprpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
-	vtk_torsional_spring_dataset (num, set, outrest[0], out);
+        vtk_torsional_spring_dataset (num, set, outrest[0], out);
 
         out.close();
       }
       else if (outmode[j] & OUT_MODE_ST) /* output springs attached to selected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "st.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "st.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC torsional springs output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC torsional springs output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	if (num) vtk_torsional_spring_dataset (num, set, outent[j], out);
+        if (num) vtk_torsional_spring_dataset (num, set, outent[j], out);
 
         out.close();
       }
@@ -4683,48 +4683,48 @@ static void output_vtk_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_JT)) /* output springs attached to unselected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "jt.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "jt.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC joints output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC joints output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = i = 0; i < jnum; i ++)
-	{
-	  if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < jnum; i ++)
+        {
+          if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
-	vtk_joints_dataset (num, set, outrest[0], out);
+        vtk_joints_dataset (num, set, outrest[0], out);
 
         out.close();
       }
       else if (outmode[j] & OUT_MODE_JT) /* output springs attached to selected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << "jt.vtk." << output_frame;
-	out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << "jt.vtk." << output_frame;
+        out.open (oss.str().c_str());
 
-	out << "# vtk DataFile Version 2.0\n";
-	out << "PARMEC joints output at time " << curtime << "\n";
-	out << "ASCII\n";
+        out << "# vtk DataFile Version 2.0\n";
+        out << "PARMEC joints output at time " << curtime << "\n";
+        out << "ASCII\n";
 
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	if (num) vtk_joints_dataset (num, set, outent[j], out);
+        if (num) vtk_joints_dataset (num, set, outent[j], out);
 
         out.close();
       }
@@ -4754,43 +4754,43 @@ static void output_med_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_MESH)) /* output unselected triangles */
       {
-	for (num = i = 0; i < trinum; i ++)
-	{
-	  if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
-	  {
-	    set[num ++] = i;
-	  }
-	  else if (triobs[i] < 0) /* triangles of obstacles */
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < trinum; i ++)
+        {
+          if (triobs[i] >= 0 && (flags[triobs[i]] & OUTREST)) /* triangles of unselected particles */
+          {
+            set[num ++] = i;
+          }
+          else if (triobs[i] < 0) /* triangles of obstacles */
+          {
+            set[num ++] = i;
+          }
+        }
 
-	ent = outrest[0];
+        ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_MESH) /* output selected triangles */
       {
-	num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
-	ent = outent[j];
+        num = find_triangle_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+        ent = outent[j];
       }
 
       if (num)
       {
-	if (med_fid_md < 0)
-	{
-	  oss.str("");
-	  oss.clear();
-	  oss << output_path << j+1 << ".med";
-	  med_fid_md = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
-	  ASSERT (med_fid_md >= 0, "Unable to open file '%s'", oss.str().c_str());
+        if (med_fid_md < 0)
+        {
+          oss.str("");
+          oss.clear();
+          oss << output_path << j+1 << ".med";
+          med_fid_md = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+          ASSERT (med_fid_md >= 0, "Unable to open file '%s'", oss.str().c_str());
 
-	  oss.str("");
-	  oss.clear();
-	  oss << "PARMEC triangles output";
-	  ASSERT(MEDfileCommentWr(med_fid_md, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
-	}
+          oss.str("");
+          oss.clear();
+          oss << "PARMEC triangles output";
+          ASSERT(MEDfileCommentWr(med_fid_md, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+        }
 
-	med_triangle_dataset (num, set, ent, med_fid_md);
+        med_triangle_dataset (num, set, ent, med_fid_md);
       }
     }
 
@@ -4809,41 +4809,41 @@ static void output_med_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_RB)) /* output unselected particles */
       {
-	for (i = 0; i < parnum; i ++)
-	{
-	  if (flags[i] & OUTREST)
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < parnum; i ++)
+        {
+          if (flags[i] & OUTREST)
+          {
+            set[num ++] = i;
+          }
+        }
 
-	pset = set;
-	ent = outrest[0];
+        pset = set;
+        ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_RB) /* output selected particles */
       {
-	num = outidx[j+1]-outidx[j];
-	pset = &outpart[outidx[j]];
-	ent = outent[j];
+        num = outidx[j+1]-outidx[j];
+        pset = &outpart[outidx[j]];
+        ent = outent[j];
       }
 
       if (num)
       {
-	if (med_fid_rb < 0)
-	{
-	  oss.str("");
-	  oss.clear();
-	  oss << output_path << j+1 << "rb.med";
-	  med_fid_rb = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
-	  ASSERT (med_fid_rb >= 0, "Unable to open file '%s'", oss.str().c_str());
+        if (med_fid_rb < 0)
+        {
+          oss.str("");
+          oss.clear();
+          oss << output_path << j+1 << "rb.med";
+          med_fid_rb = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+          ASSERT (med_fid_rb >= 0, "Unable to open file '%s'", oss.str().c_str());
 
-	  oss.str("");
-	  oss.clear();
-	  oss << "PARMEC rigid bodies output";
-	  ASSERT(MEDfileCommentWr(med_fid_rb, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
-	}
+          oss.str("");
+          oss.clear();
+          oss << "PARMEC rigid bodies output";
+          ASSERT(MEDfileCommentWr(med_fid_rb, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+        }
 
-	med_rb_dataset (num, pset, ent, med_fid_rb);
+        med_rb_dataset (num, pset, ent, med_fid_rb);
       }
     }
 
@@ -4874,47 +4874,47 @@ static void output_med_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_SL)) /* output springs attached to unselected particles */
       {
-	for (i = 0; i < sprnum; i ++)
-	{
-	  if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < sprnum; i ++)
+        {
+          if (flags[sprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (sprpart[1][i] >= 0 && (flags[sprpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
         ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_SL) /* output springs attached to selected particles */
       {
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num) 
       {
-	if (med_fid_sl < 0)
-	{
-	  oss.str("");
-	  oss.clear();
-	  oss << output_path << j+1 << "sl.med";
-	  med_fid_sl = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
-	  ASSERT (med_fid_sl >= 0, "Unable to open file '%s'", oss.str().c_str());
+        if (med_fid_sl < 0)
+        {
+          oss.str("");
+          oss.clear();
+          oss << output_path << j+1 << "sl.med";
+          med_fid_sl = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+          ASSERT (med_fid_sl >= 0, "Unable to open file '%s'", oss.str().c_str());
 
-	  oss.str("");
-	  oss.clear();
-	  oss << "PARMEC linear springs output";
-	  ASSERT(MEDfileCommentWr(med_fid_sl, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
-	}
- 
-	med_sl_dataset (num, set, ent, med_fid_sl);
+          oss.str("");
+          oss.clear();
+          oss << "PARMEC linear springs output";
+          ASSERT(MEDfileCommentWr(med_fid_sl, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+        }
+
+        med_sl_dataset (num, set, ent, med_fid_sl);
       }
     }
 
@@ -4945,47 +4945,47 @@ static void output_med_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_ST)) /* output springs attached to unselected particles */
       {
-	for (i = 0; i < trqsprnum; i ++)
-	{
-	  if (flags[trqsprpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (trqsprpart[1][i] >= 0 && (flags[trqsprpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < trqsprnum; i ++)
+        {
+          if (flags[trqsprpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (trqsprpart[1][i] >= 0 && (flags[trqsprpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
         ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_ST) /* output springs attached to selected particles */
       {
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num) 
       {
-	if (med_fid_st < 0)
-	{
-	  oss.str("");
-	  oss.clear();
-	  oss << output_path << j+1 << "st.med";
-	  med_fid_st = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
-	  ASSERT (med_fid_st >= 0, "Unable to open file '%s'", oss.str().c_str());
+        if (med_fid_st < 0)
+        {
+          oss.str("");
+          oss.clear();
+          oss << output_path << j+1 << "st.med";
+          med_fid_st = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+          ASSERT (med_fid_st >= 0, "Unable to open file '%s'", oss.str().c_str());
 
-	  oss.str("");
-	  oss.clear();
-	  oss << "PARMEC torsional springs output";
-	  ASSERT(MEDfileCommentWr(med_fid_st, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
-	}
- 
-	med_st_dataset (num, set, ent, med_fid_st);
+          oss.str("");
+          oss.clear();
+          oss << "PARMEC torsional springs output";
+          ASSERT(MEDfileCommentWr(med_fid_st, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+        }
+
+        med_st_dataset (num, set, ent, med_fid_st);
       }
     }
 
@@ -5016,47 +5016,47 @@ static void output_med_files ()
 
       if (j < 0 && (outrest[1] & OUT_MODE_JT)) /* output springs attached to unselected particles */
       {
-	for (i = 0; i < jnum; i ++)
-	{
-	  if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
-	  (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (i = 0; i < jnum; i ++)
+        {
+          if (flags[jpart[0][i]] && OUTREST || /* first or second particle is unselected */
+              (jpart[1][i] >= 0 && (flags[jpart[1][i]] & OUTREST)))
+          {
+            set[num ++] = i;
+          }
+        }
 
         ent = outrest[0];
       }
       else if (outmode[j] & OUT_MODE_JT) /* output springs attached to selected particles */
       {
-	for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
-	{
-	  for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
-	  {
-	    set[num ++] = (int)(long)item->key;
-	  }
-	}
+        for (num = 0, i = outidx[j]; i < outidx[j+1]; i ++)
+        {
+          for (item = MAP_First (map[outpart[i]]); item; item = MAP_Next(item))
+          {
+            set[num ++] = (int)(long)item->key;
+          }
+        }
 
-	ent = outent[j];
+        ent = outent[j];
       }
 
       if (num) 
       {
-	if (med_fid_st < 0)
-	{
-	  oss.str("");
-	  oss.clear();
-	  oss << output_path << j+1 << "jt.med";
-	  med_fid_st = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
-	  ASSERT (med_fid_st >= 0, "Unable to open file '%s'", oss.str().c_str());
+        if (med_fid_st < 0)
+        {
+          oss.str("");
+          oss.clear();
+          oss << output_path << j+1 << "jt.med";
+          med_fid_st = MEDfileOpen((char*)oss.str().c_str(), MED_ACC_CREAT);
+          ASSERT (med_fid_st >= 0, "Unable to open file '%s'", oss.str().c_str());
 
-	  oss.str("");
-	  oss.clear();
-	  oss << "PARMEC joints output";
-	  ASSERT(MEDfileCommentWr(med_fid_st, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
-	}
- 
-	med_jt_dataset (num, set, ent, med_fid_st);
+          oss.str("");
+          oss.clear();
+          oss << "PARMEC joints output";
+          ASSERT(MEDfileCommentWr(med_fid_st, (char*)oss.str().c_str()) >= 0, "Unable to write MED descriptor");
+        }
+
+        med_jt_dataset (num, set, ent, med_fid_st);
       }
     }
 
@@ -5084,35 +5084,35 @@ static void output_dump_files ()
     {
       if (j < 0 && (outrest[1] & OUT_MODE_SPH)) /* output unselected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << ".dump";
-	if (output_frame) out.open (oss.str().c_str(), ios::app);
-	else out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << ".dump";
+        if (output_frame) out.open (oss.str().c_str(), ios::app);
+        else out.open (oss.str().c_str());
 
-	for (num = i = 0; i < ellnum; i ++)
-	{
-	  if (flags[part[i]] & OUTREST)
-	  {
-	    set[num ++] = i;
-	  }
-	}
+        for (num = i = 0; i < ellnum; i ++)
+        {
+          if (flags[part[i]] & OUTREST)
+          {
+            set[num ++] = i;
+          }
+        }
 
-	output_dump_dataset (num, set, outrest[0], out);
+        output_dump_dataset (num, set, outrest[0], out);
 
         out.close();
       }
       else if (outmode[j] & OUT_MODE_SPH) /* output selected particles */
       {
-	oss.str("");
-	oss.clear();
-	oss << output_path << j+1 << ".dump";
-	if (output_frame) out.open (oss.str().c_str(), ios::app);
-	else out.open (oss.str().c_str());
+        oss.str("");
+        oss.clear();
+        oss << output_path << j+1 << ".dump";
+        if (output_frame) out.open (oss.str().c_str(), ios::app);
+        else out.open (oss.str().c_str());
 
-	num = find_ellipsoid_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
+        num = find_ellipsoid_set (&outpart[outidx[j]], &outpart[outidx[j+1]], set);
 
-	output_dump_dataset (num, set, outent[j], out);
+        output_dump_dataset (num, set, outent[j], out);
 
 
         out.close();
@@ -5152,381 +5152,381 @@ void output_history ()
     }
     else switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
     {
-    case HIS_LIST:
-    {
-      if (hiskind[i] & HIS_POINT) /* one particle point based */
-      {
-	k = hislst[hisidx[i]];
+      case HIS_LIST:
+        {
+          if (hiskind[i] & HIS_POINT) /* one particle point based */
+          {
+            k = hislst[hisidx[i]];
 
-	REAL x[3] = {position[0][k], position[1][k], position[2][k]};
-	REAL X[3] = {position[3][k], position[4][k], position[5][k]};
-	REAL v[3] = {linear[0][k], linear[1][k], linear[2][k]};
-	REAL o[3] = {angular[3][k], angular[4][k], angular[5][k]};
-	REAL L[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
-	             rotation[3][k], rotation[4][k], rotation[5][k],
-		     rotation[6][k], rotation[7][k], rotation[8][k]};
-        REAL P[3] = {source[0][i], source[1][i], source[2][i]};
-	REAL Q[3], p[3], a[3], value;
+            REAL x[3] = {position[0][k], position[1][k], position[2][k]};
+            REAL X[3] = {position[3][k], position[4][k], position[5][k]};
+            REAL v[3] = {linear[0][k], linear[1][k], linear[2][k]};
+            REAL o[3] = {angular[3][k], angular[4][k], angular[5][k]};
+            REAL L[9] = {rotation[0][k], rotation[1][k], rotation[2][k],
+              rotation[3][k], rotation[4][k], rotation[5][k],
+              rotation[6][k], rotation[7][k], rotation[8][k]};
+            REAL P[3] = {source[0][i], source[1][i], source[2][i]};
+            REAL Q[3], p[3], a[3], value;
 
-	SUB (P, X, Q);
-	NVADDMUL (x, L, Q, p);
-	SUB (p, x, a);
+            SUB (P, X, Q);
+            NVADDMUL (x, L, Q, p);
+            SUB (p, x, a);
 
-	switch (hisent[i])
-	{
-	case HIS_PX:
-	  value = p[0];
-	break;
-	case HIS_PY:
-	  value = p[1];
-	break;
-	case HIS_PZ:
-	  value = p[2];
-	break;
-	case HIS_PL:
-	  value = LEN(p);
-	break;
-	case HIS_DX:
-	  value = p[0]-P[0];
-	break;
-	case HIS_DY:
-	  value = p[1]-P[1];
-	break;
-	case HIS_DZ:
-	  value = p[2]-P[2];
-	break;
-	case HIS_DL:
-	{
-	  REAL q[3] = {p[0]-P[0], p[1]-P[1], p[2]-P[2]};
-	  value = LEN(q);
-	}
-	break;
-	case HIS_VX:
-	  value = v[0] + a[1]*o[2] - a[2]*o[1];
-	break;
-	case HIS_VY:
-	  value = v[1] + a[2]*o[0] - a[0]*o[2];
-	break;
-	case HIS_VZ:
-	  value = v[2] + a[0]*o[1] - a[1]*o[0];
-	break;
-	case HIS_VL:
-	{
-	  REAL q[3] = {v[0] + a[1]*o[2] - a[2]*o[1], v[1] + a[2]*o[0] - a[0]*o[2], v[2] + a[0]*o[1] - a[1]*o[0]};
-	  value = LEN(q);
-	}
-	break;
-	case HIS_OX:
-	  value = o[0];
-	break;
-	case HIS_OY:
-	  value = o[1];
-	break;
-	case HIS_OZ:
-	  value = o[2];
-	break;
-	case HIS_OL:
-	{
-	  value = LEN(o);
-	}
-	break;
-	case HIS_FX:
-	  value = force[0][k];
-	break;
-	case HIS_FY:
-	  value = force[1][k];
-	break;
-	case HIS_FZ:
-	  value = force[2][k];
-	break;
-	case HIS_FL:
-	{
-	  REAL q[3] = {force[0][k], force[1][k], force[2][k]};
-	  value = LEN(q);
-	}
-	break;
-	case HIS_TX:
-	  value = torque[0][k];
-	break;
-	case HIS_TY:
-	  value = torque[1][k];
-	break;
-	case HIS_TZ:
-	  value = torque[2][k];
-	break;
-	case HIS_TL:
-	{
-	  REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
-	  value = LEN(q);
-	}
-	break;
-	}
+            switch (hisent[i])
+            {
+              case HIS_PX:
+                value = p[0];
+                break;
+              case HIS_PY:
+                value = p[1];
+                break;
+              case HIS_PZ:
+                value = p[2];
+                break;
+              case HIS_PL:
+                value = LEN(p);
+                break;
+              case HIS_DX:
+                value = p[0]-P[0];
+                break;
+              case HIS_DY:
+                value = p[1]-P[1];
+                break;
+              case HIS_DZ:
+                value = p[2]-P[2];
+                break;
+              case HIS_DL:
+                {
+                  REAL q[3] = {p[0]-P[0], p[1]-P[1], p[2]-P[2]};
+                  value = LEN(q);
+                }
+                break;
+              case HIS_VX:
+                value = v[0] + a[1]*o[2] - a[2]*o[1];
+                break;
+              case HIS_VY:
+                value = v[1] + a[2]*o[0] - a[0]*o[2];
+                break;
+              case HIS_VZ:
+                value = v[2] + a[0]*o[1] - a[1]*o[0];
+                break;
+              case HIS_VL:
+                {
+                  REAL q[3] = {v[0] + a[1]*o[2] - a[2]*o[1], v[1] + a[2]*o[0] - a[0]*o[2], v[2] + a[0]*o[1] - a[1]*o[0]};
+                  value = LEN(q);
+                }
+                break;
+              case HIS_OX:
+                value = o[0];
+                break;
+              case HIS_OY:
+                value = o[1];
+                break;
+              case HIS_OZ:
+                value = o[2];
+                break;
+              case HIS_OL:
+                {
+                  value = LEN(o);
+                }
+                break;
+              case HIS_FX:
+                value = force[0][k];
+                break;
+              case HIS_FY:
+                value = force[1][k];
+                break;
+              case HIS_FZ:
+                value = force[2][k];
+                break;
+              case HIS_FL:
+                {
+                  REAL q[3] = {force[0][k], force[1][k], force[2][k]};
+                  value = LEN(q);
+                }
+                break;
+              case HIS_TX:
+                value = torque[0][k];
+                break;
+              case HIS_TY:
+                value = torque[1][k];
+                break;
+              case HIS_TZ:
+                value = torque[2][k];
+                break;
+              case HIS_TL:
+                {
+                  REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
+                  value = LEN(q);
+                }
+                break;
+            }
 
-        PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
-      }
-      else /* particle or spring list based */
-      {
-	REAL value = 0.0;
+            PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
+          }
+          else /* particle or spring list based */
+          {
+            REAL value = 0.0;
 
-	for (j = hisidx[i]; j < hisidx[i+1]; j ++)
-	{
-	  k = hislst[j];
+            for (j = hisidx[i]; j < hisidx[i+1]; j ++)
+            {
+              k = hislst[j];
 
-	  switch (hisent[i])
-	  {
-	  case HIS_PX:
-	    value += position[0][k];
-	  break;
-	  case HIS_PY:
-	    value += position[1][k];
-	  break;
-	  case HIS_PZ:
-	    value += position[2][k];
-	  break;
-	  case HIS_PL:
-	  {
-	    REAL q[3] = {position[0][k], position[1][k], position[2][k]};
-	    value += LEN(q);
-	  }
-	  break;
-	  case HIS_DX:
-	    value += position[0][k]-position[3][k];
-	  break;
-	  case HIS_DY:
-	    value += position[1][k]-position[4][k];
-	  break;
-	  case HIS_DZ:
-	    value += position[2][k]-position[5][k];
-	  break;
-	  case HIS_DL:
-	  {
-	    REAL q[3] = {position[0][k]-position[3][k], position[1][k]-position[4][k], position[2][k]-position[5][k]};
-	    value += LEN(q);
-	  }
-	  break;
-	  case HIS_VX:
-	    value += linear[0][k];
-	  break;
-	  case HIS_VY:
-	    value += linear[1][k];
-	  break;
-	  case HIS_VZ:
-	    value += linear[2][k];
-	  break;
-	  case HIS_VL:
-	  {
-	    REAL q[3] = {linear[0][k], linear[1][k], linear[2][k]};
-	    value += LEN(q);
-	  }
-	  break;
-	  case HIS_OX:
-	    value += angular[3][k];
-	  break;
-	  case HIS_OY:
-	    value += angular[4][k];
-	  break;
-	  case HIS_OZ:
-	    value += angular[5][k];
-	  break;
-	  case HIS_OL:
-	  {
-	    REAL q[3] = {angular[3][k], angular[4][k], angular[5][k]};
-	    value += LEN(q);
-	  }
-	  break;
-          case HIS_FX:
-	    value += force[0][k];
-	  break;
-	  case HIS_FY:
-	    value += force[1][k];
-	  break;
-	  case HIS_FZ:
-	    value += force[2][k];
-	  break;
-	  case HIS_FL:
-	  {
-	    REAL q[3] = {force[0][k], force[1][k], force[2][k]};
-	    value += LEN(q);
-	  }
-	  break;
-          case HIS_TX:
-	    value += torque[0][k];
-	  break;
-	  case HIS_TY:
-	    value += torque[1][k];
-	  break;
-	  case HIS_TZ:
-	    value += torque[2][k];
-	  break;
-	  case HIS_TL:
-	  {
-	    REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
-	    value += LEN(q);
-	  }
-	  break;
-	  case HIS_LENGTH:
-	  {
-	    int l = sprmap[k];
-	    REAL q[3] = {sprpnt[1][0][l]-sprpnt[0][0][l],
-	                 sprpnt[1][1][l]-sprpnt[0][1][l],
-	                 sprpnt[1][2][l]-sprpnt[0][2][l]};
-	    value += LEN(q);
-	  }
-	  break;
-	  case HIS_STROKE:
-	  {
-	    int l = sprmap[k];
-	    value += stroke[0][l];
-	  }
-	  break;
-	  case HIS_F:
-	  {
-	    int l = sprmap[k];
-	    value += sprfrc[0][l];
-	  }
-	  break;
-	  case HIS_SF:
-	  {
-	    int l = sprmap[k];
-	    value += sprfrc[1][l];
-	  }
-	  break;
-	  case HIS_FF:
-	  {
-	    int l = sprmap[k];
-	    value += sprfrc[2][l];
-	  }
-	  break;
-	  case HIS_SS:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)unspring[l];
-	  }
-	  break;
-	  case HIS_ZDIR_X:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqzdir1[0][l];
-	  }
-	  break;
-	  case HIS_ZDIR_Y:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqzdir1[1][l];
-	  }
-	  break;
-	  case HIS_ZDIR_Z:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqzdir1[2][l];
-	  }
-	  break;
-	  case HIS_XDIR_X:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqxdir1[0][l];
-	  }
-	  break;
-	  case HIS_XDIR_Y:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqxdir1[1][l];
-	  }
-	  break;
-	  case HIS_XDIR_Z:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqxdir1[2][l];
-	  }
-	  break;
-	  case HIS_ROLL:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpy[0][l];
-	  }
-	  break;
-	  case HIS_PITCH:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpy[1][l];
-	  }
-	  break;
-	  case HIS_YAW:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpy[2][l];
-	  }
-	  break;
-	  case HIS_TRQTOT_R:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpytot[0][l];
-	  }
-	  break;
-	  case HIS_TRQTOT_P:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpytot[1][l];
-	  }
-	  break;
-	  case HIS_TRQTOT_Y:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpytot[2][l];
-	  }
-	  break;
-	  case HIS_TRQSPR_R:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpyspr[0][l];
-	  }
-	  break;
-	  case HIS_TRQSPR_P:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpyspr[1][l];
-	  }
-	  break;
-	  case HIS_TRQSPR_Y:
-	  {
-	    int l = trqsprmap[k];
-	    value += (REAL)trqrpyspr[2][l];
-	  }
-	  break;
-          case HIS_JREAC_X:
-	    value += jreac[0][k];
-	  break;
-	  case HIS_JREAC_Y:
-	    value += jreac[1][k];
-	  break;
-	  case HIS_JREAC_Z:
-	    value += jreac[2][k];
-	  break;
-	  case HIS_JREAC_L:
-	  {
-	    REAL q[3] = {jreac[0][k], jreac[1][k], jreac[2][k]};
-	    value += LEN(q);
-	  }
-	  break;
-	  }
-	}
+              switch (hisent[i])
+              {
+                case HIS_PX:
+                  value += position[0][k];
+                  break;
+                case HIS_PY:
+                  value += position[1][k];
+                  break;
+                case HIS_PZ:
+                  value += position[2][k];
+                  break;
+                case HIS_PL:
+                  {
+                    REAL q[3] = {position[0][k], position[1][k], position[2][k]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_DX:
+                  value += position[0][k]-position[3][k];
+                  break;
+                case HIS_DY:
+                  value += position[1][k]-position[4][k];
+                  break;
+                case HIS_DZ:
+                  value += position[2][k]-position[5][k];
+                  break;
+                case HIS_DL:
+                  {
+                    REAL q[3] = {position[0][k]-position[3][k], position[1][k]-position[4][k], position[2][k]-position[5][k]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_VX:
+                  value += linear[0][k];
+                  break;
+                case HIS_VY:
+                  value += linear[1][k];
+                  break;
+                case HIS_VZ:
+                  value += linear[2][k];
+                  break;
+                case HIS_VL:
+                  {
+                    REAL q[3] = {linear[0][k], linear[1][k], linear[2][k]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_OX:
+                  value += angular[3][k];
+                  break;
+                case HIS_OY:
+                  value += angular[4][k];
+                  break;
+                case HIS_OZ:
+                  value += angular[5][k];
+                  break;
+                case HIS_OL:
+                  {
+                    REAL q[3] = {angular[3][k], angular[4][k], angular[5][k]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_FX:
+                  value += force[0][k];
+                  break;
+                case HIS_FY:
+                  value += force[1][k];
+                  break;
+                case HIS_FZ:
+                  value += force[2][k];
+                  break;
+                case HIS_FL:
+                  {
+                    REAL q[3] = {force[0][k], force[1][k], force[2][k]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_TX:
+                  value += torque[0][k];
+                  break;
+                case HIS_TY:
+                  value += torque[1][k];
+                  break;
+                case HIS_TZ:
+                  value += torque[2][k];
+                  break;
+                case HIS_TL:
+                  {
+                    REAL q[3] = {torque[0][k], torque[1][k], torque[2][k]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_LENGTH:
+                  {
+                    int l = sprmap[k];
+                    REAL q[3] = {sprpnt[1][0][l]-sprpnt[0][0][l],
+                      sprpnt[1][1][l]-sprpnt[0][1][l],
+                      sprpnt[1][2][l]-sprpnt[0][2][l]};
+                    value += LEN(q);
+                  }
+                  break;
+                case HIS_STROKE:
+                  {
+                    int l = sprmap[k];
+                    value += stroke[0][l];
+                  }
+                  break;
+                case HIS_F:
+                  {
+                    int l = sprmap[k];
+                    value += sprfrc[0][l];
+                  }
+                  break;
+                case HIS_SF:
+                  {
+                    int l = sprmap[k];
+                    value += sprfrc[1][l];
+                  }
+                  break;
+                case HIS_FF:
+                  {
+                    int l = sprmap[k];
+                    value += sprfrc[2][l];
+                  }
+                  break;
+                case HIS_SS:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)unspring[l];
+                  }
+                  break;
+                case HIS_ZDIR_X:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqzdir1[0][l];
+                  }
+                  break;
+                case HIS_ZDIR_Y:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqzdir1[1][l];
+                  }
+                  break;
+                case HIS_ZDIR_Z:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqzdir1[2][l];
+                  }
+                  break;
+                case HIS_XDIR_X:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqxdir1[0][l];
+                  }
+                  break;
+                case HIS_XDIR_Y:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqxdir1[1][l];
+                  }
+                  break;
+                case HIS_XDIR_Z:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqxdir1[2][l];
+                  }
+                  break;
+                case HIS_ROLL:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpy[0][l];
+                  }
+                  break;
+                case HIS_PITCH:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpy[1][l];
+                  }
+                  break;
+                case HIS_YAW:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpy[2][l];
+                  }
+                  break;
+                case HIS_TRQTOT_R:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpytot[0][l];
+                  }
+                  break;
+                case HIS_TRQTOT_P:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpytot[1][l];
+                  }
+                  break;
+                case HIS_TRQTOT_Y:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpytot[2][l];
+                  }
+                  break;
+                case HIS_TRQSPR_R:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpyspr[0][l];
+                  }
+                  break;
+                case HIS_TRQSPR_P:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpyspr[1][l];
+                  }
+                  break;
+                case HIS_TRQSPR_Y:
+                  {
+                    int l = trqsprmap[k];
+                    value += (REAL)trqrpyspr[2][l];
+                  }
+                  break;
+                case HIS_JREAC_X:
+                  value += jreac[0][k];
+                  break;
+                case HIS_JREAC_Y:
+                  value += jreac[1][k];
+                  break;
+                case HIS_JREAC_Z:
+                  value += jreac[2][k];
+                  break;
+                case HIS_JREAC_L:
+                  {
+                    REAL q[3] = {jreac[0][k], jreac[1][k], jreac[2][k]};
+                    value += LEN(q);
+                  }
+                  break;
+              }
+            }
 
-	j = hisidx[i+1]-hisidx[i];
+            j = hisidx[i+1]-hisidx[i];
 
-        PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value/(REAL)j));
-      }
-    }
-    break;
-    case HIS_SPHERE:
-    {
-      ASSERT (0, "Sphere based time history is not yet implemented");
-    }
-    break;
-    case HIS_BOX:
-    {
-      ASSERT (0, "Box based time history is not yet implemented");
-    }
-    break;
+            PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value/(REAL)j));
+          }
+        }
+        break;
+      case HIS_SPHERE:
+        {
+          ASSERT (0, "Sphere based time history is not yet implemented");
+        }
+        break;
+      case HIS_BOX:
+        {
+          ASSERT (0, "Box based time history is not yet implemented");
+        }
+        break;
     }
   }
 }
@@ -5583,19 +5583,19 @@ void output_h5history ()
 
       if (node) /* .h5 path already mapped */
       {
-	MAP_Insert (NULL, (MAP**) &node->data, (void*) (long) i, NULL, NULL); /* append history index */
+        MAP_Insert (NULL, (MAP**) &node->data, (void*) (long) i, NULL, NULL); /* append history index */
       }
       else  /* .h5 path not mapped */
       {
-	MAP *h5set = NULL; /* empty index set */
-	MAP_Insert (NULL, &h5set, (void*) (long) i, NULL, NULL); /* append history index */
-	MAP_Insert (NULL, &h5map, h5file[i], h5set, (MAP_Compare)strcmp); /* map path to index set */
+        MAP *h5set = NULL; /* empty index set */
+        MAP_Insert (NULL, &h5set, (void*) (long) i, NULL, NULL); /* append history index */
+        MAP_Insert (NULL, &h5map, h5file[i], h5set, (MAP_Compare)strcmp); /* map path to index set */
       }
 
       if (PyList_Size((PyObject*)history[i]) > 0)
       {
-	Py_DECREF ((PyObject*)history[i]);
-	history[i] = PyList_New(0); /* avoid appending to nonempty lists */
+        Py_DECREF ((PyObject*)history[i]);
+        history[i] = PyList_New(0); /* avoid appending to nonempty lists */
       }
     }
   }
@@ -5644,552 +5644,552 @@ void output_h5history ()
 
       for (MAP *item = MAP_First (ent2data); item; item = MAP_Next (item))
       {
-	i = (int) (long) item->key;
-	
-	if (hisent[i] == HIS_TIME)
-	{
+        i = (int) (long) item->key;
+
+        if (hisent[i] == HIS_TIME)
+        {
           ASSERT (H5LTget_attribute_double (h5_step, ".", "TIME", &time) >= 0, "HDF5 file read error");
           PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(time));
-	}
-	else switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
-	{
-	case HIS_LIST:
-	{
-	  if (hiskind[i] & HIS_POINT) /* one particle point based */
-	  {
-	    int k = hislst[hisidx[i]];
-	    REAL value;
+        }
+        else switch (hiskind[i]&(HIS_LIST|HIS_SPHERE|HIS_BOX))
+        {
+          case HIS_LIST:
+            {
+              if (hiskind[i] & HIS_POINT) /* one particle point based */
+              {
+                int k = hislst[hisidx[i]];
+                REAL value;
 
-	    switch(hisent[i])
-	    {
-	    case HIS_PX:
-	    case HIS_PY:
-	    case HIS_PZ:
-	    case HIS_PL:
-	    case HIS_DX:
-	    case HIS_DY:
-	    case HIS_DZ:
-	    case HIS_DL:
-	    {
-	      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
-	      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
-	      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
-	      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
-	      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
-			   ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
-			   ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
-	      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
-	      REAL Q[3], p[3];
+                switch(hisent[i])
+                {
+                  case HIS_PX:
+                  case HIS_PY:
+                  case HIS_PZ:
+                  case HIS_PL:
+                  case HIS_DX:
+                  case HIS_DY:
+                  case HIS_DZ:
+                  case HIS_DL:
+                    {
+                      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+                      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
+                      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
+                      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
+                      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
+                        ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
+                        ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
+                      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
+                      REAL Q[3], p[3];
 
-	      SUB (P, X, Q);
-	      NVADDMUL (x, L, Q, p);
+                      SUB (P, X, Q);
+                      NVADDMUL (x, L, Q, p);
 
-	      switch (hisent[i])
-	      {
-	      case HIS_PX:
-		value = p[0];
-	      break;
-	      case HIS_PY:
-		value = p[1];
-	      break;
-	      case HIS_PZ:
-		value = p[2];
-	      break;
-	      case HIS_PL:
-		value = LEN(p);
-	      break;
-	      case HIS_DX:
-		value = p[0]-P[0];
-	      break;
-	      case HIS_DY:
-		value = p[1]-P[1];
-	      break;
-	      case HIS_DZ:
-		value = p[2]-P[2];
-	      break;
-	      case HIS_DL:
-	      {
-		REAL q[3] = {p[0]-P[0], p[1]-P[1], p[2]-P[2]};
-		value = LEN(q);
-	      }
-	      break;
-	      }
-	    }
-	    break;
-	    case HIS_VX:
-	    case HIS_VY:
-	    case HIS_VZ:
-	    case HIS_VL:
-	    {
-	      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
-	      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
-	      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
-	      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
-	      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
-	      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
-	      REAL v[3] = {LINVEL[k*3], LINVEL[k*3+1], LINVEL[k*3+2]};
-	      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
-	      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
-			   ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
-			   ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
-	      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
-	      REAL Q[3], p[3], a[3];
+                      switch (hisent[i])
+                      {
+                        case HIS_PX:
+                          value = p[0];
+                          break;
+                        case HIS_PY:
+                          value = p[1];
+                          break;
+                        case HIS_PZ:
+                          value = p[2];
+                          break;
+                        case HIS_PL:
+                          value = LEN(p);
+                          break;
+                        case HIS_DX:
+                          value = p[0]-P[0];
+                          break;
+                        case HIS_DY:
+                          value = p[1]-P[1];
+                          break;
+                        case HIS_DZ:
+                          value = p[2]-P[2];
+                          break;
+                        case HIS_DL:
+                          {
+                            REAL q[3] = {p[0]-P[0], p[1]-P[1], p[2]-P[2]};
+                            value = LEN(q);
+                          }
+                          break;
+                      }
+                    }
+                    break;
+                  case HIS_VX:
+                  case HIS_VY:
+                  case HIS_VZ:
+                  case HIS_VL:
+                    {
+                      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+                      ASSERT (ORIENT, "HDF5 file read error: ORIENT dataset missing");
+                      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+                      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+                      REAL x[3] = {GEOM[k*3], GEOM[k*3+1], GEOM[k*3+2]};
+                      REAL X[3] = {GEOM0[k*3], GEOM0[k*3+1], GEOM0[k*3+2]};
+                      REAL v[3] = {LINVEL[k*3], LINVEL[k*3+1], LINVEL[k*3+2]};
+                      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
+                      REAL L[9] = {ORIENT[k*9], ORIENT[k*9+1], ORIENT[k*9+2],
+                        ORIENT[k*9+3], ORIENT[k*9+4], ORIENT[k*9+5],
+                        ORIENT[k*9+6], ORIENT[k*9+7], ORIENT[k*9+8]};
+                      REAL P[3] = {source[0][i], source[1][i], source[2][i]};
+                      REAL Q[3], p[3], a[3];
 
-	      SUB (P, X, Q);
-	      NVADDMUL (x, L, Q, p);
-	      SUB (p, x, a);
+                      SUB (P, X, Q);
+                      NVADDMUL (x, L, Q, p);
+                      SUB (p, x, a);
 
-	      switch (hisent[i])
-	      {
-	      case HIS_VX:
-		value = v[0] + a[1]*o[2] - a[2]*o[1];
-	      break;
-	      case HIS_VY:
-		value = v[1] + a[2]*o[0] - a[0]*o[2];
-	      break;
-	      case HIS_VZ:
-		value = v[2] + a[0]*o[1] - a[1]*o[0];
-	      break;
-	      case HIS_VL:
-	      {
-		REAL q[3] = {v[0] + a[1]*o[2] - a[2]*o[1], v[1] + a[2]*o[0] - a[0]*o[2], v[2] + a[0]*o[1] - a[1]*o[0]};
-		value = LEN(q);
-	      }
-	      break;
-	      }
-	    }
-	    break;
-	    case HIS_OX:
-	    case HIS_OY:
-	    case HIS_OZ:
-	    case HIS_OL:
-	    {
-	      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
-	      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
+                      switch (hisent[i])
+                      {
+                        case HIS_VX:
+                          value = v[0] + a[1]*o[2] - a[2]*o[1];
+                          break;
+                        case HIS_VY:
+                          value = v[1] + a[2]*o[0] - a[0]*o[2];
+                          break;
+                        case HIS_VZ:
+                          value = v[2] + a[0]*o[1] - a[1]*o[0];
+                          break;
+                        case HIS_VL:
+                          {
+                            REAL q[3] = {v[0] + a[1]*o[2] - a[2]*o[1], v[1] + a[2]*o[0] - a[0]*o[2], v[2] + a[0]*o[1] - a[1]*o[0]};
+                            value = LEN(q);
+                          }
+                          break;
+                      }
+                    }
+                    break;
+                  case HIS_OX:
+                  case HIS_OY:
+                  case HIS_OZ:
+                  case HIS_OL:
+                    {
+                      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+                      REAL o[3] = {ANGVEL[k*3], ANGVEL[k*3+1], ANGVEL[k*3+2]};
 
-	      switch (hisent[i])
-	      {
-	      case HIS_OX:
-		value = o[0];
-	      break;
-	      case HIS_OY:
-		value = o[1];
-	      break;
-	      case HIS_OZ:
-		value = o[2];
-	      break;
-	      case HIS_OL:
-	      {
-		value = LEN(o);
-	      }
-	      break;
-	      }
-	    }
-	    break;
-	    case HIS_FX:
-	    case HIS_FY:
-	    case HIS_FZ:
-	    case HIS_FL:
-	    {
-	      ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
-	      REAL f[3] = {FORCE[k*3], FORCE[k*3+1], FORCE[k*3+2]};
+                      switch (hisent[i])
+                      {
+                        case HIS_OX:
+                          value = o[0];
+                          break;
+                        case HIS_OY:
+                          value = o[1];
+                          break;
+                        case HIS_OZ:
+                          value = o[2];
+                          break;
+                        case HIS_OL:
+                          {
+                            value = LEN(o);
+                          }
+                          break;
+                      }
+                    }
+                    break;
+                  case HIS_FX:
+                  case HIS_FY:
+                  case HIS_FZ:
+                  case HIS_FL:
+                    {
+                      ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+                      REAL f[3] = {FORCE[k*3], FORCE[k*3+1], FORCE[k*3+2]};
 
-	      switch (hisent[i])
-	      {
-	      case HIS_FX:
-		value = f[0];
-	      break;
-	      case HIS_FY:
-		value = f[1];
-	      break;
-	      case HIS_FZ:
-		value = f[2];
-	      break;
-	      case HIS_FL:
-	      {
-		value = LEN(f);
-	      }
-	      break;
-	      }
-	    }
-	    break;
-	    case HIS_TX:
-	    case HIS_TY:
-	    case HIS_TZ:
-	    case HIS_TL:
-	    {
-	      ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
-	      REAL t[3] = {TORQUE[k*3], TORQUE[k*3+1], TORQUE[k*3+2]};
+                      switch (hisent[i])
+                      {
+                        case HIS_FX:
+                          value = f[0];
+                          break;
+                        case HIS_FY:
+                          value = f[1];
+                          break;
+                        case HIS_FZ:
+                          value = f[2];
+                          break;
+                        case HIS_FL:
+                          {
+                            value = LEN(f);
+                          }
+                          break;
+                      }
+                    }
+                    break;
+                  case HIS_TX:
+                  case HIS_TY:
+                  case HIS_TZ:
+                  case HIS_TL:
+                    {
+                      ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+                      REAL t[3] = {TORQUE[k*3], TORQUE[k*3+1], TORQUE[k*3+2]};
 
-	      switch (hisent[i])
-	      {
-	      case HIS_TX:
-		value = t[0];
-	      break;
-	      case HIS_TY:
-		value = t[1];
-	      break;
-	      case HIS_TZ:
-		value = t[2];
-	      break;
-	      case HIS_TL:
-	      {
-		value = LEN(t);
-	      }
-	      break;
-	      }
-	    }
-	    break;
-	    }
+                      switch (hisent[i])
+                      {
+                        case HIS_TX:
+                          value = t[0];
+                          break;
+                        case HIS_TY:
+                          value = t[1];
+                          break;
+                        case HIS_TZ:
+                          value = t[2];
+                          break;
+                        case HIS_TL:
+                          {
+                            value = LEN(t);
+                          }
+                          break;
+                      }
+                    }
+                    break;
+                }
 
-	    PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
-	  }
-	  else /* particle or spring list based */
-	  {
-	    REAL value = 0.0;
+                PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value));
+              }
+              else /* particle or spring list based */
+              {
+                REAL value = 0.0;
 
-	    for (int j = hisidx[i]; j < hisidx[i+1]; j ++)
-	    {
-	      int k = hislst[j];
+                for (int j = hisidx[i]; j < hisidx[i+1]; j ++)
+                {
+                  int k = hislst[j];
 
-	      switch (hisent[i])
-	      {
-	      case HIS_PX:
-	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
-		value += GEOM[3*k];
-	      break;
-	      case HIS_PY:
-	      {
-	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
-		value += GEOM[3*k+1];
-	      }
-	      break;
-	      case HIS_PZ:
-	      {
-	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
-		value += GEOM[3*k+2];
-	      }
-	      break;
-	      case HIS_PL:
-	      {
-	        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
-		REAL q[3] = {GEOM[3*k], GEOM[3*k+1], GEOM[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      case HIS_DX:
-	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
-		value += GEOM[3*k] - GEOM0[3*k];
-	      break;
-	      case HIS_DY:
-	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
-		value += GEOM[3*k+1] - GEOM0[3*k+1];
-	      break;
-	      case HIS_DZ:
-	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
-		value += GEOM[3*k+2] - GEOM0[3*k+2];
-	      break;
-	      case HIS_DL:
-	      {
-	        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
-		REAL q[3] = {GEOM[3*k]-GEOM0[3*k], GEOM[3*k+1]-GEOM0[3*k+1], GEOM[3*k+2]-GEOM[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      case HIS_VX:
-	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
-		value += LINVEL[3*k];
-	      break;
-	      case HIS_VY:
-	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
-		value += LINVEL[3*k+1];
-	      break;
-	      case HIS_VZ:
-	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
-		value += LINVEL[3*k+2];
-	      break;
-	      case HIS_VL:
-	      {
-	        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
-		REAL q[3] = {LINVEL[3*k], LINVEL[3*k+1], LINVEL[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      case HIS_OX:
-	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
-		value += ANGVEL[3*k];
-	      break;
-	      case HIS_OY:
-	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
-		value += ANGVEL[3*k+1];
-	      break;
-	      case HIS_OZ:
-	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
-		value += ANGVEL[3*k+2];
-	      break;
-	      case HIS_OL:
-	      {
-	        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
-		REAL q[3] = {ANGVEL[3*k], ANGVEL[3*k+1], ANGVEL[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      case HIS_FX:
-	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
-		value += FORCE[3*k];
-	      break;
-	      case HIS_FY:
-	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
-		value += FORCE[3*k+1];
-	      break;
-	      case HIS_FZ:
-	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
-		value += FORCE[3*k+2];
-	      break;
-	      case HIS_FL:
-	      {
-	        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
-		REAL q[3] = {FORCE[3*k], FORCE[3*k+1], FORCE[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      case HIS_TX:
-	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
-		value += TORQUE[3*k];
-	      break;
-	      case HIS_TY:
-	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
-		value += TORQUE[3*k+1];
-	      break;
-	      case HIS_TZ:
-	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
-		value += TORQUE[3*k+2];
-	      break;
-	      case HIS_TL:
-	      {
-	        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
-		REAL q[3] = {TORQUE[3*k], TORQUE[3*k+1], TORQUE[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      case HIS_LENGTH:
-	      {
-		int l = sprmap[k];
-	        ASSERT (LENGTH, "HDF5 file read error: LENGTH dataset missing");
-		value += LENGTH[l];
-	      }
-	      break;
-	      case HIS_STROKE:
-	      {
-		int l = sprmap[k];
-	        ASSERT (DISPL, "HDF5 file read error: DISPL dataset missing");
-		value += DISPL[l];
-	      }
-	      break;
-	      case HIS_F:
-	      {
-		int l = sprmap[k];
-	        ASSERT (F, "HDF5 file read error: F dataset missing");
-		value += F[l];
-	      }
-	      break;
-	      case HIS_SF:
-	      {
-		int l = sprmap[k];
-	        ASSERT (SF, "HDF5 file read error: SF dataset missing");
-		value += SF[l];
-	      }
-	      break;
-	      case HIS_SS:
-	      {
-		int l = sprmap[k];
-	        ASSERT (SS, "HDF5 file read error: SS dataset missing");
-		value += SS[l];
-	      }
-	      break;
-	      case HIS_ZDIR_X:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-		value += ZDIR[3*l+0];
-	      }
-	      break;
-	      case HIS_ZDIR_Y:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-		value += ZDIR[3*l+1];
-	      }
-	      break;
-	      case HIS_ZDIR_Z:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-		value += ZDIR[3*l+2];
-	      }
-	      break;
-	      case HIS_XDIR_X:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		value += XDIR[3*l+0];
-	      }
-	      break;
-	      case HIS_XDIR_Y:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		value += XDIR[3*l+1];
-	      }
-	      break;
-	      case HIS_XDIR_Z:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		value += XDIR[3*l+2];
-	      }
-	      break;
-	      case HIS_ROLL:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		double *grot = &TRQROT[3*l];
-		double *xdir = &XDIR[3*l];
-		value += DOT (xdir, grot);
-	      }
-	      break;
-	      case HIS_PITCH:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		double *grot = &TRQROT[3*l];
-		double *zdir = &ZDIR[3*l];
-		double *xdir = &XDIR[3*l];
-		double ydir[3];
-		PRODUCT (zdir, xdir, ydir);
-		value += DOT (ydir, grot);
-	      }
-	      break;
-	      case HIS_YAW:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-		double *grot = &TRQROT[3*l];
-		double *zdir = &ZDIR[3*l];
-		value += DOT(zdir, grot);
-	      }
-	      break;
-	      case HIS_TRQTOT_R:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		double *gtot = &TRQTOT[3*l];
-		double *xdir = &XDIR[3*l];
-		value += DOT (xdir, gtot);
-	      }
-	      break;
-	      case HIS_TRQTOT_P:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		double *gtot = &TRQTOT[3*l];
-		double *zdir = &ZDIR[3*l];
-		double *xdir = &XDIR[3*l];
-		double ydir[3];
-		PRODUCT (zdir, xdir, ydir);
-		value += DOT (ydir, gtot);
-	      }
-	      break;
-	      case HIS_TRQTOT_Y:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-		double *gtot = &TRQTOT[3*l];
-		double *zdir = &ZDIR[3*l];
-		value += DOT(zdir, gtot);
-	      }
-	      break;
-              case HIS_TRQSPR_R:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		double *gspr = &TRQSPR[3*l];
-		double *xdir = &XDIR[3*l];
-		value += DOT (xdir, gspr);
-	      }
-	      break;
-	      case HIS_TRQSPR_P:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-	        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
-		double *gspr = &TRQSPR[3*l];
-		double *zdir = &ZDIR[3*l];
-		double *xdir = &XDIR[3*l];
-		double ydir[3];
-		PRODUCT (zdir, xdir, ydir);
-		value += DOT (ydir, gspr);
-	      }
-	      break;
-	      case HIS_TRQSPR_Y:
-	      {
-		int l = trqsprmap[k];
-	        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
-	        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
-		double *gspr = &TRQSPR[3*l];
-		double *zdir = &ZDIR[3*l];
-		value += DOT(zdir, gspr);
-	      }
-	      break;
-	      case HIS_JREAC_X:
-	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
-		value += JREAC[3*k];
-	      break;
-	      case HIS_JREAC_Y:
-	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
-		value += JREAC[3*k+1];
-	      break;
-	      case HIS_JREAC_Z:
-	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
-		value += JREAC[3*k+2];
-	      break;
-	      case HIS_JREAC_L:
-	      {
-	        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
-		REAL q[3] = {JREAC[3*k], JREAC[3*k+1], JREAC[3*k+2]};
-		value += LEN(q);
-	      }
-	      break;
-	      }
-	    }
+                  switch (hisent[i])
+                  {
+                    case HIS_PX:
+                      ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+                      value += GEOM[3*k];
+                      break;
+                    case HIS_PY:
+                      {
+                        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+                        value += GEOM[3*k+1];
+                      }
+                      break;
+                    case HIS_PZ:
+                      {
+                        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+                        value += GEOM[3*k+2];
+                      }
+                      break;
+                    case HIS_PL:
+                      {
+                        ASSERT (GEOM, "HDF5 file read error: GEOM dataset missing");
+                        REAL q[3] = {GEOM[3*k], GEOM[3*k+1], GEOM[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                    case HIS_DX:
+                      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+                      value += GEOM[3*k] - GEOM0[3*k];
+                      break;
+                    case HIS_DY:
+                      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+                      value += GEOM[3*k+1] - GEOM0[3*k+1];
+                      break;
+                    case HIS_DZ:
+                      ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+                      value += GEOM[3*k+2] - GEOM0[3*k+2];
+                      break;
+                    case HIS_DL:
+                      {
+                        ASSERT (GEOM0 && GEOM, "HDF5 file read error: GEOM dataset missing");
+                        REAL q[3] = {GEOM[3*k]-GEOM0[3*k], GEOM[3*k+1]-GEOM0[3*k+1], GEOM[3*k+2]-GEOM[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                    case HIS_VX:
+                      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+                      value += LINVEL[3*k];
+                      break;
+                    case HIS_VY:
+                      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+                      value += LINVEL[3*k+1];
+                      break;
+                    case HIS_VZ:
+                      ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+                      value += LINVEL[3*k+2];
+                      break;
+                    case HIS_VL:
+                      {
+                        ASSERT (LINVEL, "HDF5 file read error: LINVEL dataset missing");
+                        REAL q[3] = {LINVEL[3*k], LINVEL[3*k+1], LINVEL[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                    case HIS_OX:
+                      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+                      value += ANGVEL[3*k];
+                      break;
+                    case HIS_OY:
+                      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+                      value += ANGVEL[3*k+1];
+                      break;
+                    case HIS_OZ:
+                      ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+                      value += ANGVEL[3*k+2];
+                      break;
+                    case HIS_OL:
+                      {
+                        ASSERT (ANGVEL, "HDF5 file read error: ANGVEL dataset missing");
+                        REAL q[3] = {ANGVEL[3*k], ANGVEL[3*k+1], ANGVEL[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                    case HIS_FX:
+                      ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+                      value += FORCE[3*k];
+                      break;
+                    case HIS_FY:
+                      ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+                      value += FORCE[3*k+1];
+                      break;
+                    case HIS_FZ:
+                      ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+                      value += FORCE[3*k+2];
+                      break;
+                    case HIS_FL:
+                      {
+                        ASSERT (FORCE, "HDF5 file read error: FORCE dataset missing");
+                        REAL q[3] = {FORCE[3*k], FORCE[3*k+1], FORCE[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                    case HIS_TX:
+                      ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+                      value += TORQUE[3*k];
+                      break;
+                    case HIS_TY:
+                      ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+                      value += TORQUE[3*k+1];
+                      break;
+                    case HIS_TZ:
+                      ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+                      value += TORQUE[3*k+2];
+                      break;
+                    case HIS_TL:
+                      {
+                        ASSERT (TORQUE, "HDF5 file read error: TORQUE dataset missing");
+                        REAL q[3] = {TORQUE[3*k], TORQUE[3*k+1], TORQUE[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                    case HIS_LENGTH:
+                      {
+                        int l = sprmap[k];
+                        ASSERT (LENGTH, "HDF5 file read error: LENGTH dataset missing");
+                        value += LENGTH[l];
+                      }
+                      break;
+                    case HIS_STROKE:
+                      {
+                        int l = sprmap[k];
+                        ASSERT (DISPL, "HDF5 file read error: DISPL dataset missing");
+                        value += DISPL[l];
+                      }
+                      break;
+                    case HIS_F:
+                      {
+                        int l = sprmap[k];
+                        ASSERT (F, "HDF5 file read error: F dataset missing");
+                        value += F[l];
+                      }
+                      break;
+                    case HIS_SF:
+                      {
+                        int l = sprmap[k];
+                        ASSERT (SF, "HDF5 file read error: SF dataset missing");
+                        value += SF[l];
+                      }
+                      break;
+                    case HIS_SS:
+                      {
+                        int l = sprmap[k];
+                        ASSERT (SS, "HDF5 file read error: SS dataset missing");
+                        value += SS[l];
+                      }
+                      break;
+                    case HIS_ZDIR_X:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        value += ZDIR[3*l+0];
+                      }
+                      break;
+                    case HIS_ZDIR_Y:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        value += ZDIR[3*l+1];
+                      }
+                      break;
+                    case HIS_ZDIR_Z:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        value += ZDIR[3*l+2];
+                      }
+                      break;
+                    case HIS_XDIR_X:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        value += XDIR[3*l+0];
+                      }
+                      break;
+                    case HIS_XDIR_Y:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        value += XDIR[3*l+1];
+                      }
+                      break;
+                    case HIS_XDIR_Z:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        value += XDIR[3*l+2];
+                      }
+                      break;
+                    case HIS_ROLL:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        double *grot = &TRQROT[3*l];
+                        double *xdir = &XDIR[3*l];
+                        value += DOT (xdir, grot);
+                      }
+                      break;
+                    case HIS_PITCH:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        double *grot = &TRQROT[3*l];
+                        double *zdir = &ZDIR[3*l];
+                        double *xdir = &XDIR[3*l];
+                        double ydir[3];
+                        PRODUCT (zdir, xdir, ydir);
+                        value += DOT (ydir, grot);
+                      }
+                      break;
+                    case HIS_YAW:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQROT, "HDF5 file read error: TRQROT dataset missing");
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        double *grot = &TRQROT[3*l];
+                        double *zdir = &ZDIR[3*l];
+                        value += DOT(zdir, grot);
+                      }
+                      break;
+                    case HIS_TRQTOT_R:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        double *gtot = &TRQTOT[3*l];
+                        double *xdir = &XDIR[3*l];
+                        value += DOT (xdir, gtot);
+                      }
+                      break;
+                    case HIS_TRQTOT_P:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        double *gtot = &TRQTOT[3*l];
+                        double *zdir = &ZDIR[3*l];
+                        double *xdir = &XDIR[3*l];
+                        double ydir[3];
+                        PRODUCT (zdir, xdir, ydir);
+                        value += DOT (ydir, gtot);
+                      }
+                      break;
+                    case HIS_TRQTOT_Y:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQTOT, "HDF5 file read error: TRQTOT dataset missing");
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        double *gtot = &TRQTOT[3*l];
+                        double *zdir = &ZDIR[3*l];
+                        value += DOT(zdir, gtot);
+                      }
+                      break;
+                    case HIS_TRQSPR_R:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        double *gspr = &TRQSPR[3*l];
+                        double *xdir = &XDIR[3*l];
+                        value += DOT (xdir, gspr);
+                      }
+                      break;
+                    case HIS_TRQSPR_P:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        ASSERT (XDIR, "HDF5 file read error: XDIR dataset missing");
+                        double *gspr = &TRQSPR[3*l];
+                        double *zdir = &ZDIR[3*l];
+                        double *xdir = &XDIR[3*l];
+                        double ydir[3];
+                        PRODUCT (zdir, xdir, ydir);
+                        value += DOT (ydir, gspr);
+                      }
+                      break;
+                    case HIS_TRQSPR_Y:
+                      {
+                        int l = trqsprmap[k];
+                        ASSERT (TRQSPR, "HDF5 file read error: TRQSPR dataset missing");
+                        ASSERT (ZDIR, "HDF5 file read error: ZDIR dataset missing");
+                        double *gspr = &TRQSPR[3*l];
+                        double *zdir = &ZDIR[3*l];
+                        value += DOT(zdir, gspr);
+                      }
+                      break;
+                    case HIS_JREAC_X:
+                      ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+                      value += JREAC[3*k];
+                      break;
+                    case HIS_JREAC_Y:
+                      ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+                      value += JREAC[3*k+1];
+                      break;
+                    case HIS_JREAC_Z:
+                      ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+                      value += JREAC[3*k+2];
+                      break;
+                    case HIS_JREAC_L:
+                      {
+                        ASSERT (JREAC, "HDF5 file read error: JREAC dataset missing");
+                        REAL q[3] = {JREAC[3*k], JREAC[3*k+1], JREAC[3*k+2]};
+                        value += LEN(q);
+                      }
+                      break;
+                  }
+                }
 
-	    int j = hisidx[i+1]-hisidx[i];
+                int j = hisidx[i+1]-hisidx[i];
 
-	    PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value/(REAL)j));
-	  }
-	}
-	break;
-	case HIS_SPHERE:
-	{
-	  ASSERT (0, "Sphere based time history is not yet implemented");
-	}
-	break;
-	case HIS_BOX:
-	{
-	  ASSERT (0, "Box based time history is not yet implemented");
-	}
-	break;
-	}
+                PyList_Append ((PyObject*)history[i], PyFloat_FromDouble(value/(REAL)j));
+              }
+            }
+            break;
+          case HIS_SPHERE:
+            {
+              ASSERT (0, "Sphere based time history is not yet implemented");
+            }
+            break;
+          case HIS_BOX:
+            {
+              ASSERT (0, "Box based time history is not yet implemented");
+            }
+            break;
+        }
       }
 
       free (ANGVEL);

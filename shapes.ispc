@@ -1,34 +1,34 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include "macros.h"
 #include "constants.h"
 
 /* ellipsoids task */
 task void ellipsoids_task (uniform int span, uniform int ellnum, uniform int part[],
-  uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
-  uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
+    uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
+    uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? ellnum : start+span;
@@ -99,7 +99,7 @@ task void ellipsoids_task (uniform int span, uniform int ellnum, uniform int par
 
 /* nodes task */
 task void nodes_task (uniform int span, uniform int nodnum, uniform REAL * uniform nodes [6], uniform int nodpart[],
-  uniform int * uniform flags, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
+    uniform int * uniform flags, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? nodnum : start+span;
@@ -114,34 +114,34 @@ task void nodes_task (uniform int span, uniform int nodnum, uniform REAL * unifo
 
       cif ((flags[j] & ANALYTICAL) == 0) /* non-analytical update */
       {
-	L[0] = rotation[0][j];
-	L[1] = rotation[1][j];
-	L[2] = rotation[2][j];
-	L[3] = rotation[3][j];
-	L[4] = rotation[4][j];
-	L[5] = rotation[5][j];
-	L[6] = rotation[6][j];
-	L[7] = rotation[7][j];
-	L[8] = rotation[8][j];
+        L[0] = rotation[0][j];
+        L[1] = rotation[1][j];
+        L[2] = rotation[2][j];
+        L[3] = rotation[3][j];
+        L[4] = rotation[4][j];
+        L[5] = rotation[5][j];
+        L[6] = rotation[6][j];
+        L[7] = rotation[7][j];
+        L[8] = rotation[8][j];
 
-	X[0] = position[3][j];
-	X[1] = position[4][j];
-	X[2] = position[5][j];
+        X[0] = position[3][j];
+        X[1] = position[4][j];
+        X[2] = position[5][j];
 
-	x[0] = position[0][j];
-	x[1] = position[1][j];
-	x[2] = position[2][j];
+        x[0] = position[0][j];
+        x[1] = position[1][j];
+        x[2] = position[2][j];
 
-	C[0] = nodes[3][i];
-	C[1] = nodes[4][i];
-	C[2] = nodes[5][i];
+        C[0] = nodes[3][i];
+        C[1] = nodes[4][i];
+        C[2] = nodes[5][i];
 
-	SCC (X, C);
-	NVADDMUL (x, L, C, c);
+        SCC (X, C);
+        NVADDMUL (x, L, C, c);
 
-	nodes[0][i] = c[0];
-	nodes[1][i] = c[1];
-	nodes[2][i] = c[2];
+        nodes[0][i] = c[0];
+        nodes[1][i] = c[1];
+        nodes[2][i] = c[2];
       }
     }
   }
@@ -187,7 +187,7 @@ task void nodes_task (uniform int span, uniform int nodnum, uniform REAL * unifo
 
 /* faces task */
 task void faces_task (uniform int span, uniform int facnum, uniform int * uniform facnod[3],
-  uniform int factri[], uniform REAL * uniform nodes [6], uniform REAL * uniform tri[3][3])
+    uniform int factri[], uniform REAL * uniform nodes [6], uniform REAL * uniform tri[3][3])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? facnum : start+span;
@@ -212,10 +212,10 @@ task void faces_task (uniform int span, uniform int facnum, uniform int * unifor
 
 /* update shapes */
 export void shapes (uniform int ntasks, uniform int ellnum, uniform int part[],
-  uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
-  uniform int nodnum, uniform REAL * uniform nodes[6], uniform int nodpart[], uniform int * uniform flags,
-  uniform int facnum, uniform int * uniform facnod[3], uniform int factri[], uniform REAL * uniform tri[3][3],
-  uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
+    uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
+    uniform int nodnum, uniform REAL * uniform nodes[6], uniform int nodpart[], uniform int * uniform flags,
+    uniform int facnum, uniform int * uniform facnod[3], uniform int factri[], uniform REAL * uniform tri[3][3],
+    uniform REAL * uniform rotation[9], uniform REAL * uniform position[6])
 {
   launch [ntasks] ellipsoids_task (ellnum/ntasks, ellnum, part, center, radii, orient, rotation, position);
 

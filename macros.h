@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #ifndef ISPC
 #include <math.h>
@@ -67,9 +67,9 @@ SOFTWARE.
 /* textual assertion */
 #define ASSERT(__test__, ...)\
   do {\
-  if (!(__test__)) { fprintf (stderr, "%s: %d => ", __FILE__, __LINE__);\
-    fprintf (stderr, __VA_ARGS__);\
-    fprintf (stderr, "\n"); exit (1); } } while (0)
+    if (!(__test__)) { fprintf (stderr, "%s: %d => ", __FILE__, __LINE__);\
+      fprintf (stderr, __VA_ARGS__);\
+      fprintf (stderr, "\n"); exit (1); } } while (0)
 
 /* memory validity assertion */
 #define ERRMEM(__pointer__) ASSERT (__pointer__, "Out of memory!");
@@ -81,11 +81,11 @@ SOFTWARE.
 #define ALG_SQR2 1.4142135623730951
 
 #ifndef MIN
-  #define MIN(v, w) ((v) < (w) ? (v) : (w))
+#define MIN(v, w) ((v) < (w) ? (v) : (w))
 #endif
 
 #ifndef MAX
-  #define MAX(v, w) ((v) > (w) ? (v) : (w))
+#define MAX(v, w) ((v) > (w) ? (v) : (w))
 #endif
 
 #define SGN(v) ((v) > 0 ? 1 : ((v) < 0 ? -1 : 0))
@@ -100,7 +100,7 @@ SOFTWARE.
   (a) [1] = c;\
   (a) [2] = d;\
 }
-				      
+
 #define ADD(a, b, c)\
 {\
   (c) [0] = (a) [0] + (b) [0];\
@@ -459,8 +459,8 @@ SOFTWARE.
 #define MAXABS(a, maximum)\
 {\
   REAL a0 = ABS((a)[0]),\
-	 a1 = ABS((a)[1]),\
-	 a2 = ABS((a)[2]);\
+  a1 = ABS((a)[1]),\
+  a2 = ABS((a)[2]);\
   (maximum) = a0;\
   if ((maximum) < a1) (maximum) = a1;\
   if ((maximum) < a2) (maximum) = a2;\
@@ -469,9 +469,9 @@ SOFTWARE.
 #define MAXABSIDX(a, imax)\
 {\
   REAL a0 = ABS((a)[0]),\
-	 a1 = ABS((a)[1]),\
-	 a2 = ABS((a)[2]),\
-         maximum = a0;\
+  a1 = ABS((a)[1]),\
+  a2 = ABS((a)[2]),\
+  maximum = a0;\
   (imax) = 0;\
   if (maximum < a1) {maximum = a1; (imax) = 1;}\
   if (maximum < a2) {maximum = a2; (imax) = 2;}\
@@ -480,7 +480,7 @@ SOFTWARE.
 #define MAXABS2(a, maximum)\
 {\
   REAL a0 = ABS((a)[0]),\
-	 a1 = ABS((a)[1]);\
+  a1 = ABS((a)[1]);\
   (maximum) = a0;\
   if ((maximum) < a1) (maximum) = a1;\
 }
@@ -542,7 +542,7 @@ SOFTWARE.
   (A) [7] = (EPS);\
   (A) [8] = (EPS);\
 }
-				  
+
 #define SET12(A, EPS)\
 {\
   (A) [0] = (EPS);\
@@ -599,23 +599,23 @@ SOFTWARE.
 }
 
 #define DOT6(A, B)\
-((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]+\
- (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5])\
+  ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]+\
+   (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5])\
 
 #define LEN6(A) (sqrt (DOT6 (A, A)))
 
 #define DOT9(A, B)\
-((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]+\
- (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5]+\
- (A)[6]*(B)[6]+(A)[7]*(B)[7]+(A)[8]*(B)[8])\
+  ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]+\
+   (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5]+\
+   (A)[6]*(B)[6]+(A)[7]*(B)[7]+(A)[8]*(B)[8])\
 
 #define LEN9(A) (sqrt (DOT9 (A, A)))
 
 #define DOT12(A, B)\
-((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]+\
- (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5]+\
- (A)[6]*(B)[6]+(A)[7]*(B)[7]+(A)[8]*(B)[8]+\
- (A)[9]*(B)[9]+(A)[10]*(B)[10]+(A)[11]*(B)[11])\
+  ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]+\
+   (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5]+\
+   (A)[6]*(B)[6]+(A)[7]*(B)[7]+(A)[8]*(B)[8]+\
+   (A)[9]*(B)[9]+(A)[10]*(B)[10]+(A)[11]*(B)[11])\
 
 #define LEN12(A) (sqrt (DOT12 (A, A)))
 
@@ -905,97 +905,97 @@ SOFTWARE.
 
 #define NNMUL(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2];\
- (C) [1] = (A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2];\
- (C) [2] = (A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2];\
- (C) [3] = (A)[0]*(B)[3]+(A)[3]*(B)[4]+(A)[6]*(B)[5];\
- (C) [4] = (A)[1]*(B)[3]+(A)[4]*(B)[4]+(A)[7]*(B)[5];\
- (C) [5] = (A)[2]*(B)[3]+(A)[5]*(B)[4]+(A)[8]*(B)[5];\
- (C) [6] = (A)[0]*(B)[6]+(A)[3]*(B)[7]+(A)[6]*(B)[8];\
- (C) [7] = (A)[1]*(B)[6]+(A)[4]*(B)[7]+(A)[7]*(B)[8];\
- (C) [8] = (A)[2]*(B)[6]+(A)[5]*(B)[7]+(A)[8]*(B)[8];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2];\
+  (C) [1] = (A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2];\
+  (C) [2] = (A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2];\
+  (C) [3] = (A)[0]*(B)[3]+(A)[3]*(B)[4]+(A)[6]*(B)[5];\
+  (C) [4] = (A)[1]*(B)[3]+(A)[4]*(B)[4]+(A)[7]*(B)[5];\
+  (C) [5] = (A)[2]*(B)[3]+(A)[5]*(B)[4]+(A)[8]*(B)[5];\
+  (C) [6] = (A)[0]*(B)[6]+(A)[3]*(B)[7]+(A)[6]*(B)[8];\
+  (C) [7] = (A)[1]*(B)[6]+(A)[4]*(B)[7]+(A)[7]*(B)[8];\
+  (C) [8] = (A)[2]*(B)[6]+(A)[5]*(B)[7]+(A)[8]*(B)[8];\
 }
 
 #define TNMUL(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2];\
- (C) [1] = (A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2];\
- (C) [2] = (A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2];\
- (C) [3] = (A)[0]*(B)[3]+(A)[1]*(B)[4]+(A)[2]*(B)[5];\
- (C) [4] = (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5];\
- (C) [5] = (A)[6]*(B)[3]+(A)[7]*(B)[4]+(A)[8]*(B)[5];\
- (C) [6] = (A)[0]*(B)[6]+(A)[1]*(B)[7]+(A)[2]*(B)[8];\
- (C) [7] = (A)[3]*(B)[6]+(A)[4]*(B)[7]+(A)[5]*(B)[8];\
- (C) [8] = (A)[6]*(B)[6]+(A)[7]*(B)[7]+(A)[8]*(B)[8];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2];\
+  (C) [1] = (A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2];\
+  (C) [2] = (A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2];\
+  (C) [3] = (A)[0]*(B)[3]+(A)[1]*(B)[4]+(A)[2]*(B)[5];\
+  (C) [4] = (A)[3]*(B)[3]+(A)[4]*(B)[4]+(A)[5]*(B)[5];\
+  (C) [5] = (A)[6]*(B)[3]+(A)[7]*(B)[4]+(A)[8]*(B)[5];\
+  (C) [6] = (A)[0]*(B)[6]+(A)[1]*(B)[7]+(A)[2]*(B)[8];\
+  (C) [7] = (A)[3]*(B)[6]+(A)[4]*(B)[7]+(A)[5]*(B)[8];\
+  (C) [8] = (A)[6]*(B)[6]+(A)[7]*(B)[7]+(A)[8]*(B)[8];\
 }
 
 #define NTMUL(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[3]*(B)[3]+(A)[6]*(B)[6];\
- (C) [1] = (A)[1]*(B)[0]+(A)[4]*(B)[3]+(A)[7]*(B)[6];\
- (C) [2] = (A)[2]*(B)[0]+(A)[5]*(B)[3]+(A)[8]*(B)[6];\
- (C) [3] = (A)[0]*(B)[1]+(A)[3]*(B)[4]+(A)[6]*(B)[7];\
- (C) [4] = (A)[1]*(B)[1]+(A)[4]*(B)[4]+(A)[7]*(B)[7];\
- (C) [5] = (A)[2]*(B)[1]+(A)[5]*(B)[4]+(A)[8]*(B)[7];\
- (C) [6] = (A)[0]*(B)[2]+(A)[3]*(B)[5]+(A)[6]*(B)[8];\
- (C) [7] = (A)[1]*(B)[2]+(A)[4]*(B)[5]+(A)[7]*(B)[8];\
- (C) [8] = (A)[2]*(B)[2]+(A)[5]*(B)[5]+(A)[8]*(B)[8];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[3]*(B)[3]+(A)[6]*(B)[6];\
+  (C) [1] = (A)[1]*(B)[0]+(A)[4]*(B)[3]+(A)[7]*(B)[6];\
+  (C) [2] = (A)[2]*(B)[0]+(A)[5]*(B)[3]+(A)[8]*(B)[6];\
+  (C) [3] = (A)[0]*(B)[1]+(A)[3]*(B)[4]+(A)[6]*(B)[7];\
+  (C) [4] = (A)[1]*(B)[1]+(A)[4]*(B)[4]+(A)[7]*(B)[7];\
+  (C) [5] = (A)[2]*(B)[1]+(A)[5]*(B)[4]+(A)[8]*(B)[7];\
+  (C) [6] = (A)[0]*(B)[2]+(A)[3]*(B)[5]+(A)[6]*(B)[8];\
+  (C) [7] = (A)[1]*(B)[2]+(A)[4]*(B)[5]+(A)[7]*(B)[8];\
+  (C) [8] = (A)[2]*(B)[2]+(A)[5]*(B)[5]+(A)[8]*(B)[8];\
 }
 
 #define NVMUL(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2];\
- (C) [1] = (A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2];\
- (C) [2] = (A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2];\
+  (C) [1] = (A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2];\
+  (C) [2] = (A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2];\
 }
 
 #define NVMUL2(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[2]*(B)[1];\
- (C) [1] = (A)[1]*(B)[0]+(A)[3]*(B)[1];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[2]*(B)[1];\
+  (C) [1] = (A)[1]*(B)[0]+(A)[3]*(B)[1];\
 }
 
 #define NVMUL4(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[4]*(B)[1]+(A)[8]*(B)[2]+(A)[12]*(B)[3];\
- (C) [1] = (A)[1]*(B)[0]+(A)[5]*(B)[1]+(A)[9]*(B)[2]+(A)[13]*(B)[3];\
- (C) [2] = (A)[2]*(B)[0]+(A)[6]*(B)[1]+(A)[10]*(B)[2]+(A)[14]*(B)[3];\
- (C) [3] = (A)[3]*(B)[0]+(A)[7]*(B)[1]+(A)[11]*(B)[2]+(A)[15]*(B)[3];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[4]*(B)[1]+(A)[8]*(B)[2]+(A)[12]*(B)[3];\
+  (C) [1] = (A)[1]*(B)[0]+(A)[5]*(B)[1]+(A)[9]*(B)[2]+(A)[13]*(B)[3];\
+  (C) [2] = (A)[2]*(B)[0]+(A)[6]*(B)[1]+(A)[10]*(B)[2]+(A)[14]*(B)[3];\
+  (C) [3] = (A)[3]*(B)[0]+(A)[7]*(B)[1]+(A)[11]*(B)[2]+(A)[15]*(B)[3];\
 }
 
 #define TVMUL(A, B, C)\
 {\
- (C) [0] = (A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2];\
- (C) [1] = (A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2];\
- (C) [2] = (A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2];\
+  (C) [0] = (A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2];\
+  (C) [1] = (A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2];\
+  (C) [2] = (A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2];\
 }
 
 #define NVADDMUL(C, A, B, D)\
 {\
- (D) [0] = (C)[0] + ((A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2]);\
- (D) [1] = (C)[1] + ((A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2]);\
- (D) [2] = (C)[2] + ((A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2]);\
+  (D) [0] = (C)[0] + ((A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2]);\
+  (D) [1] = (C)[1] + ((A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2]);\
+  (D) [2] = (C)[2] + ((A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2]);\
 }
 
 #define TVADDMUL(C, A, B, D)\
 {\
- (D) [0] = (C)[0] + ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]);\
- (D) [1] = (C)[1] + ((A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2]);\
- (D) [2] = (C)[2] + ((A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2]);\
+  (D) [0] = (C)[0] + ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]);\
+  (D) [1] = (C)[1] + ((A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2]);\
+  (D) [2] = (C)[2] + ((A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2]);\
 }
 
 #define NVSUBMUL(C, A, B, D)\
 {\
- (D) [0] = (C)[0] - ((A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2]);\
- (D) [1] = (C)[1] - ((A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2]);\
- (D) [2] = (C)[2] - ((A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2]);\
+  (D) [0] = (C)[0] - ((A)[0]*(B)[0]+(A)[3]*(B)[1]+(A)[6]*(B)[2]);\
+  (D) [1] = (C)[1] - ((A)[1]*(B)[0]+(A)[4]*(B)[1]+(A)[7]*(B)[2]);\
+  (D) [2] = (C)[2] - ((A)[2]*(B)[0]+(A)[5]*(B)[1]+(A)[8]*(B)[2]);\
 }
 
 #define TVSUBMUL(C, A, B, D)\
 {\
- (D) [0] = (C)[0] - ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]);\
- (D) [1] = (C)[1] - ((A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2]);\
- (D) [2] = (C)[2] - ((A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2]);\
+  (D) [0] = (C)[0] - ((A)[0]*(B)[0]+(A)[1]*(B)[1]+(A)[2]*(B)[2]);\
+  (D) [1] = (C)[1] - ((A)[3]*(B)[0]+(A)[4]*(B)[1]+(A)[5]*(B)[2]);\
+  (D) [2] = (C)[2] - ((A)[6]*(B)[0]+(A)[7]*(B)[1]+(A)[8]*(B)[2]);\
 }
 
 #define TRACE2(A) ((A)[0] + (A)[3])
@@ -1018,7 +1018,7 @@ SOFTWARE.
 #define DET2(F) (((F)[0]*(F)[3]-(F)[1]*(F)[2]))
 
 #define INVERT2(F, INV, DET)\
-if (((DET)=((F)[0]*(F)[3]-(F)[1]*(F)[2])) != 0.0)\
+  if (((DET)=((F)[0]*(F)[3]-(F)[1]*(F)[2])) != 0.0)\
 {\
   (INV) [0] =  (F)[3] / (DET);\
   (INV) [1] = -(F)[1] / (DET);\
@@ -1027,14 +1027,14 @@ if (((DET)=((F)[0]*(F)[3]-(F)[1]*(F)[2])) != 0.0)\
 }
 
 #define DET(F) ((F)[0]*((F)[4]*(F)[8]-(F)[5]*(F)[7])+\
-                (F)[3]*((F)[2]*(F)[7]-(F)[1]*(F)[8])+\
-                (F)[6]*((F)[1]*(F)[5]-(F)[2]*(F)[4]))
+    (F)[3]*((F)[2]*(F)[7]-(F)[1]*(F)[8])+\
+    (F)[6]*((F)[1]*(F)[5]-(F)[2]*(F)[4]))
 
 #define INVERT(F, INV, DET)\
-if (((DET) =\
- ((F)[0]*((F)[4]*(F)[8]-(F)[5]*(F)[7])+\
-  (F)[3]*((F)[2]*(F)[7]-(F)[1]*(F)[8])+\
- ((F)[1]*(F)[5]-(F)[2]*(F)[4])*(F)[6])) != 0.0)\
+  if (((DET) =\
+        ((F)[0]*((F)[4]*(F)[8]-(F)[5]*(F)[7])+\
+         (F)[3]*((F)[2]*(F)[7]-(F)[1]*(F)[8])+\
+         ((F)[1]*(F)[5]-(F)[2]*(F)[4])*(F)[6])) != 0.0)\
 {\
   (DET) = 1.0 / (DET);\
   (INV) [0] = ((F)[4]*(F)[8]-(F)[5]*(F)[7])*(DET);\
@@ -1122,10 +1122,10 @@ if (((DET) =\
 #define POLAR(F, EPS, R, U, ITERS)\
 {\
   REAL __TMP__ [9],\
-	 __L2__, __MX__,\
-	 __IL2__, __IMX__,\
-	 __GAMMA__, __DET__,\
-	 __EPS2__ = (EPS)*(EPS);\
+  __L2__, __MX__,\
+  __IL2__, __IMX__,\
+  __GAMMA__, __DET__,\
+  __EPS2__ = (EPS)*(EPS);\
   NNCOPY (F, R);\
   (ITERS) = 0;\
   do\
@@ -1140,14 +1140,14 @@ if (((DET) =\
     __IL2__ = LEN9 (__TMP__);\
     MAX9 (__TMP__, __IMX__);\
     __GAMMA__ = sqrt(sqrt((__IL2__*__IMX__)/\
-	(__L2__*__MX__))) * 0.5;\
+          (__L2__*__MX__))) * 0.5;\
     SCALE9 (R, __GAMMA__);\
     __GAMMA__ = 0.25 / __GAMMA__;\
     SCALE9 (__TMP__, __GAMMA__);\
     NTADD (R, __TMP__, R);\
     NNSUB (R, U, __TMP__);\
   } while (DOT9 (__TMP__, __TMP__) >\
-    __EPS2__ * DOT9 (U, U));\
+      __EPS2__ * DOT9 (U, U));\
   TNMUL (R, F, __TMP__);\
   SYMM (__TMP__, U);\
 }
@@ -1163,36 +1163,36 @@ if (((DET) =\
 #define EXPMAP(VSKEW, R)\
 {\
   REAL __ANG_2__, __SIN_X__,\
-    __1_COS_XX__, __0__, __1__, __2__,\
-    __01__, __02__, __12__, __S0__,\
-    __S1__, __S2__;\
+  __1_COS_XX__, __0__, __1__, __2__,\
+  __01__, __02__, __12__, __S0__,\
+  __S1__, __S2__;\
   __ANG_2__ = DOT(VSKEW, VSKEW);\
   if (__ANG_2__ < DEG_10_SQ)\
   {\
-  __SIN_X__ = 1.0 +\
+    __SIN_X__ = 1.0 +\
     (-1.666666666666667E-1 +\
-    (8.333333333333333E-3 +\
-    (-1.984126984126984E-4 +\
-    (2.755731922398589E-6 +\
-    (-2.505210838544172E-8 +\
-     1.605904383682161E-10 * __ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__;\
-  __1_COS_XX__ = 0.5 +\
+     (8.333333333333333E-3 +\
+      (-1.984126984126984E-4 +\
+       (2.755731922398589E-6 +\
+        (-2.505210838544172E-8 +\
+         1.605904383682161E-10 * __ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__;\
+    __1_COS_XX__ = 0.5 +\
     (-4.166666666666667E-2 +\
-    (1.388888888888889E-3 +\
-    (-2.480158730158730E-5 +\
-    (2.755731922398589E-7 +\
-    (-2.087675698786810E-9 +\
-     1.147074559772972E-11 * __ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__;\
+     (1.388888888888889E-3 +\
+      (-2.480158730158730E-5 +\
+       (2.755731922398589E-7 +\
+        (-2.087675698786810E-9 +\
+         1.147074559772972E-11 * __ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__;\
   }\
   else\
   {\
@@ -1236,36 +1236,36 @@ if (((DET) =\
 #define DEXPMAP(VSKEW, R)\
 {\
   REAL __ANG_2__, __1_XX_SIN_XXX__,\
-    __1_COS_XX__, __0__, __1__, __2__,\
-    __S0__, __S1__, __S2__;\
+  __1_COS_XX__, __0__, __1__, __2__,\
+  __S0__, __S1__, __S2__;\
   __ANG_2__ = DOT(VSKEW, VSKEW);\
   if (__ANG_2__ < DEG_10_SQ)\
   {\
-  __1_XX_SIN_XXX__ = \
-      1.666666666666667E-1 +\
+    __1_XX_SIN_XXX__ = \
+    1.666666666666667E-1 +\
     (-8.333333333333333E-3 +\
-    (1.984126984126984E-4 +\
-    (-2.755731922398589E-6 +\
-    (2.505210838544172E-8 +\
-    (-1.605904383682161E-10+\
-      7.647163731819816E-13 * __ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__;\
-  __1_COS_XX__ = 0.5 +\
+     (1.984126984126984E-4 +\
+      (-2.755731922398589E-6 +\
+       (2.505210838544172E-8 +\
+        (-1.605904383682161E-10+\
+         7.647163731819816E-13 * __ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__;\
+    __1_COS_XX__ = 0.5 +\
     (-4.166666666666667E-2 +\
-    (1.388888888888889E-3 +\
-    (-2.480158730158730E-5 +\
-    (2.755731922398589E-7 +\
-    (-2.087675698786810E-9 +\
-     1.147074559772972E-11 * __ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__\
-    )*__ANG_2__;\
+     (1.388888888888889E-3 +\
+      (-2.480158730158730E-5 +\
+       (2.755731922398589E-7 +\
+        (-2.087675698786810E-9 +\
+         1.147074559772972E-11 * __ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__\
+         )*__ANG_2__;\
   }\
   else\
   {\
@@ -1305,14 +1305,14 @@ if (((DET) =\
 #define EXPMAP123(OMEGA, R0, R1, R2)\
 {\
   REAL x,\
-         a,\
-         b,\
-         c,\
-         b_ac,\
-         ac_2cc_2bc,\
-         c_b,\
-	 aux [9],\
-         tmp [3];\
+  a,\
+  b,\
+  c,\
+  b_ac,\
+  ac_2cc_2bc,\
+  c_b,\
+  aux [9],\
+  tmp [3];\
   x = DOT(OMEGA, OMEGA);\
   if (x < 1E-16 * DEG_10_SQ)\
   {\
@@ -1330,28 +1330,28 @@ if (((DET) =\
     {\
       a = 1.0 +\
       (-1.666666666666667E-1 +\
-      (8.333333333333333E-3 +\
-      (-1.984126984126984E-4 +\
-      (2.755731922398589E-6 +\
-      (-2.505210838544172E-8 +\
-       1.605904383682161E-10 * x\
-      )* x\
-      )* x\
-      )* x\
-      )* x\
-      )* x;\
+       (8.333333333333333E-3 +\
+        (-1.984126984126984E-4 +\
+         (2.755731922398589E-6 +\
+          (-2.505210838544172E-8 +\
+           1.605904383682161E-10 * x\
+           )* x\
+           )* x\
+           )* x\
+           )* x\
+           )* x;\
       b = c - 0.5 +\
       (4.166666666666667E-2 +\
-      (-1.388888888888889E-3 +\
-      (2.480158730158730E-5 +\
-      (-2.755731922398589E-7 +\
-      (2.087675698786810E-9 -\
-       1.147074559772972E-11 * x\
-      )* x\
-      )* x\
-      )* x\
-      )* x\
-      )* x;\
+       (-1.388888888888889E-3 +\
+        (2.480158730158730E-5 +\
+         (-2.755731922398589E-7 +\
+          (2.087675698786810E-9 -\
+           1.147074559772972E-11 * x\
+           )* x\
+           )* x\
+           )* x\
+           )* x\
+           )* x;\
     }\
     else\
     {\
@@ -1410,11 +1410,11 @@ if (((DET) =\
 /* compute Mises norm of a Cauchy stress */
 #define MISES(s, v)\
   do {\
-  REAL a = (s [0] - s [1])*(s [0] - s [1]);\
-  REAL b = (s [0] - s [2])*(s [0] - s [2]);\
-  REAL c = (s [2] - s [1])*(s [2] - s [1]);\
-  REAL d = 6. * (s [3]*s [3] + s [4]*s [4] + s [5]*s [5]);\
-  v = .707106781186548 * sqrt (a + b + c + d);\
+    REAL a = (s [0] - s [1])*(s [0] - s [1]);\
+    REAL b = (s [0] - s [2])*(s [0] - s [2]);\
+    REAL c = (s [2] - s [1])*(s [2] - s [1]);\
+    REAL d = 6. * (s [3]*s [3] + s [4]*s [4] + s [5]*s [5]);\
+    v = .707106781186548 * sqrt (a + b + c + d);\
   } while (0)
 
 #define PROJECT_POINT_ON_LINE(point, line_point, line_direction, projection)\
@@ -1451,45 +1451,45 @@ if (((DET) =\
 
 /* vectorizable exponential map */
 #define DEFINE_EXPMAP(TYPE)\
-static inline void expmap (TYPE Omega1, TYPE Omega2, TYPE Omega3,\
-                           TYPE &Lambda1, TYPE &Lambda2, TYPE &Lambda3,\
-			   TYPE &Lambda4, TYPE &Lambda5, TYPE &Lambda6,\
-			   TYPE &Lambda7, TYPE &Lambda8, TYPE &Lambda9)\
+  static inline void expmap (TYPE Omega1, TYPE Omega2, TYPE Omega3,\
+      TYPE &Lambda1, TYPE &Lambda2, TYPE &Lambda3,\
+      TYPE &Lambda4, TYPE &Lambda5, TYPE &Lambda6,\
+      TYPE &Lambda7, TYPE &Lambda8, TYPE &Lambda9)\
 {\
   TYPE angsq, sx, cx, v0, v1, v2, v01, v02, v12, s0, s1, s2;\
-\
+  \
   v0 = Omega1 * Omega1;\
   v1 = Omega2 * Omega2;\
   v2 = Omega3 * Omega3;\
-\
+  \
   angsq = v0 + v1 + v2;\
-\
+  \
   if (angsq < 3.0461741978671E-02) /* use Taylor expansion if |Omega| < 10 deg */\
   {\
-  sx = 1.0 +\
+    sx = 1.0 +\
     (-1.666666666666667E-1 +\
-    (8.333333333333333E-3 +\
-    (-1.984126984126984E-4 +\
-    (2.755731922398589E-6 +\
-    (-2.505210838544172E-8 +\
-     1.605904383682161E-10 * angsq\
-    )*angsq\
-    )*angsq\
-    )*angsq\
-    )*angsq\
-    )*angsq;\
-  cx = 0.5 +\
+     (8.333333333333333E-3 +\
+      (-1.984126984126984E-4 +\
+       (2.755731922398589E-6 +\
+        (-2.505210838544172E-8 +\
+         1.605904383682161E-10 * angsq\
+         )*angsq\
+         )*angsq\
+         )*angsq\
+         )*angsq\
+         )*angsq;\
+    cx = 0.5 +\
     (-4.166666666666667E-2 +\
-    (1.388888888888889E-3 +\
-    (-2.480158730158730E-5 +\
-    (2.755731922398589E-7 +\
-    (-2.087675698786810E-9 +\
-     1.147074559772972E-11 * angsq\
-    )*angsq\
-    )*angsq\
-    )*angsq\
-    )*angsq\
-    )*angsq;\
+     (1.388888888888889E-3 +\
+      (-2.480158730158730E-5 +\
+       (2.755731922398589E-7 +\
+        (-2.087675698786810E-9 +\
+         1.147074559772972E-11 * angsq\
+         )*angsq\
+         )*angsq\
+         )*angsq\
+         )*angsq\
+         )*angsq;\
   }\
   else\
   {\
@@ -1500,14 +1500,14 @@ static inline void expmap (TYPE Omega1, TYPE Omega2, TYPE Omega3,\
     sx = s / angsq;\
     cx = (1.0 - c) / t;\
   }\
-\
+  \
   v01 = Omega1 * Omega2;\
   v02 = Omega2 * Omega3;\
   v12 = Omega2 * Omega3;\
   s0 = sx * Omega1;\
   s1 = sx * Omega2;\
   s2 = sx * Omega3;\
-\
+  \
   Lambda1 = -cx*(v2+v1);\
   Lambda2 = cx*v01;\
   Lambda3 = cx*v02;\
@@ -1536,18 +1536,18 @@ DEFINE_EXPMAP (REAL);
 /* Given a real symmetric 3x3 matrix A, compute the extremum eigenvalue;
  * Adopted from: https://en.wikipedia.org/wiki/Eigenvalue_algorithm */
 #define DEFINE_EXTREMUM_EIGENVALUE(TYPE, INTEGER)\
-inline static TYPE extremum_eigenvalue (TYPE A[9], INTEGER minimum = 0)\
+  inline static TYPE extremum_eigenvalue (TYPE A[9], INTEGER minimum = 0)\
 {\
   TYPE eig1, eig2, eig3, ret;\
-\
+  \
   TYPE p1 = A[3]*A[3] + A[6]*A[6] + A[7]*A[7];\
-\
+  \
   if (p1 == 0.0) /* A is diagonal */\
   {\
     eig1 = A[0];\
     eig2 = A[4];\
     eig3 = A[8];\
-\
+    \
     ret = MAX(eig1, eig2);\
     ret = MAX(ret, eig3);\
     return ret;\
@@ -1559,22 +1559,22 @@ inline static TYPE extremum_eigenvalue (TYPE A[9], INTEGER minimum = 0)\
     TYPE p = sqrt(p2 / 6.0);\
     TYPE invp = 1.0 / p;\
     TYPE B[9] = {invp*(A[0]-q), invp*A[1], invp*A[2],\
-                 invp*A[3], invp*(A[4]-q), invp*A[5],\
-		 invp*A[6], invp*A[7], invp*(A[8]-q)}; /* (1.0 / p) * (A - q * I), where I is the identity matrix */\
+      invp*A[3], invp*(A[4]-q), invp*A[5],\
+      invp*A[6], invp*A[7], invp*(A[8]-q)}; /* (1.0 / p) * (A - q * I), where I is the identity matrix */\
     TYPE r = 0.5 * DET(B);\
-\
+    \
     /* In exact arithmetic for a symmetric matrix  -1 <= r <= 1\
      * but computation error can leave it slightly outside this range */\
     TYPE phi;\
     if (r <= -1.0) phi = ALG_PI / 3.0;\
     else if (r >= 1.0) phi = 0.0;\
     else phi = acos(r) / 3.0;\
-\
+    \
     /* the eigenvalues satisfy eig3 <= eig2 <= eig1 */\
     if (minimum)\
     {\
-     eig3 = q + 2.0 * p * cos(phi + (2*ALG_PI/3));\
-     return eig3;\
+      eig3 = q + 2.0 * p * cos(phi + (2*ALG_PI/3));\
+      return eig3;\
     }\
     else\
     {\

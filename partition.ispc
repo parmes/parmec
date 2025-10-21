@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include "macros.h"
 #include "partition.h"
@@ -72,14 +72,14 @@ task void morton (uniform int span, uniform int n, uniform REAL x[], uniform REA
   uniform int end = taskIndex == taskCount-1 ? n : start+span;
 
   uniform REAL wx = extents[3]-extents[0],
-               wy = extents[4]-extents[1],
-	       wz = extents[5]-extents[2];
+  wy = extents[4]-extents[1],
+  wz = extents[5]-extents[2];
 
   foreach (i = start ... end)
   {
     REAL px = (x[i]-extents[0])/wx,
          py = (y[i]-extents[1])/wy,
-	 pz = (z[i]-extents[2])/wz;
+         pz = (z[i]-extents[2])/wz;
 
     REAL qx = min(max(px * 1024.0f, 0.0f), 1023.0f),
          qy = min(max(py * 1024.0f, 0.0f), 1023.0f),
@@ -145,14 +145,14 @@ struct merge_tree
 
 /* create in place merge tree and store b[] and p[] at leaves */
 static void build_tree (uniform int parent, uniform int node, uniform merge_tree tree[],
- uniform int * uniform i, uniform int span, uniform uint b[], uniform int p[], uniform int n)
+    uniform int * uniform i, uniform int span, uniform uint b[], uniform int p[], uniform int n)
 {
   if (n == 1)
   {
     tree[node].parent = parent;
     tree[node].leaf =
-    tree[node].left =
-    tree[node].right = node;
+      tree[node].left =
+      tree[node].right = node;
 
     tree[node].b = b;
     tree[node].p = p;
@@ -228,7 +228,7 @@ static void parallel_sort (uniform int n, uniform uint a[], uniform int order[],
     while (node >= 0) /* climb the tree and update leaf pointers */
     {
       if (tree[tree[tree[node].left].leaf].b[0] < /* select smaller leaf of the two siblings */
-	  tree[tree[tree[node].right].leaf].b[0]) tree[node].leaf = tree[tree[node].left].leaf;
+          tree[tree[tree[node].right].leaf].b[0]) tree[node].leaf = tree[tree[node].left].leaf;
       else tree[node].leaf = tree[tree[node].right].leaf;
 
       node = tree[node].parent; /* climb up */
@@ -309,7 +309,7 @@ inline static uniform REAL mincoord (uniform REAL coord[], uniform int order[], 
 
 /* from https://research.nvidia.com/publication/maximizing-parallelism-construction-bvhs-octrees-and-k-d-trees */
 task void radix_tree_create (uniform int span, uniform int n, uniform unsigned int code[],
-  uniform radix_tree tree[], uniform int order[], uniform REAL * uniform point[3])
+    uniform radix_tree tree[], uniform int order[], uniform REAL * uniform point[3])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? n-1: start+span;
@@ -352,20 +352,20 @@ task void radix_tree_create (uniform int span, uniform int n, uniform unsigned i
 
       for (uniform int t = (l+1)/2;; t = (t+1)/2)
       {
-	if (delta (i, codei, i+(s+t)*d, n, code) > dnode) s = s+t;
-	if (t == 1) break;
+        if (delta (i, codei, i+(s+t)*d, n, code) > dnode) s = s+t;
+        if (t == 1) break;
       }
 
       tree[i].split = i+s*d+min(d,0);
 
       if (tree[i].first != tree[i].split) /* not left leaf => left node */
       {
-	tree[tree[i].split].parent = i; /* left node parent */
+        tree[tree[i].split].parent = i; /* left node parent */
       }
 
       if (tree[i].first+tree[i].size-1 != tree[i].split+1) /* not right leaf => right node */
       {
-	tree[tree[i].split+1].parent = i; /* right node parent */
+        tree[tree[i].split+1].parent = i; /* right node parent */
       }
 
       uniform int dimension = (dnode-2)%3;
@@ -376,7 +376,7 @@ task void radix_tree_create (uniform int span, uniform int n, uniform unsigned i
 
 #if 0
     print ("i = %, j = %, d = %, dmin = %, dnode = %, split = %, size = %, parent = %, dim = %, coord = %\n",
-      i, j, d, dmin, dnode, tree[i].split, tree[i].size, tree[i].parent, dim, tree[i].coord);
+        i, j, d, dmin, dnode, tree[i].split, tree[i].size, tree[i].parent, dim, tree[i].coord);
 #endif
   }
 
@@ -430,15 +430,15 @@ static void printlevel (uniform radix_tree tree[], uniform int node, uniform int
   else if (level == lprint)
   {
     print ("%: i = %, split = %, size = %, parent = %, dim = %, coord = %\n",
-      level, node, tree[node].split, tree[node].size,
-      tree[node].parent, tree[node].dimension, tree[node].coord);
+        level, node, tree[node].split, tree[node].size,
+        tree[node].parent, tree[node].dimension, tree[node].coord);
   }
 }
 
 static void printree (uniform radix_tree tree[])
 {
   uniform int lsum = 0, lmax =  1;
-  
+
   maxlevel (tree, 0, 1, &lmax, &lsum);
 
   print (">>> leaf sum = % <<<\n", lsum);
@@ -475,15 +475,15 @@ static void printlevel (uniform partitioning tree[], uniform int node, uniform i
   else if (level == lprint)
   {
     print ("%: i = %, left = %, right = %, dim = %, coord = %\n",
-      level, node, tree[node].left, tree[node].right,
-      tree[node].dimension, tree[node].coord);
+        level, node, tree[node].left, tree[node].right,
+        tree[node].dimension, tree[node].coord);
   }
 }
 
 static void printree (uniform partitioning tree[])
 {
   uniform int lsum = 0, lmax =  1;
-  
+
   maxlevel (tree, 0, 1, &lmax, &lsum);
 
   print (">>> leaf sum = % <<<\n", lsum);
@@ -523,7 +523,7 @@ static void radix_tree_size (uniform radix_tree tree[], uniform int node, unifor
 
 /* create paritioning tree from the radix tree and copy particles into it */
 static void partitioning_tree_create (uniform radix_tree rtree[], uniform int rnode,
-  uniform partitioning ptree[], uniform int pnode, uniform int * uniform i)
+    uniform partitioning ptree[], uniform int pnode, uniform int * uniform i)
 {
   ptree[pnode].coord = rtree[rnode].coord;
   ptree[pnode].dimension = rtree[rnode].dimension;
@@ -598,9 +598,9 @@ static void partitioning_tree_free (uniform struct partitioning tree[], uniform 
 
 /* drop ellipsoid down the partitioning tree */
 static void drop_ellipsoid (uniform partitioning tree[], uniform int node, uniform int i,
-  uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
-  uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
-  uniform int * uniform repart)
+    uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
+    uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
+    uniform int * uniform repart)
 {
   uniform int d = tree[node].dimension;
 
@@ -630,15 +630,15 @@ static void drop_ellipsoid (uniform partitioning tree[], uniform int node, unifo
 
       if (radii[1][i] > 0.) /* ellipsoid */
       {
-	l->orient[0][j] = orient[0][i];
-	l->orient[1][j] = orient[1][i];
-	l->orient[2][j] = orient[2][i];
-	l->orient[3][j] = orient[3][i];
-	l->orient[4][j] = orient[4][i];
-	l->orient[5][j] = orient[5][i];
-	l->orient[6][j] = orient[6][i];
-	l->orient[7][j] = orient[7][i];
-	l->orient[8][j] = orient[8][i];
+        l->orient[0][j] = orient[0][i];
+        l->orient[1][j] = orient[1][i];
+        l->orient[2][j] = orient[2][i];
+        l->orient[3][j] = orient[3][i];
+        l->orient[4][j] = orient[4][i];
+        l->orient[5][j] = orient[5][i];
+        l->orient[6][j] = orient[6][i];
+        l->orient[7][j] = orient[7][i];
+        l->orient[8][j] = orient[8][i];
       }
     }
     else atomic_add_global (repart, 1);
@@ -647,8 +647,8 @@ static void drop_ellipsoid (uniform partitioning tree[], uniform int node, unifo
 
 /* store ellipsoids at tree leaves */
 task void store_ellipsoids (uniform int span, uniform partitioning tree[], uniform int ellnum, uniform int ellcol[],
-  uniform int part[], uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
-  uniform int * uniform repart)
+    uniform int part[], uniform REAL * uniform center[6], uniform REAL * uniform radii[3], uniform REAL * uniform orient[18],
+    uniform int * uniform repart)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? ellnum: start+span;
@@ -747,8 +747,8 @@ export uniform partitioning * uniform partitioning_create (uniform int ntasks, u
 
 /* store ellipsoids in the partitioning tree leaves */
 export uniform int partitioning_store (uniform int ntasks, uniform partitioning * uniform tree,
-  uniform int ellnum, uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
-  uniform REAL * uniform radii[3], uniform REAL * uniform orient[18])
+    uniform int ellnum, uniform int ellcol[], uniform int part[], uniform REAL * uniform center[6],
+    uniform REAL * uniform radii[3], uniform REAL * uniform orient[18])
 {
   if (ellnum == 0) return 0;
 

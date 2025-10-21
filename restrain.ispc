@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2016 EDF Energy
+   Copyright (c) 2016 EDF Energy
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 /* Contributors: Tomasz Koziara */
 
@@ -28,8 +28,8 @@ SOFTWARE.
 
 /* restrain particle motion via velocities task */
 task void restrain_velocities_task (uniform int span, uniform int rstnum, uniform int rstpart[],
-  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
-  uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
+    uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
+    uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? rstnum: start+span;
@@ -41,8 +41,8 @@ task void restrain_velocities_task (uniform int span, uniform int rstnum, unifor
     REAL O[3] = {angular[0][j], angular[1][j], angular[2][j]};
     REAL o[3] = {angular[3][j], angular[4][j], angular[5][j]};
     REAL L[9] = {rotation[0][j], rotation[1][j], rotation[2][j],
-                 rotation[3][j], rotation[4][j], rotation[5][j],
-                 rotation[6][j], rotation[7][j], rotation[8][j]};
+      rotation[3][j], rotation[4][j], rotation[5][j],
+      rotation[6][j], rotation[7][j], rotation[8][j]};
     REAL l0[3] = {rstlin[0][i], rstlin[1][i], rstlin[2][i]};
     REAL l1[3] = {rstlin[3][i], rstlin[4][i], rstlin[5][i]};
     REAL l2[3] = {rstlin[6][i], rstlin[7][i], rstlin[8][i]};
@@ -91,8 +91,8 @@ task void restrain_velocities_task (uniform int span, uniform int rstnum, unifor
 
 /* restrain particle motion via forces task */
 task void restrain_forces_task (uniform int span, uniform int rstnum, uniform int rstpart[],
-  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+    uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
+    uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? rstnum: start+span;
@@ -135,8 +135,8 @@ task void restrain_forces_task (uniform int span, uniform int rstnum, uniform in
 
 /* restrain particle motion by adjusting velocities */
 export void restrain_velocities (uniform int ntasks, uniform int rstnum, uniform int rstpart[],
-  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
-  uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
+    uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
+    uniform REAL * uniform linear[3], uniform REAL * uniform angular[6], uniform REAL * uniform rotation[9])
 {
   launch [ntasks] restrain_velocities_task (rstnum/ntasks, rstnum, rstpart, rstlin, rstang, linear, angular, rotation);
 
@@ -145,8 +145,8 @@ export void restrain_velocities (uniform int ntasks, uniform int rstnum, uniform
 
 /* restrain particle motion by adjusting forces */
 export void restrain_forces (uniform int ntasks, uniform int rstnum, uniform int rstpart[],
-  uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
+    uniform REAL * uniform rstlin[9], uniform REAL * uniform rstang[9],
+    uniform REAL * uniform force[3], uniform REAL * uniform torque[3])
 {
   launch [ntasks] restrain_forces_task (rstnum/ntasks, rstnum, rstpart, rstlin, rstang, force, torque);
 

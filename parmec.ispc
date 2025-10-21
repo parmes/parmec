@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include "constants.h"
 #include "macros.h"
@@ -60,8 +60,8 @@ export void aligned_int_free (uniform int * uniform ptr)
 
 /* invert inertia properties */
 task void invert (uniform int span, uniform int size,
-                  uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
-                  uniform REAL mass[], uniform REAL invm[])
+    uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
+    uniform REAL mass[], uniform REAL invm[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? size: start+span;
@@ -74,7 +74,7 @@ task void invert (uniform int span, uniform int size,
     {
       a[j] = inertia[j][i];
     }
-    
+
     INVERT (a, x, det);
 
     cfor (int j = 0; j < 9; j ++)
@@ -88,7 +88,7 @@ task void invert (uniform int span, uniform int size,
 
 /* invert inertia properties */
 export void invert_inertia (uniform int ntasks, uniform int size, uniform REAL * uniform inertia[9],
-  uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[])
+    uniform REAL * uniform inverse[9], uniform REAL mass[], uniform REAL invm[])
 {
   uniform int num = ntasks;
   uniform int span = size / num;
@@ -102,8 +102,8 @@ export void invert_inertia (uniform int ntasks, uniform int size, uniform REAL *
 #if 0
 /* estimate critical time step */
 export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform int pairnum, uniform REAL * uniform iparam[NIPARAM],
-  uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform spring[2], uniform int spridx[],
-  uniform REAL * uniform dashpot[2], uniform int dashidx[])
+    uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform spring[2], uniform int spridx[],
+    uniform REAL * uniform dashpot[2], uniform int dashidx[])
 {
   uniform REAL kmax, emax, mmin, omax;
   uniform int j, sppmax;
@@ -142,7 +142,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
   delete spp;
 
   /* TODO: include spring inertia and points and calculate projected
-           point masses and more accurate critical steps per spring */
+     point masses and more accurate critical steps per spring */
 
   for (j = 0; j < sprnum; j ++) /* spring constraints */
   {
@@ -160,7 +160,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
     kmax = max(kspr, kmax);
 
     uniform REAL mspr = 0.0;
-    
+
     if (sprpart[1][j] == -1)
     {
       mspr = mass[sprpart[0][j]];
@@ -184,18 +184,18 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
       for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
       {
-	uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
+        uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
 
-	espr = max(abs(e), espr);
+        espr = max(abs(e), espr);
       }
 
       uniform REAL omega = sqrt(kspr/mspr);
 
       if (omega > 0.0)
       {
-	uniform REAL ratio = espr / (2*mspr*omega);
+        uniform REAL ratio = espr / (2*mspr*omega);
 
-	emax = max(ratio, emax);
+        emax = max(ratio, emax);
       }
     }
   }
@@ -222,7 +222,7 @@ export uniform REAL critical (uniform int parnum, uniform REAL mass[], uniform i
 
 /* Euler task */
 task void euler_task (uniform int span, uniform int parnum, uniform REAL * uniform angular[6],
-  uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
+    uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum : start+span;
@@ -273,8 +273,8 @@ task void euler_task (uniform int span, uniform int parnum, uniform REAL * unifo
 
 /* calculate per-particle cirtical time step estimates hcri[], circular frequency ocri[], and damping ratio rcri[]  */
 task void time_step_task (uniform int span, uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
-     uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6],
-     uniform REAL hcri[], uniform REAL ocri[], uniform REAL rcri[])
+    uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6],
+    uniform REAL hcri[], uniform REAL ocri[], uniform REAL rcri[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum : start+span;
@@ -386,7 +386,7 @@ task void time_step_task (uniform int span, uniform int parnum, uniform REAL mas
 
 /* explicit Euler step */
 export void euler (uniform int ntasks, uniform int parnum, uniform REAL * uniform angular[6],
-  uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
+    uniform REAL * uniform linear[3], uniform REAL * uniform rotation[9], uniform REAL * uniform position[3], uniform REAL step)
 {
   launch [ntasks] euler_task (parnum/ntasks, parnum, angular, linear, rotation, position, step);
 
@@ -395,8 +395,8 @@ export void euler (uniform int ntasks, uniform int parnum, uniform REAL * unifor
 
 /* calculate adaptive time step */
 export uniform REAL adaptive_timestep (uniform int ntasks, uniform int parnum, uniform REAL mass[],
-  uniform REAL * uniform inertia[9], uniform REAL * uniform kact[3], uniform REAL kmax[],
-  uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL curstep, uniform REAL adaptive)
+    uniform REAL * uniform inertia[9], uniform REAL * uniform kact[3], uniform REAL kmax[],
+    uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL curstep, uniform REAL adaptive)
 {
   uniform REAL * uniform hcri = uniform new uniform REAL [parnum];
 
@@ -421,7 +421,7 @@ export uniform REAL adaptive_timestep (uniform int ntasks, uniform int parnum, u
 
 /* calculate equivalent relative point mass */
 export uniform REAL eqm (uniform int part1, uniform REAL * uniform point1, uniform int part2, uniform REAL * uniform point2,
-  uniform REAL * uniform direction, uniform REAL * uniform inverse[9], uniform REAL invm[], uniform REAL * uniform position[3])
+    uniform REAL * uniform direction, uniform REAL * uniform inverse[9], uniform REAL invm[], uniform REAL * uniform position[3])
 {
   uniform REAL Jiv[9], im, A[3], Ask[9], tmp[9], Miv[9], mass;
 
@@ -483,9 +483,9 @@ export uniform REAL eqm (uniform int part1, uniform REAL * uniform point1, unifo
 
 /* calculate per-spring cirtical time step estimates hcri[], circular frequency ocri[], and damping ratio rcri[]  */
 export void critical_perspring (uniform int sprnum, uniform int * uniform sprpart[2], uniform REAL * uniform sprpnt[2][6],
-  uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2], uniform int spridx[], uniform REAL * uniform dashpot[2],
-  uniform int dashidx[], uniform REAL * uniform inverse[9], uniform REAL invm[], uniform REAL * uniform position[3],
-  uniform REAL hcri[], uniform REAL ocri[], uniform REAL rcri[])
+    uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2], uniform int spridx[], uniform REAL * uniform dashpot[2],
+    uniform int dashidx[], uniform REAL * uniform inverse[9], uniform REAL invm[], uniform REAL * uniform position[3],
+    uniform REAL hcri[], uniform REAL ocri[], uniform REAL rcri[])
 {
   for (uniform int j = 0; j < sprnum; j ++)
   {
@@ -527,9 +527,9 @@ export void critical_perspring (uniform int sprnum, uniform int * uniform sprpar
 
       for (uniform int i = dashidx[j]; i < dashidx[j+1]-1; i ++)
       {
-	uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
+        uniform REAL e = (dashpot[1][i+1]-dashpot[1][i]) / (dashpot[0][i+1]-dashpot[0][i]);
 
-	espr = max(abs(e), espr);
+        espr = max(abs(e), espr);
       }
 
       if (omega > 0.0) ksi = espr / (2*mspr*omega);
@@ -545,8 +545,8 @@ export void critical_perspring (uniform int sprnum, uniform int * uniform sprpar
 
 /* ciritical per-particle step contacts task */
 task void critical_perparticle_contacts (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[],
-  uniform int parnum, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
-  uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6])
+    uniform int parnum, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
+    uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
@@ -579,26 +579,26 @@ task void critical_perparticle_contacts (uniform int span, uniform master_conpnt
     {
       foreach (j = 0 ... m->size)
       {
-	a[0] = m->point[0][j]-po[0];
-	a[1] = m->point[1][j]-po[1];
-	a[2] = m->point[2][j]-po[2];
+        a[0] = m->point[0][j]-po[0];
+        a[1] = m->point[1][j]-po[1];
+        a[2] = m->point[2][j]-po[2];
 
-	kact0[0] += abs(m->normal[0][j]);
-	kact0[1] += abs(m->normal[1][j]);
-	kact0[2] += abs(m->normal[2][j]);
-	kcur = m->kcur[j];
-	kmax0 = max(kcur, kmax0);
-	ecur = m->ecur[j];
-	emax0 = max(ecur, emax0);
+        kact0[0] += abs(m->normal[0][j]);
+        kact0[1] += abs(m->normal[1][j]);
+        kact0[2] += abs(m->normal[2][j]);
+        kcur = m->kcur[j];
+        kmax0 = max(kcur, kmax0);
+        ecur = m->ecur[j];
+        emax0 = max(ecur, emax0);
 
-	NVMUL (L, a, A);
-	dot = DOT(A, A);
-	krot0[0] += dot - A[0]*A[0];
-	krot0[1] += dot - A[1]*A[1];
-	krot0[2] += dot - A[2]*A[2];
-	krot0[3] += -A[0]*A[1];
-	krot0[4] += -A[0]*A[2];
-	krot0[5] += -A[1]*A[2];
+        NVMUL (L, a, A);
+        dot = DOT(A, A);
+        krot0[0] += dot - A[0]*A[0];
+        krot0[1] += dot - A[1]*A[1];
+        krot0[2] += dot - A[2]*A[2];
+        krot0[3] += -A[0]*A[1];
+        krot0[4] += -A[0]*A[2];
+        krot0[5] += -A[1]*A[2];
       }
     }
 
@@ -606,36 +606,36 @@ task void critical_perparticle_contacts (uniform int span, uniform master_conpnt
     {
       foreach (j = 0 ... s->size)
       {
-	a[0] = s->point[0][j]-po[0];
-	a[1] = s->point[1][j]-po[1];
-	a[2] = s->point[2][j]-po[2];
+        a[0] = s->point[0][j]-po[0];
+        a[1] = s->point[1][j]-po[1];
+        a[2] = s->point[2][j]-po[2];
 
-	f[0] = s->force[0][j];
-	f[1] = s->force[1][j];
-	f[2] = s->force[2][j];
-	REAL len = LEN(f);
-	cif (len != 0.0)
-	{
-	  len = 1.0/len;
-	  SCALE (f,len);
-	}
-	else SET (f, 0.0);
-	kact0[0] += abs(f[0]);
-	kact0[1] += abs(f[1]);
-	kact0[2] += abs(f[2]);
-	kcur = s->kcur[j];
-	kmax0 = max(kcur, kmax0);
-	ecur = s->ecur[j];
-	emax0 = max(ecur, emax0);
+        f[0] = s->force[0][j];
+        f[1] = s->force[1][j];
+        f[2] = s->force[2][j];
+        REAL len = LEN(f);
+        cif (len != 0.0)
+        {
+          len = 1.0/len;
+          SCALE (f,len);
+        }
+        else SET (f, 0.0);
+        kact0[0] += abs(f[0]);
+        kact0[1] += abs(f[1]);
+        kact0[2] += abs(f[2]);
+        kcur = s->kcur[j];
+        kmax0 = max(kcur, kmax0);
+        ecur = s->ecur[j];
+        emax0 = max(ecur, emax0);
 
-	NVMUL (L, a, A);
-	dot = DOT(A, A);
-	krot0[0] += dot - A[0]*A[0];
-	krot0[1] += dot - A[1]*A[1];
-	krot0[2] += dot - A[2]*A[2];
-	krot0[3] += -A[0]*A[1];
-	krot0[4] += -A[0]*A[2];
-	krot0[5] += -A[1]*A[2];
+        NVMUL (L, a, A);
+        dot = DOT(A, A);
+        krot0[0] += dot - A[0]*A[0];
+        krot0[1] += dot - A[1]*A[1];
+        krot0[2] += dot - A[2]*A[2];
+        krot0[3] += -A[0]*A[1];
+        krot0[4] += -A[0]*A[2];
+        krot0[5] += -A[1]*A[2];
       }
     }
 
@@ -645,7 +645,7 @@ task void critical_perparticle_contacts (uniform int span, uniform master_conpnt
     krot[3][i] = reduce_add (krot0[3]);
     krot[4][i] = reduce_add (krot0[4]);
     krot[5][i] = reduce_add (krot0[5]);
-    
+
     kact[0][i] = reduce_add (kact0[0]);
     kact[1][i] = reduce_add (kact0[1]);
     kact[2][i] = reduce_add (kact0[2]);
@@ -657,10 +657,10 @@ task void critical_perparticle_contacts (uniform int span, uniform master_conpnt
 
 /* ciritical per-particle step springs task */
 task void critical_perparticle_springs (uniform int span, uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
-  uniform REAL * uniform inverse[9], uniform REAL invm[], uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
-  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2], uniform int spridx[],
-  uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[],
-  uniform REAL * uniform krot[6], uniform int lock[])
+    uniform REAL * uniform inverse[9], uniform REAL invm[], uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
+    uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2], uniform int spridx[],
+    uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform kact[3], uniform REAL kmax[], uniform REAL emax[],
+    uniform REAL * uniform krot[6], uniform int lock[])
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? sprnum: start+span;
@@ -758,25 +758,25 @@ task void critical_perparticle_springs (uniform int span, uniform REAL * uniform
     {
       if (sprflg[i] & SPRDIR_PLANAR)
       {
-	uniform REAL t1[3], t2[3];
-	COPY (d, t1);
+        uniform REAL t1[3], t2[3];
+        COPY (d, t1);
         t1[0] += 0.123;
-	t1[1] += 0.346;
-	t1[2] += 0.789;
-	PRODUCT (d, t1, t2);
-	uniform REAL l2 = LEN(t2);
-	uniform REAL i2 = 1.0/l2;
-	SCALE (t2, i2);
-	PRODUCT (t2, d, t1);
-	kact[0][i] += abs(t1[0]) + abs(t2[0]);
-	kact[1][i] += abs(t1[1]) + abs(t2[1]);
-	kact[2][i] += abs(t1[2]) + abs(t2[2]);
+        t1[1] += 0.346;
+        t1[2] += 0.789;
+        PRODUCT (d, t1, t2);
+        uniform REAL l2 = LEN(t2);
+        uniform REAL i2 = 1.0/l2;
+        SCALE (t2, i2);
+        PRODUCT (t2, d, t1);
+        kact[0][i] += abs(t1[0]) + abs(t2[0]);
+        kact[1][i] += abs(t1[1]) + abs(t2[1]);
+        kact[2][i] += abs(t1[2]) + abs(t2[2]);
       }
       else
       {
-	kact[0][i] += abs(d[0]);
-	kact[1][i] += abs(d[1]);
-	kact[2][i] += abs(d[2]);
+        kact[0][i] += abs(d[0]);
+        kact[1][i] += abs(d[1]);
+        kact[2][i] += abs(d[2]);
       }
     } 
     else
@@ -804,38 +804,38 @@ task void critical_perparticle_springs (uniform int span, uniform REAL * uniform
     if (k >= 0)
     {
       while (lock[k] != taskIndex)
-	atomic_compare_exchange_global (&lock[k], -1, taskIndex); /* lock access k data */
+        atomic_compare_exchange_global (&lock[k], -1, taskIndex); /* lock access k data */
 
       if (DOT (d,d) > 0.0)
       {
-	if (sprflg[k] & SPRDIR_PLANAR)
-	{
-	  uniform REAL t1[3], t2[3];
-	  COPY (d, t1);
-	  t1[0] += 0.123;
-	  t1[1] += 0.346;
-	  t1[2] += 0.789;
-	  PRODUCT (d, t1, t2);
-	  uniform REAL l2 = LEN(t2);
-	  uniform REAL i2 = 1.0/l2;
-	  SCALE (t2, i2);
-	  PRODUCT (t2, d, t1);
-	  kact[0][k] += abs(t1[0]) + abs(t2[0]);
-	  kact[1][k] += abs(t1[1]) + abs(t2[1]);
-	  kact[2][k] += abs(t1[2]) + abs(t2[2]);
-	}
-	else
-	{
-	  kact[0][k] += abs(d[0]);
-	  kact[1][k] += abs(d[1]);
-	  kact[2][k] += abs(d[2]);
-	}
+        if (sprflg[k] & SPRDIR_PLANAR)
+        {
+          uniform REAL t1[3], t2[3];
+          COPY (d, t1);
+          t1[0] += 0.123;
+          t1[1] += 0.346;
+          t1[2] += 0.789;
+          PRODUCT (d, t1, t2);
+          uniform REAL l2 = LEN(t2);
+          uniform REAL i2 = 1.0/l2;
+          SCALE (t2, i2);
+          PRODUCT (t2, d, t1);
+          kact[0][k] += abs(t1[0]) + abs(t2[0]);
+          kact[1][k] += abs(t1[1]) + abs(t2[1]);
+          kact[2][k] += abs(t1[2]) + abs(t2[2]);
+        }
+        else
+        {
+          kact[0][k] += abs(d[0]);
+          kact[1][k] += abs(d[1]);
+          kact[2][k] += abs(d[2]);
+        }
       } 
       else
       {
-	kact[0][k] += 1.0;
-	kact[1][k] += 1.0;
-	kact[2][k] += 1.0;
+        kact[0][k] += 1.0;
+        kact[1][k] += 1.0;
+        kact[2][k] += 1.0;
       }
 
       SUB (pk, xk, a);
@@ -858,26 +858,26 @@ task void critical_perparticle_springs (uniform int span, uniform REAL * uniform
 
 /* calculate per-particle cirtical time step estimates hcri[], circular frequency ocri[], and damping ratio rcri[]  */
 export uniform REAL critical_perparticle (uniform int ntasks,
-  uniform master_conpnt master[], uniform slave_conpnt slave[],
-  uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
-  uniform REAL invm[], uniform REAL * uniform inverse[9], uniform REAL * uniform rotation[9],
-  uniform REAL * uniform position[6], uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
-  uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2],
-  uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform kact[3],
-  uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL hcri[],
-  uniform REAL ocri[], uniform REAL rcri[])
+    uniform master_conpnt master[], uniform slave_conpnt slave[],
+    uniform int parnum, uniform REAL mass[], uniform REAL * uniform inertia[9],
+    uniform REAL invm[], uniform REAL * uniform inverse[9], uniform REAL * uniform rotation[9],
+    uniform REAL * uniform position[6], uniform int sprnum, uniform int sprflg[], uniform int * uniform sprpart[2],
+    uniform REAL * uniform sprpnt[2][6], uniform REAL * uniform sprdir[6], uniform REAL * uniform spring[2],
+    uniform int spridx[], uniform REAL * uniform dashpot[2], uniform int dashidx[], uniform REAL * uniform kact[3],
+    uniform REAL kmax[], uniform REAL emax[], uniform REAL * uniform krot[6], uniform REAL hcri[],
+    uniform REAL ocri[], uniform REAL rcri[])
 {
   /* process contacts and initialise krot, kact, kmax, emax */
   launch [ntasks] critical_perparticle_contacts (parnum/ntasks, master, slave, parnum,
-                                           rotation, position, kact, kmax, emax, krot);
+      rotation, position, kact, kmax, emax, krot);
   sync;
 
   /* process springs and update krot, kact, kmax, emax */
   uniform int * uniform lock = uniform new uniform int [parnum];
   foreach (i = 0 ... parnum) lock[i] = -1;
   launch [ntasks] critical_perparticle_springs (sprnum/ntasks, rotation, position, inverse,
-                             invm, sprnum, sprflg, sprpart, sprpnt, sprdir, spring, spridx,
-			     dashpot, dashidx, kact, kmax, emax, krot, lock);
+      invm, sprnum, sprflg, sprpart, sprpnt, sprdir, spring, spridx,
+      dashpot, dashidx, kact, kmax, emax, krot, lock);
   sync;
   delete lock;
 

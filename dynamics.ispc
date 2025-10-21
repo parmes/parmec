@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2015 Tomasz Koziara
+   Copyright (c) 2015 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include "constants.h"
 #include "macros.h"
@@ -28,12 +28,12 @@ SOFTWARE.
 
 /* dynamics task */
 task void dynamics_task (uniform int span, uniform master_conpnt master[], uniform slave_conpnt slave[],
-  uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
-  uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
-  uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
-  uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int flags[], uniform REAL step0, uniform REAL step1)
+    uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
+    uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
+    uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
+    uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
+    uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+    uniform int flags[], uniform REAL step0, uniform REAL step1)
 {
   uniform int start = taskIndex*span;
   uniform int end = taskIndex == taskCount-1 ? parnum: start+span;
@@ -170,15 +170,15 @@ task void dynamics_task (uniform int span, uniform master_conpnt master[], unifo
 
 /* update dynamics */
 export void dynamics (uniform int ntasks, uniform master_conpnt master[], uniform slave_conpnt slave[],
-  uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
-  uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
-  uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
-  uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
-  uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
-  uniform int flags[], uniform REAL step0, uniform REAL step1)
+    uniform int parnum, uniform REAL * uniform angular[6], uniform REAL * uniform linear[3],
+    uniform REAL * uniform rotation[9], uniform REAL * uniform position[6],
+    uniform REAL * uniform inertia[9], uniform REAL * uniform inverse[9],
+    uniform REAL mass[], uniform REAL invm[], uniform REAL damping[6],
+    uniform REAL * uniform force[3], uniform REAL * uniform torque[3],
+    uniform int flags[], uniform REAL step0, uniform REAL step1)
 {
   launch [ntasks] dynamics_task (parnum/ntasks, master, slave, parnum, angular, linear, rotation,
-    position, inertia, inverse, mass, invm, damping, force, torque, flags, step0, step1);
+      position, inertia, inverse, mass, invm, damping, force, torque, flags, step0, step1);
 
   sync;
 }

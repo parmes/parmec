@@ -1,26 +1,26 @@
 /*
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2016 Tomasz Koziara
+   Copyright (c) 2016 Tomasz Koziara
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+ */
 
 #include <limits.h>
 #include <float.h>
@@ -38,26 +38,26 @@ SOFTWARE.
 #define MEMCHUNK 128
 
 static int tet [][4] =  /* 1-based indexing as the element lists start with the number of nodes */
-  {{1,3,2,0},
-   {1,2,4,0},
-   {2,3,4,0},
-   {3,1,4,0}}, pyr [][4] = 
-  {{1,4,3,2},
-   {1,2,5,0},
-   {2,3,5,0},
-   {3,4,5,0},
-   {4,1,5,0}}, wed [][4] =
-  {{1,3,2,0},
-   {4,5,6,0},
-   {1,2,5,4},
-   {2,3,6,5},
-   {3,1,4,6}}, hex [][4] =
-  {{1,4,3,2},
-   {1,2,6,5},
-   {2,3,7,6},
-   {3,4,8,7},
-   {1,5,8,4},
-   {5,6,7,8}};
+{{1,3,2,0},
+  {1,2,4,0},
+  {2,3,4,0},
+  {3,1,4,0}}, pyr [][4] = 
+{{1,4,3,2},
+  {1,2,5,0},
+  {2,3,5,0},
+  {3,4,5,0},
+  {4,1,5,0}}, wed [][4] =
+{{1,3,2,0},
+  {4,5,6,0},
+  {1,2,5,4},
+  {2,3,6,5},
+  {3,1,4,6}}, hex [][4] =
+{{1,4,3,2},
+  {1,2,6,5},
+  {2,3,7,6},
+  {3,4,8,7},
+  {1,5,8,4},
+  {5,6,7,8}};
 
 /* maximal number of neighbours */
 inline static int neighs (int type)
@@ -81,8 +81,8 @@ inline static void swap (int *a, int *b)
 static void sort (int* begin, int* end)
 {
   int *lower = begin, *upper = end,
-    bound = *(begin+(end-begin)/2);
-  
+      bound = *(begin+(end-begin)/2);
+
   while (lower <= upper)
   {
     while (*lower < bound) lower++;
@@ -140,37 +140,37 @@ static void setup_face (ELEMENT *ele, int n, FACE *fac, int dosort)
       fac->nodes [1] = ele->nodes [tet [n][1]-1];
       fac->nodes [2] = ele->nodes [tet [n][2]-1];
       if (dosort) sort (fac->nodes, fac->nodes+2);
-    break;
+      break;
     case 5:
-    if (n == 0)
-    { fac->type = 4;
-      fac->nodes [0] = ele->nodes [pyr [n][0]-1];
-      fac->nodes [1] = ele->nodes [pyr [n][1]-1];
-      fac->nodes [2] = ele->nodes [pyr [n][2]-1];
-      fac->nodes [3] = ele->nodes [pyr [n][3]-1];
-      if (dosort) sort (fac->nodes, fac->nodes+3); }
-    else
-    { fac->type = 3;
-      fac->nodes [0] = ele->nodes [pyr [n][0]-1];
-      fac->nodes [1] = ele->nodes [pyr [n][1]-1];
-      fac->nodes [2] = ele->nodes [pyr [n][2]-1];
-      if (dosort) sort (fac->nodes, fac->nodes+2); }
-    break;
+      if (n == 0)
+      { fac->type = 4;
+        fac->nodes [0] = ele->nodes [pyr [n][0]-1];
+        fac->nodes [1] = ele->nodes [pyr [n][1]-1];
+        fac->nodes [2] = ele->nodes [pyr [n][2]-1];
+        fac->nodes [3] = ele->nodes [pyr [n][3]-1];
+        if (dosort) sort (fac->nodes, fac->nodes+3); }
+      else
+      { fac->type = 3;
+        fac->nodes [0] = ele->nodes [pyr [n][0]-1];
+        fac->nodes [1] = ele->nodes [pyr [n][1]-1];
+        fac->nodes [2] = ele->nodes [pyr [n][2]-1];
+        if (dosort) sort (fac->nodes, fac->nodes+2); }
+      break;
     case 6:
-    if (n < 2)
-    { fac->type = 3;
-      fac->nodes [0] = ele->nodes [wed [n][0]-1];
-      fac->nodes [1] = ele->nodes [wed [n][1]-1];
-      fac->nodes [2] = ele->nodes [wed [n][2]-1];
-      if (dosort) sort (fac->nodes, fac->nodes+2); }
-    else
-    { fac->type = 4;
-      fac->nodes [0] = ele->nodes [wed [n][0]-1];
-      fac->nodes [1] = ele->nodes [wed [n][1]-1];
-      fac->nodes [2] = ele->nodes [wed [n][2]-1];
-      fac->nodes [3] = ele->nodes [wed [n][3]-1];
-      if (dosort) sort (fac->nodes, fac->nodes+3); }
-    break;
+      if (n < 2)
+      { fac->type = 3;
+        fac->nodes [0] = ele->nodes [wed [n][0]-1];
+        fac->nodes [1] = ele->nodes [wed [n][1]-1];
+        fac->nodes [2] = ele->nodes [wed [n][2]-1];
+        if (dosort) sort (fac->nodes, fac->nodes+2); }
+      else
+      { fac->type = 4;
+        fac->nodes [0] = ele->nodes [wed [n][0]-1];
+        fac->nodes [1] = ele->nodes [wed [n][1]-1];
+        fac->nodes [2] = ele->nodes [wed [n][2]-1];
+        fac->nodes [3] = ele->nodes [wed [n][3]-1];
+        if (dosort) sort (fac->nodes, fac->nodes+3); }
+      break;
     case 8:
       fac->type = 4;
       fac->nodes [0] = ele->nodes [hex [n][0]-1];
@@ -178,7 +178,7 @@ static void setup_face (ELEMENT *ele, int n, FACE *fac, int dosort)
       fac->nodes [2] = ele->nodes [hex [n][2]-1];
       fac->nodes [3] = ele->nodes [hex [n][3]-1];
       if (dosort) sort (fac->nodes, fac->nodes+3);
-    break;
+      break;
   }
 }
 
@@ -202,7 +202,7 @@ static FACE* create_faces (MEM *facmem, MEM *mapmem, MAP **faces, ELEMENT *ele, 
   int n, m;
 
   m = neighs (ele->type); 
-      
+
   for (n = 0; n < m; n ++)
   {
     /* set up temporary face for to
@@ -227,7 +227,7 @@ static FACE* create_faces (MEM *facmem, MEM *mapmem, MAP **faces, ELEMENT *ele, 
       setup_face (ele, n, fac, 1);
       fac->index = n; /* local index */
       MAP_Insert (mapmem, faces, fac, /* map by the type/nodes key */
-	fac, face_compare);
+          fac, face_compare);
       fac->next = list;
       list = fac;
     }
@@ -260,27 +260,27 @@ static void element_char_add (MESH_DATA *msh, ELEMENT *ele, REAL *me, REAL *sx, 
 
   switch (ele->type)
   {
-  case 4:
-    nf = 4;
-    ver = tet;
-    nv[0] = nv[1] = nv[2] = nv[3] = 4;
-  break;
-  case 5:
-    nf = 5;
-    ver = pyr;
-    nv[0] = 4; nv[1] = nv[2] = nv[3] = nv[4] = 3;
-  break;
-  case 6:
-    nf = 5;
-    ver = wed;
-    nv[0] = nv[1] = 3; nv[2] = nv[3] = nv[4] = 4;
-  break;
-  case 8:
-    nf = 6;
-    ver = hex;
-    nv[0] = nv[1] = nv[2] = nv[3] = 
-    nv[4] = nv[5] = nv[6] = nv[7] = 4;
-  break;
+    case 4:
+      nf = 4;
+      ver = tet;
+      nv[0] = nv[1] = nv[2] = nv[3] = 4;
+      break;
+    case 5:
+      nf = 5;
+      ver = pyr;
+      nv[0] = 4; nv[1] = nv[2] = nv[3] = nv[4] = 3;
+      break;
+    case 6:
+      nf = 5;
+      ver = wed;
+      nv[0] = nv[1] = 3; nv[2] = nv[3] = nv[4] = 4;
+      break;
+    case 8:
+      nf = 6;
+      ver = hex;
+      nv[0] = nv[1] = nv[2] = nv[3] = 
+        nv[4] = nv[5] = nv[6] = nv[7] = 4;
+      break;
   }
 
   zero = msh->nodes[0];
@@ -327,7 +327,7 @@ MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces)
   FACE *fac, *cac, *gac, *flist;
   MAP *faces, *smap;
   MESH_DATA *msh;
-  
+
   maximal_node = 0;
   minimal_node = INT_MAX;
   elements_count = 0;
@@ -336,7 +336,7 @@ MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces)
   /* create mesh storage */
   ERRMEM (msh = static_cast<MESH_DATA*>(MEM_CALLOC (sizeof (MESH_DATA))));
   elemem = &msh->elemem;
- 
+
   /* calculate elements */ 
   for (eleptr = elements; eleptr [0]; eleptr += (eleptr [0]+2)) elements_count ++;
 
@@ -353,11 +353,11 @@ MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces)
   for (eleptr = elements; eleptr [0]; eleptr += (eleptr [0]+2))
   {
     ASSERT (
-      eleptr [0] == 4 || /* tetrahedron */
-      eleptr [0] == 5 || /* pyramid */
-      eleptr [0] == 6 || /* wedge */
-      eleptr [0] == 8,   /* hexahedron */
-      "ERROR: unsupported element type");
+        eleptr [0] == 4 || /* tetrahedron */
+        eleptr [0] == 5 || /* pyramid */
+        eleptr [0] == 6 || /* wedge */
+        eleptr [0] == 8,   /* hexahedron */
+        "ERROR: unsupported element type");
 
     ele = create_element (elemem, eleptr);
     flist = create_faces (&facmem, &mapmem, &faces, ele, flist);
@@ -392,11 +392,11 @@ MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces)
     if (minimal_node > 0) /* impose 0-based indexing */
     {
       for (temp = 0; temp < ele->type; temp ++)
-	ele->nodes [temp] -= minimal_node;
+        ele->nodes [temp] -= minimal_node;
     }
 
     ele->prev = NULL;
-   
+
     if (ele->neighs < neighs (ele->type)) /* surface element */
     {
       msh->surfeles_count ++;
@@ -415,14 +415,14 @@ MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces)
 
   /* create surfaces map => skip first element of 'surfaces' == the global surface kind */
   for (eleptr = (surfaces + 1), smap = NULL, temp = 0;
-    eleptr [0]; eleptr += (eleptr [0]+2), temp ++)
+      eleptr [0]; eleptr += (eleptr [0]+2), temp ++)
   {
     fac = static_cast<FACE*>(MEM_Alloc (&facmem));
-    
+
     ASSERT (
-      eleptr [0] == 3 || /* triangle */
-      eleptr [0] == 4,   /* quad */
-      "ERROR: unsupported face type");
+        eleptr [0] == 3 || /* triangle */
+        eleptr [0] == 4,   /* quad */
+        "ERROR: unsupported face type");
 
     fac->type = eleptr [0];
     for (n = 0; n < eleptr [0]; n ++)
@@ -431,14 +431,14 @@ MESH_DATA* MESH_Create (REAL (*nodes) [3], int *elements, int *surfaces)
 
     fac->color = eleptr [eleptr [0] + 1];
     MAP_Insert (&mapmem, &smap, fac, /* map by the type/nodes key */
-      fac, face_compare);
+        fac, face_compare);
   }
 
   /* set up nodes */
   for (temp = minimal_node,
-       node = msh->nodes;
-       temp <= maximal_node;
-       temp ++, node ++)
+      node = msh->nodes;
+      temp <= maximal_node;
+      temp ++, node ++)
   {
     COPY (nodes [temp], *node);
   }
